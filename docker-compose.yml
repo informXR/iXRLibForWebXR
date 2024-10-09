@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  ixrlibforwebxr:
+    container_name: ixrlibforwebxr
+    build:
+      context: .
+      dockerfile: Dockerfile
+    #ports:
+    #  - "3000:3000"
+    #  - "3001:3001"
+    restart: always
+    env_file:
+      - .env
+    command: ["--prod"]
+    #### DEV ONLY START ####
+    #volumes:
+    #  - ./src:/opt/informxr/src
+    #  - ./shell:/opt/informxr/shell
+    #  - ./samples:/opt/informxr/samples
+    #  - ./iXRLibForWebXR:/opt/informxr/iXRLibForWebXR
+    #### DEV ONLY END ####
