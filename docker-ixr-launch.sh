@@ -80,8 +80,7 @@ else
         echo "Launch mode: PROD..."
         cd /opt/informxr/shell 
         ./packagelib.sh
-        cd /opt/informxr
-        #echo "Keeping the process open. Use 'docker exec' to run commands if needed."
-        #tail -f /dev/null
+        echo "Package published successfully. Exiting."
+        exit 0
     fi
 fi

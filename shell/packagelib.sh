@@ -18,9 +18,28 @@ if ! command_exists npm; then
     exit 1
 fi
 
-# Bump the version in the main package.json
-echo "Bumping patch version..."
-npm version patch --force
+# Function to get the latest published version
+get_latest_version() {
+    npm view $1 version 2>/dev/null || echo "0.0.0"
+}
+
+# Find the package.json file
+PACKAGE_JSON_PATH=$(find ../ -name package.json | head -n 1)
+
+if [ -z "$PACKAGE_JSON_PATH" ]; then
+    echo "Error: package.json not found"
+    exit 1
+fi
+
+# Get the package name from package.json
+PACKAGE_NAME=$(node -p "require('$PACKAGE_JSON_PATH').name")
+
+# Get the latest published version
+LATEST_VERSION=$(get_latest_version $PACKAGE_NAME)
+
+# Bump the version based on the latest published version
+echo "Fetching latest published version and bumping patch..."
+npm version --no-git-tag-version --allow-same-version patch
 
 # Clean up previous build
 echo "Cleaning up previous build..."
