@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# IXR LIB PUBLISH SCRIPT
+# iXR LIB PUBLISH SCRIPT
 # Script to prepare and publish an npm package
 
 
@@ -48,7 +48,7 @@ node -e "
     const pkg = require('./iXRLibForWebXR/package.json');
     delete pkg.devDependencies;
     delete pkg.scripts;
-    pkg.main = 'src/IXR.js';
+    pkg.main = 'src/iXR.js';
     pkg.types = 'test.js';
     require('fs').writeFileSync('./iXRLibForWebXR/package.json', JSON.stringify(pkg, null, 2));
 "

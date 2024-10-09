@@ -22,7 +22,7 @@ export interface AuthDataWithRequiredAppId {
   geolocation?: any; 
 }
 
-export interface IXRInstance {
+export interface iXRInstance {
   Event: (name: string, metaString: string) => Promise<ApiResponse<{ status: string }>>;
   LogInfo: (message: string) => Promise<ApiResponse<{ status: string }>>;
   LogError: (message: string) => Promise<ApiResponse<{ status: string }>>;
@@ -64,10 +64,10 @@ async function getUserIPFallback(): Promise<string> {
   return '0.0.0.0'; // Fallback IP address for non-browser environments
 }
 
-export async function createIXR(authData: AuthDataWithRequiredAppId): Promise<IXRInstance> {
+export async function iXRInit(authData: AuthDataWithRequiredAppId): Promise<iXRInstance> {
   try {
     if (!authData.appId) {
-      throw new Error('appId is required and must be provided directly to createIXR');
+      throw new Error('appId is required and must be provided directly to iXRInit');
     }
 
     const urlAuthData = await getAuthDataFromUrl();
@@ -119,7 +119,7 @@ export async function createIXR(authData: AuthDataWithRequiredAppId): Promise<IX
       try {
         await authController.login(fullAuthData);
       } catch (error) {
-        logError('Initializing IXRLib', error);
+        logError('Initializing iXRLib', error);
       }
     }
 
@@ -402,7 +402,7 @@ export async function createIXR(authData: AuthDataWithRequiredAppId): Promise<IX
 
     await initialize(); // Wait for initialization to complete
 
-    const ixrInstance: IXRInstance = {
+    const iXRInstance: iXRInstance = {
       Event,
       LogInfo,
       LogError,
@@ -428,9 +428,9 @@ export async function createIXR(authData: AuthDataWithRequiredAppId): Promise<IX
       GetAllStorageEntries
     };
 
-    return ixrInstance;
+    return iXRInstance;
   } catch (error) {
-    logError('Creating IXR instance', error);
+    logError('Creating iXR instance', error);
     throw error;
   }
 }

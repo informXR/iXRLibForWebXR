@@ -1,4 +1,4 @@
-const { createIXR } = require('ixrlibforwebxr');
+const { iXRInit } = require('iXRlibforwebxr');
 
 async function main() {
   // Simulate GET request parameters
@@ -14,33 +14,33 @@ async function main() {
     window.history.pushState({}, '', `${window.location.pathname}?${urlParams.toString()}`);
   }
 
-  // Pass appId directly to createIXR
-  const ixr = await createIXR({
+  // Pass appId directly to iXRInit
+  const iXR = await iXRInit({
     appId: 'update-with-valid-appid'
   });
 
-  //ixr.setAPIBaseURL('https://dev-libapi.informxr.io/');
+  //iXR.setAPIBaseURL('https://dev-libapi.informxr.io/');
 
-  // After creating the IXR instance
-  console.log('IXR instance created:', ixr);
+  // After creating the iXR instance
+  console.log('iXR instance created:', iXR);
 
-  // You could also add a method to IXR to get the current auth data for verification
-  if (ixr.getAuthData) {
-    console.log('Current auth data:', await ixr.getAuthData());
+  // You could also add a method to iXR to get the current auth data for verification
+  if (iXR.getAuthData) {
+    console.log('Current auth data:', await iXR.getAuthData());
   }
 
-  // Test various IXR methods
+  // Test various iXR methods
   try {
     // Log an event
-    await ixr.Event('user_action', 'action=click,target=button');
+    await iXR.Event('user_action', 'action=click,target=button');
     console.log('Event logged successfully');
 
     // Log info
-    await ixr.LogInfo('User completed onboarding');
+    await iXR.LogInfo('User completed onboarding');
     console.log('Info logged successfully');
 
     // Send telemetry data
-    await ixr.Telemetry('performance_metrics', { fps: 60, latency: 20 });
+    await iXR.Telemetry('performance_metrics', { fps: 60, latency: 20 });
     console.log('Telemetry sent successfully');
 
     // Test other methods as needed

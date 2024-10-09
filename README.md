@@ -13,7 +13,7 @@ npm install ixrlibforwebxr
 ## Quick Start
 
 ```typescript
-import { createIXR } from 'ixrlibforwebxr';
+import { iXRInit } from 'ixrlibforwebxr';
 
 async function main() {
   const authData = {
@@ -23,16 +23,16 @@ async function main() {
     authSecret: 'your-auth-secret'
   };
 
-  const ixr = await createIXR(authData);
+  const iXR = await iXRInit(authData);
 
   // Log an event
-  await ixr.Event('user_action', 'action=click,target=button');
+  await iXR.Event('user_action', 'action=click,target=button');
 
   // Log info
-  await ixr.LogInfo('User completed onboarding');
+  await iXR.LogInfo('User completed onboarding');
 
   // Send telemetry data
-  await ixr.Telemetry('performance_metrics', { fps: 60, latency: 20 });
+  await iXR.Telemetry('performance_metrics', { fps: 60, latency: 20 });
 }
 
 main();
@@ -49,11 +49,11 @@ main();
 
 ## API Reference
 
-### createIXR(authData: AuthenticationRequestSchema): Promise<IXRInstance>
+### iXRInit(authData: AuthenticationRequestSchema): Promise<iXRInstance>
 
-Creates and initializes an IXR instance.
+Creates and initializes an iXR instance.
 
-### IXRInstance Methods
+### iXRInstance Methods
 
 - `Event(name: string, metaString: string): Promise<ApiResponse<{ status: string }>>`
 - `LogInfo(message: string): Promise<ApiResponse<{ status: string }>>`
@@ -69,7 +69,7 @@ Creates and initializes an IXR instance.
 
 ## Authentication
 
-To use iXRLibForWebXR, you need to provide authentication data when creating an IXR instance. The required fields are:
+To use iXRLibForWebXR, you need to provide authentication data when creating an iXR instance. The required fields are:
 
 - `appId`: Your application ID
 - `orgId`: Your organization ID
@@ -83,7 +83,7 @@ Optional fields include `userId`, `tags`, `sessionId`, `partner`, `ipAddress`, `
 Use the `Event` method to track user actions and custom events:
 
 ```typescript
-await ixr.Event('button_click', 'action=submit,page=checkout');
+await iXR.Event('button_click', 'action=submit,page=checkout');
 ```
 
 ## Logging
@@ -91,9 +91,9 @@ await ixr.Event('button_click', 'action=submit,page=checkout');
 iXRLibForWebXR provides three logging levels:
 
 ```typescript
-await ixr.LogInfo('User logged in successfully');
-await ixr.LogWarning('Low storage space detected');
-await ixr.LogError('Failed to process payment');
+await iXR.LogInfo('User logged in successfully');
+await iXR.LogWarning('Low storage space detected');
+await iXR.LogError('Failed to process payment');
 ```
 
 ## Telemetry
@@ -101,7 +101,7 @@ await ixr.LogError('Failed to process payment');
 Send custom telemetry data using the `Telemetry` method:
 
 ```typescript
-await ixr.Telemetry('performance_metrics', { fps: 60, memory_usage: 512 });
+await iXR.Telemetry('performance_metrics', { fps: 60, memory_usage: 512 });
 ```
 
 ## AI/LLM Integration
@@ -109,7 +109,7 @@ await ixr.Telemetry('performance_metrics', { fps: 60, memory_usage: 512 });
 Use the `AIProxy` method to interact with AI language models:
 
 ```typescript
-const response = await ixr.AIProxy('Translate "Hello" to French', 'gpt-3.5-turbo');
+const response = await iXR.AIProxy('Translate "Hello" to French', 'gpt-3.5-turbo');
 ```
 
 ## Data Storage
@@ -117,13 +117,13 @@ const response = await ixr.AIProxy('Translate "Hello" to French', 'gpt-3.5-turbo
 Store and retrieve custom data:
 
 ```typescript
-await ixr.StoreData('user_progress', { level: 5, score: 1000 }, 'keepLatest');
-const data = await ixr.GetData({ name: 'user_progress' });
+await iXR.StoreData('user_progress', { level: 5, score: 1000 }, 'keepLatest');
+const data = await iXR.GetData({ name: 'user_progress' });
 ```
 
 ## Best Practices
 
-1. Initialize the IXR instance early in your application lifecycle.
+1. Initialize the iXR instance early in your application lifecycle.
 2. Use meaningful event names and metadata for better analytics.
 3. Handle errors gracefully, especially for network-dependent operations.
 4. Use appropriate log levels (Info, Warning, Error) for different scenarios.

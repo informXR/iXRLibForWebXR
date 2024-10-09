@@ -1,7 +1,7 @@
 {
   "name": "ixrlibforwebxr",
   "version": "1.0.0",
-  "main": "build/src/IXR.js",
+  "main": "build/src/iXR.js",
   "types": "build/src/main.d.ts",
   "description": "iXRLibWebForXR for node (npm)",
   "scripts": {

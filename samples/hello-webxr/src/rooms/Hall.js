@@ -146,7 +146,7 @@ export function enter(ctx) {
   paintings.enter(ctx);
   panoballs.enter(ctx);
 
-  // ctx.ixr.Event('enter_hall', 'first_time=' + (ctx.hallVisited ? 'false' : 'true'));
+  // ctx.iXR.Event('enter_hall', 'first_time=' + (ctx.hallVisited ? 'false' : 'true'));
   ctx.hallVisited = true;
 }
 
@@ -179,7 +179,7 @@ export function execute(ctx, delta, time) {
   // Log user position every 10 seconds
   if (Math.floor(time) % 10 === 0) {
     const position = ctx.camera.position;
-    // ctx.ixr.LogInfo(`User position in hall: x=${position.x.toFixed(2)}, y=${position.y.toFixed(2)}, z=${position.z.toFixed(2)}`);
+    // ctx.iXR.LogInfo(`User position in hall: x=${position.x.toFixed(2)}, y=${position.y.toFixed(2)}, z=${position.z.toFixed(2)}`);
   }
 }
 

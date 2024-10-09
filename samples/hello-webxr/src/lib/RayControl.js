@@ -224,7 +224,7 @@ export default class RayControl extends EventDispatcher {
         }
       });
 
-      // this.context.ixr.Event('interaction_start', `controller=${evt.target.id},type=${this.currentStates[0].name}`);
+      // this.context.iXR.Event('interaction_start', `controller=${evt.target.id},type=${this.currentStates[0].name}`);
     }
   }
 
@@ -366,7 +366,7 @@ export default class RayControl extends EventDispatcher {
         }
       });
 
-      // this.context.ixr.Event('interaction_end', `controller=${evt.target.id},type=${this.currentStates[0].name}`);
+      // this.context.iXR.Event('interaction_end', `controller=${evt.target.id},type=${this.currentStates[0].name}`);
     }
 
     controllerData.active = false;

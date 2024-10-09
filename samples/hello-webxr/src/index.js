@@ -36,7 +36,7 @@ import {shaders} from './lib/shaders.js';
 import WebXRPolyfill from 'webxr-polyfill';
 const polyfill = new WebXRPolyfill();
 
-import { createIXR } from 'ixrlibforwebxr';
+import { iXRInit } from 'ixrlibforwebxr';
 
 var clock = new THREE.Clock();
 
@@ -109,9 +109,9 @@ const targetPositions = {
   }
 };
 
-let ixr;
+let iXR;
 
-async function initIXR() {
+async function init_iXR() {
   const authData = {
     appId: 'update-with-valid-appid',
     orgId: 'get-the-org-id-from-informxr-io',
@@ -119,11 +119,11 @@ async function initIXR() {
     authSecret: 'ChangeThisToYourAuthSecret'
   };
 
-  ixr = await createIXR(authData);
+  iXR = await iXRInit(authData);
 }
 
 export async function init() {
-  await initIXR();
+  await init_iXR();
   
   document.getElementById(handedness + 'hand').classList.add('activehand');
 
@@ -270,7 +270,7 @@ export async function init() {
   debug);
 
   // Log app start event
-  // await ixr.Event('app_start', 'version=1.0.0');
+  // await iXR.Event('app_start', 'version=1.0.0');
 }
 
 function setupControllers() {
@@ -369,7 +369,7 @@ function gotoRoom(room) {
   rooms[context.room].enter(context);
 
   // Log room change event
-  // ixr.Event('room_change', `prev=${prevRoom},next=${nextRoom}`);
+  // iXR.Event('room_change', `prev=${prevRoom},next=${nextRoom}`);
 }
 
 function playMusic(room) {
@@ -427,7 +427,7 @@ function animate() {
 
   // Send telemetry data every 5 seconds
   if (Math.floor(elapsedTime) % 5 === 0) {
-    ixr.Telemetry('performance_metrics', { 
+    iXR.Telemetry('performance_metrics', { 
       fps: 1 / delta, 
       memory: performance.memory ? performance.memory.usedJSHeapSize : 0
     });
