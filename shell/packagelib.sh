@@ -3,7 +3,6 @@
 # iXR LIB PUBLISH SCRIPT
 # Script to prepare and publish an npm package
 
-
 # Exit immediately if a command exits with a non-zero status
 set -e
 
@@ -20,26 +19,50 @@ fi
 
 # Function to get the latest published version
 get_latest_version() {
-    npm view $1 version 2>/dev/null || echo "0.0.0"
+    local package_name="$1"
+    npm view "$package_name" version 2>/dev/null || echo "0.0.0"
 }
 
-# Find the package.json file
-PACKAGE_JSON_PATH=$(find ../ -name package.json | head -n 1)
+# Find the correct package.json file (not in node_modules)
+PACKAGE_JSON_PATH=$(find /opt/informxr -maxdepth 2 -name package.json | grep -v "node_modules" | head -n 1)
 
 if [ -z "$PACKAGE_JSON_PATH" ]; then
     echo "Error: package.json not found"
     exit 1
 fi
 
+# Get the directory containing package.json
+PACKAGE_DIR=$(dirname "$PACKAGE_JSON_PATH")
+
+# Change to the directory containing package.json
+cd "$PACKAGE_DIR"
+
 # Get the package name from package.json
-PACKAGE_NAME=$(node -p "require('$PACKAGE_JSON_PATH').name")
+PACKAGE_NAME=$(node -p "require('./package.json').name")
+
+# Verify the package name
+if [ "$PACKAGE_NAME" != "ixrlibforwebxr" ]; then
+    echo "Error: Expected package name 'ixrlibforwebxr', but found '$PACKAGE_NAME'"
+    echo "Please correct the package name in package.json"
+    exit 1
+fi
 
 # Get the latest published version
-LATEST_VERSION=$(get_latest_version $PACKAGE_NAME)
+LATEST_VERSION=$(get_latest_version "$PACKAGE_NAME")
 
-# Bump the version based on the latest published version
-echo "Fetching latest published version and bumping patch..."
-npm version --no-git-tag-version --allow-same-version patch
+# Parse the version components
+IFS='.' read -r major minor patch <<< "$LATEST_VERSION"
+
+# Increment the patch version
+new_patch=$((patch + 1))
+
+# Construct the new version
+NEW_VERSION="${major}.${minor}.${new_patch}"
+
+echo "New version will be: $NEW_VERSION"
+
+# Update package.json with the new version
+npm version --no-git-tag-version --allow-same-version "$NEW_VERSION"
 
 # Clean up previous build
 echo "Cleaning up previous build..."
@@ -52,26 +75,22 @@ npm run build
 # Copy necessary files to dist folder
 echo "Copying package files..."
 
-cd ..
 # Create a new directory for the package
-mkdir -p iXRLibForWebXR
+mkdir -p ../iXRLibForWebXR
 
-# Print current directory for debugging
-pwd
-
-cp -R package.json README.md LICENSE build/ iXRLibForWebXR
+# Copy files to the new directory
+cp -R package.json README.md LICENSE build/ ../iXRLibForWebXR
 
 # Remove development dependencies and scripts from package.json in dist
 echo "Updating package.json for distribution..."
 node -e "
-    const pkg = require('./iXRLibForWebXR/package.json');
+    const pkg = require('../iXRLibForWebXR/package.json');
     delete pkg.devDependencies;
     delete pkg.scripts;
     pkg.main = 'src/iXR.js';
-    pkg.types = 'test.js';
-    require('fs').writeFileSync('./iXRLibForWebXR/package.json', JSON.stringify(pkg, null, 2));
+    pkg.types = 'src/iXR.d.ts';
+    require('fs').writeFileSync('../iXRLibForWebXR/package.json', JSON.stringify(pkg, null, 2));
 "
-
 
 # Check for NPM_TOKEN environment variable
 if [ -z "$NPM_TOKEN" ]; then
@@ -80,29 +99,21 @@ if [ -z "$NPM_TOKEN" ]; then
     exit 1
 fi
 
-# Remove the npm login check and replace with token-based authentication
+# Use token-based authentication
 echo "Using npm access token for authentication..."
 npm config set //registry.npmjs.org/:_authToken="${NPM_TOKEN}"
 
 # Navigate to build directory
-cd iXRLibForWebXR
+cd ../iXRLibForWebXR
 
-# Check for --no-publish parameter
-if [[ "$*" == *"--no-publish"* ]]; then
-    echo "Package prepared but not published. You can publish later using 'npm publish' in the iXRLibForWebXR directory."
-else
-    echo "Publishing to npm..."
-    npm publish --access public
-    if [ $? -eq 0 ]; then
-        echo "Package published successfully!"
-    else
-        echo "Failed to publish package. Please check your npm access token and try again."
-    fi
-fi
+# Publish the package
+echo "Publishing version $NEW_VERSION to npm..."
+npm publish --access public
 
 # Clean up - remove the token from npm config
 npm config delete //registry.npmjs.org/:_authToken
 
-# Return to root directory
-cd ..
-echo "Package preparation complete!"
+# Return to original directory
+cd "$PACKAGE_DIR"
+
+echo "Package published successfully!"
