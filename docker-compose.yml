@@ -20,7 +20,3 @@ services:
     #  - ./samples:/opt/informxr/samples
     #  - ./iXRLibForWebXR:/opt/informxr/iXRLibForWebXR
     #### DEV ONLY END ####
-    deploy:
-      replicas: 0
-      restart_policy:
-        condition: none
