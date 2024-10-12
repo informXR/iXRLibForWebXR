@@ -135,4 +135,4 @@ For issues, feature requests, or questions, please open an issue on our GitHub r
 
 ## License
 
-Apache-2.0
+Apache 2.0
