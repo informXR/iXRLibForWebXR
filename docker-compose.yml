@@ -9,7 +9,7 @@ services:
     #ports:
     #  - "3000:3000"
     #  - "3001:3001"
-    #restart: always
+    restart: no
     env_file:
       - .env
     command: ["--prod"]
@@ -20,3 +20,7 @@ services:
     #  - ./samples:/opt/informxr/samples
     #  - ./iXRLibForWebXR:/opt/informxr/iXRLibForWebXR
     #### DEV ONLY END ####
+    deploy:
+      replicas: 0
+      restart_policy:
+        condition: none
