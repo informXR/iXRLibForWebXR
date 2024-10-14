@@ -1,6 +1,10 @@
-const express = require('express');
-const path = require('path');
-const url = require('url');
+import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 const port = process.env.PORT || 6001;
@@ -15,16 +19,15 @@ app.use((req, res, next) => {
   };
 
   // Parse the existing query parameters
-  const parsedUrl = url.parse(req.url, true);
+  const url = new URL(req.url, `http://${req.headers.host}`);
   
   // Merge the simulated parameters with existing ones
-  const newQuery = { ...simulatedParams, ...parsedUrl.query };
+  for (const [key, value] of Object.entries(simulatedParams)) {
+    url.searchParams.set(key, value);
+  }
   
-  // Reconstruct the URL with the new query parameters
-  req.url = url.format({
-    pathname: parsedUrl.pathname,
-    query: newQuery
-  });
+  // Update the request URL
+  req.url = url.pathname + url.search;
 
   next();
 });

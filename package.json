@@ -2,12 +2,12 @@
   "name": "ixrlibforwebxr",
   "version": "1.0.0",
   "main": "build/src/iXR.js",
-  "types": "build/src/network/types.d.ts",
+  "types": "build/src/iXR.d.ts",
   "description": "iXRLibWebForXR for node (npm)",
   "scripts": {
     "test-package": "npm link ixrlib",
     "login": "npm login",
-    "build": "npx tsc",
+    "build": "tsc",
     "ts-watch": "npx tsc -w",
     "publish": "npm publish",
     "lint": "gts lint",
@@ -30,5 +30,10 @@
     "axios": "^1.7.5",
     "jsonwebtoken": "^9.0.2",
     "localStorage": "^1.0.4"
-  }
+  },
+  "files": [
+    "build/**/*",
+    "README.md",
+    "LICENSE"
+  ]
 }
