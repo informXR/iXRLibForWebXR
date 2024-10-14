@@ -27,10 +27,10 @@ async function main(): Promise<void> {
   try {
     // Simulate GET request parameters
     const urlParams = new URLSearchParams({
-      xrdm_orgid: 'get-the-org-id-from-informxr-io',
+      xrdm_orgid: '5304ef74-423f-4bd4-87d9-cba4f19c3bdb',
       xrdm_deviceid: 'iXRLibForWebXR_device_id',
       xrdm_devicemodel: 'iXRLibForWebXR_device_model',
-      xrdm_authsecret: 'ChangeThisToYourAuthSecret'
+      xrdm_authsecret: 'vEwWpJs5K2Kib3XeWBhXgQnQr43XNJCSyb5QJoGCU5ec590hFyb63vBSx6dX6Clj'
     });
   
     // Set the URL for testing
@@ -39,7 +39,7 @@ async function main(): Promise<void> {
   
     // Pass appId directly to iXRInit
     const iXR = await iXRInit({
-      appId: 'update-with-valid-appid',
+      appId: '471fd6fd-f5d0-4096-bc0c-17100c1c4fa0',
     });
 
     console.log('iXR instance created successfully');
