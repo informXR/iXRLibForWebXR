@@ -81,6 +81,10 @@ mkdir -p ../iXRLibForWebXR
 # Copy files to the new directory
 cp -R package.json README.md LICENSE index.js index.d.ts build/ ../iXRLibForWebXR
 
+# Ensure the network folder is copied
+mkdir -p ../iXRLibForWebXR/network
+cp -R build/src/network ../iXRLibForWebXR/
+
 # Remove development dependencies and scripts from package.json in dist
 echo "Updating package.json for distribution..."
 node -e "

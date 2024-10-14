@@ -17,7 +17,7 @@
     "prepare": "npm run compile",
     "pretest": "npm run compile",
     "posttest": "npm run lint",
-    "copy-files": "cp build/src/iXR.js index.js && cp build/src/iXR.d.ts index.d.ts"
+    "copy-files": "cp build/src/iXR.js index.js && cp build/src/iXR.d.ts index.d.ts && cp -R build/src/network ."
   },
   "author": "informXR",
   "license": "ISC",
