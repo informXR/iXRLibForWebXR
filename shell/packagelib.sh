@@ -75,20 +75,16 @@ mkdir -p ixrlibforwebxr
 
 # Copy necessary files to the package directory
 echo "Copying package files..."
+mkdir -p ixrlibforwebxr
 cp -R build/src/* ixrlibforwebxr/
 cp package.json README.md LICENSE ixrlibforwebxr/
 
-# Remove the build/src directory structure
-mv ixrlibforwebxr/build/src/* ixrlibforwebxr/
-rm -rf ixrlibforwebxr/build
+# Rename iXR.js to index.js and iXR.d.ts to index.d.ts
+mv ixrlibforwebxr/iXR.js ixrlibforwebxr/index.js
+mv ixrlibforwebxr/iXR.d.ts ixrlibforwebxr/index.d.ts
 
-# Ensure the network folder is copied
-if [ -d "build/src/network" ]; then
-    echo "Copying network folder..."
-    cp -R build/src/network ixrlibforwebxr/
-else
-    echo "Warning: network folder not found in build/src/"
-fi
+# Remove the build directory
+rm -rf build
 
 # Update package.json in the new directory
 echo "Updating package.json for distribution..."
@@ -96,9 +92,10 @@ node -e "
     const pkg = require('./ixrlibforwebxr/package.json');
     delete pkg.devDependencies;
     delete pkg.scripts;
-    pkg.main = 'iXR.js';
-    pkg.types = 'iXR.d.ts';
-    pkg.files = ['iXR.js', 'iXR.d.ts', 'network/**/*', 'README.md', 'LICENSE'];
+    pkg.main = 'index.js';
+    pkg.types = 'index.d.ts';
+    pkg.files = ['index.js', 'index.d.ts', 'network/**/*', 'README.md', 'LICENSE'];
+    pkg.version = '$NEW_VERSION';
     require('fs').writeFileSync('./ixrlibforwebxr/package.json', JSON.stringify(pkg, null, 2));
 "
 
