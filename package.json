@@ -1,8 +1,8 @@
 {
   "name": "ixrlibforwebxr",
   "version": "1.0.0",
-  "main": "iXR.js",
-  "types": "iXR.d.ts",
+  "main": "index.js",
+  "types": "index.d.ts",
   "description": "iXRLibWebForXR for node (npm)",
   "scripts": {
     "test-package": "npm link ixrlib",
@@ -32,8 +32,8 @@
     "localStorage": "^1.0.4"
   },
   "files": [
-    "iXR.js",
-    "iXR.d.ts",
+    "index.js",
+    "index.d.ts",
     "network/**/*",
     "README.md",
     "LICENSE"
