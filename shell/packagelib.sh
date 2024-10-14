@@ -79,6 +79,10 @@ mkdir -p ixrlibforwebxr
 cp -R build/src/* ixrlibforwebxr/
 cp package.json README.md LICENSE ixrlibforwebxr/
 
+# Remove the image section from README.md
+echo "Removing image section from README.md..."
+sed -i '/^### Organization ID and Authorization Secret Location - Web App/,/^### Application ID Location - Web App/d' ixrlibforwebxr/README.md
+
 # Rename iXR.js to index.js and iXR.d.ts to index.d.ts
 mv ixrlibforwebxr/iXR.js ixrlibforwebxr/index.js
 mv ixrlibforwebxr/iXR.d.ts ixrlibforwebxr/index.d.ts
