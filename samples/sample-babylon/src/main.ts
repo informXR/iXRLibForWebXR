@@ -11,7 +11,7 @@ import { Scene } from "@babylonjs/core/scene.js";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial.js";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector.js";
 import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperience.js";
-import { iXRInit, iXRInstance } from "ixrlibforwebxr/build/src/iXR";
+import { iXRInit, iXRInstance } from "ixrlibforwebxr";
 
 // Required for EnvironmentHelper
 import "@babylonjs/core/Materials/Textures/Loaders";
