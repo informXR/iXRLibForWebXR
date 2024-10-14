@@ -42,7 +42,7 @@ export const createApiClient = (authData: AuthenticationRequestSchema, customUrl
     : null;
 
   const setHeadersFromCurrentState = async (config: InternalAxiosRequestConfig): Promise<void> => {
-    logInfo('Setting headers', 'Setting API headers', { apiToken, apiSecret });
+    logInfo('Setting headers', 'Setting API headers', { apiToken: '[REDACTED]', apiSecret: '[REDACTED]' });
     
     const now: string = Math.floor(Date.now() / 1000).toString();
     let hashSource: string = apiToken + apiSecret + now;
@@ -62,6 +62,12 @@ export const createApiClient = (authData: AuthenticationRequestSchema, customUrl
     config.headers.set('Authorization', `Bearer ${apiToken}`);
     config.headers.set('X-iXRLib-Hash', hash);
     config.headers.set('X-iXRLib-Timestamp', now);
+
+    logInfo('Headers set', 'API headers set', {
+      Authorization: `Bearer [REDACTED]`,
+      'X-iXRLib-Hash': hash,
+      'X-iXRLib-Timestamp': now
+    });
   };
 
   instance.interceptors.request.use(
@@ -102,7 +108,7 @@ export const createApiClient = (authData: AuthenticationRequestSchema, customUrl
   const request = async <T>(method: ApiMethod, url: string, config?: AxiosRequestConfig, data?: any): Promise<ApiResponse<T>> => {
     await ensureAuthenticated();
 
-    logInfo('Request function called', 'Request function called', { apiToken, apiSecret });
+    logInfo('Request function called', 'Request function called', { apiToken: '[REDACTED]', apiSecret: '[REDACTED]' });
     
     const requestConfig: InternalAxiosRequestConfig = { 
       ...config, 
@@ -112,11 +118,13 @@ export const createApiClient = (authData: AuthenticationRequestSchema, customUrl
       headers: config?.headers ? new AxiosHeaders(config.headers as Record<string, string>) : new AxiosHeaders(),
     } as InternalAxiosRequestConfig;
 
-    if (apiToken && apiSecret) {
-      setHeadersFromCurrentState(requestConfig);
-    } else {
-      logInfo('API Token or API Secret is still missing after authentication attempt', 'API Token or API Secret is still missing after authentication attempt');
-    }
+    await setHeadersFromCurrentState(requestConfig);
+
+    logInfo('Request headers', 'Headers set for request', {
+      Authorization: requestConfig.headers.get('Authorization') ? 'Bearer [REDACTED]' : 'Not set',
+      'X-iXRLib-Hash': requestConfig.headers.get('X-iXRLib-Hash'),
+      'X-iXRLib-Timestamp': requestConfig.headers.get('X-iXRLib-Timestamp')
+    });
 
     const response: AxiosResponse<T> = await instance(requestConfig);
     return {
@@ -128,6 +136,7 @@ export const createApiClient = (authData: AuthenticationRequestSchema, customUrl
 
   const authenticate = async (authData: AuthenticationRequestSchema): Promise<void> => {
     try {
+      logInfo('Authentication', 'Attempting authentication', { ...authData, authSecret: '[REDACTED]' });
       const response = await instance.post<AuthenticationResponseSchema>('/v1/auth/token', {
         ...authData,
         sessionId: authData.sessionId || sessionId
@@ -136,7 +145,7 @@ export const createApiClient = (authData: AuthenticationRequestSchema, customUrl
       apiToken = response.data.token;
       apiSecret = response.data.secret;
 
-      logInfo('Authentication', 'Authentication successful', { apiToken, apiSecret });
+      logInfo('Authentication', 'Authentication successful', { apiToken: '[REDACTED]', apiSecret: '[REDACTED]' });
 
       sessionId = authData.sessionId || sessionId;
 
@@ -153,6 +162,13 @@ export const createApiClient = (authData: AuthenticationRequestSchema, customUrl
       if (tokenExpiration) {
         storage.setItem('tokenExpiration', tokenExpiration.toISOString());
       }
+
+      logInfo('Storage', 'Items stored in storage', {
+        apiToken: storage.getItem('apiToken') ? '[REDACTED]' : 'null',
+        apiSecret: storage.getItem('apiSecret') ? '[REDACTED]' : 'null',
+        sessionId: storage.getItem('sessionId'),
+        tokenExpiration: storage.getItem('tokenExpiration')
+      });
     } catch (error) {
       logError('Authentication', error);
       throw error;
