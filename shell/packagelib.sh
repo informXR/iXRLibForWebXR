@@ -68,8 +68,8 @@ npm version --no-git-tag-version --allow-same-version "$NEW_VERSION"
 echo "Cleaning up previous build..."
 rm -rf build
 
-# Run TypeScript compiler
-echo "Compiling TypeScript..."
+# Run TypeScript compiler and copy files
+echo "Compiling TypeScript and copying files..."
 npm run build
 
 # Copy necessary files to dist folder
@@ -79,7 +79,7 @@ echo "Copying package files..."
 mkdir -p ../iXRLibForWebXR
 
 # Copy files to the new directory
-cp -R package.json README.md LICENSE build/ ../iXRLibForWebXR
+cp -R package.json README.md LICENSE index.js index.d.ts build/ ../iXRLibForWebXR
 
 # Remove development dependencies and scripts from package.json in dist
 echo "Updating package.json for distribution..."
@@ -87,8 +87,8 @@ node -e "
     const pkg = require('../iXRLibForWebXR/package.json');
     delete pkg.devDependencies;
     delete pkg.scripts;
-    pkg.main = 'src/iXR.js';
-    pkg.types = 'src/network/types.d.ts';
+    pkg.main = 'index.js';
+    pkg.types = 'index.d.ts';
     require('fs').writeFileSync('../iXRLibForWebXR/package.json', JSON.stringify(pkg, null, 2));
 "
 
