@@ -11,7 +11,7 @@ import { Scene } from "@babylonjs/core/scene.js";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial.js";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector.js";
 import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperience.js";
-// import { iXRInit } from "ixrlibforwebxr";
+import { iXRInit, iXRInstance, InteractionType } from "ixrlibforwebxr";
 
 // Required for EnvironmentHelper
 import "@babylonjs/core/Materials/Textures/Loaders";
@@ -30,21 +30,37 @@ import { SixDofDragBehavior } from "@babylonjs/core/Behaviors/Meshes/sixDofDragB
 import { ActionManager } from "@babylonjs/core/Actions/actionManager.js";
 import { ExecuteCodeAction } from "@babylonjs/core/Actions/directActions.js";
 
+let iXR: iXRInstance;
+
+// Hardcoded device ID and model (matching server.js)
+const DEVICE_ID = 'iXRLibForWebXR_device_id';
+const DEVICE_MODEL = 'iXRLibForWebXR_device_model';
+
 async function initializeIXR() {
   try {
-    // let iXR = await iXRInit({
-    //   appId: "",
-    // });
-    // console.log("iXR instance created successfully");
+    iXR = await iXRInit({
+      appId: "insert-app-id-here",
+      deviceId: DEVICE_ID,
+      deviceModel: DEVICE_MODEL,
+    });
+    console.log("iXR instance created successfully");
 
-    // // You can now use iXR methods here or in other parts of your application
-    // await iXR.LogInfo("Babylon.js application started");
+    // Log application start
+    await iXR.LogInfo("Babylon.js application started");
+    await iXR.Event("application_start", "engine=babylon.js,version=5.0");
+
+    // Ping the server
+    const pingResponse = await iXR.Ping();
+    console.log("Ping response:", pingResponse);
   } catch (error) {
     console.error("Failed to initialize iXR:", error);
   }
 }
 
 async function main() {
+  // Initialize iXR before setting up the scene
+  await initializeIXR();
+
   // Create a canvas element for rendering
   const app = document.querySelector<HTMLDivElement>("#app");
   const canvas = document.createElement("canvas");
@@ -127,26 +143,26 @@ async function main() {
       {
         trigger: ActionManager.OnPickDownTrigger,
       },
-      function () {
+      async function () {
         // Change color of sphere
         rMat.diffuseColor = new Color3(
           Math.random(),
           Math.random(),
           Math.random()
         );
+
+        // Log button press and color change with iXR
+        await iXR.Event("button_pressed", "action=change_sphere_color");
+        await iXR.LogInfo("Sphere color changed");
+        await iXR.EventInteractionComplete("change_sphere_color", "success", "Color changed successfully", InteractionType.Bool);
       }
     )
   );
 
   // Add behaviors to make meshes draggable
-  const sphereDragBehavior = new SixDofDragBehavior();
-  sphere.addBehavior(sphereDragBehavior);
-
-  const boxDragBehavior = new SixDofDragBehavior();
-  box.addBehavior(boxDragBehavior);
-
-  const cylinderDragBehavior = new SixDofDragBehavior();
-  cylinder.addBehavior(cylinderDragBehavior);
+  addDragBehavior(sphere);
+  addDragBehavior(box);
+  addDragBehavior(cylinder);
 
   // Setup default WebXR experience
   // Use the environment floor to enable teleportation
@@ -156,10 +172,8 @@ async function main() {
     // optionalFeatures: [WebXRFeatureName.NEAR_INTERACTION, WebXRFeatureName.TELEPORTATION],
   });
 
-  // Initialize iXR after WebXR is set up
-  // await initializeIXR();
-
-  // You can add WebXR-specific iXR logging here if needed
+  // Log that the scene is set up
+  await iXR.LogInfo("Babylon.js scene set up completed");
 
   // Run render loop
   babylonEngine.runRenderLoop(() => {
@@ -170,7 +184,35 @@ async function main() {
   window.addEventListener("resize", () => {
     babylonEngine.resize();
   });
+
+  // Log telemetry data
+  await iXR.Telemetry("scene_stats", {
+    objects: scene.meshes.length,
+    lights: scene.lights.length,
+    materials: scene.materials.length,
+  });
+
+  // Start a level event
+  await iXR.EventLevelStart("main_scene", { objects: scene.meshes.length.toString() });
+}
+
+function addDragBehavior(mesh: Mesh) {
+  const dragBehavior = new SixDofDragBehavior();
+  mesh.addBehavior(dragBehavior);
+
+  dragBehavior.onDragStartObservable.add(() => {
+    iXR.EventInteractionStart(`drag_${mesh.name}`, { object: mesh.name });
+  });
+
+  dragBehavior.onDragEndObservable.add(() => {
+    iXR.EventInteractionComplete(`drag_${mesh.name}`, "complete", `${mesh.name} dragged to ${mesh.position.toString()}`, InteractionType.Text);
+  });
 }
 
 // Call the main function to start the application
-main().catch(console.error);
+main().catch(async (error) => {
+  console.error(error);
+  if (iXR) {
+    await iXR.LogError(`Application error: ${error.message}`);
+  }
+});

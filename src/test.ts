@@ -27,10 +27,10 @@ async function main(): Promise<void> {
   try {
     // Simulate GET request parameters
     const urlParams = new URLSearchParams({
-      xrdm_orgid: '',
+      xrdm_orgid: 'orgId',
       xrdm_deviceid: 'iXRLibForWebXR_device_id',
       xrdm_devicemodel: 'iXRLibForWebXR_device_model',
-      xrdm_authsecret: ''
+      xrdm_authsecret: 'authSecret'
     });
   
     // Set the URL for testing
@@ -39,7 +39,7 @@ async function main(): Promise<void> {
   
     // Pass appId directly to iXRInit
     const iXR = await iXRInit({
-      appId: '',
+      appId: 'appId',
     });
 
     console.log('iXR instance created successfully');
