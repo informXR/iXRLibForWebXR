@@ -14,10 +14,14 @@ interface DecodedToken extends jwt.JwtPayload {
   jti?: string;
 }
 
-export const createApiClient = (authData: AuthenticationRequestSchema): ApiClient => {
-  const config = defaultConfig; // Use default config
+// Modify the function signature to accept an optional second parameter
+export const createApiClient = (authData: AuthenticationRequestSchema, customUrl?: string): ApiClient => {
+  // Use the custom URL if provided, otherwise use the default
+  const baseURL = customUrl || defaultConfig.baseURL;
+
+  const config = { ...defaultConfig, baseURL };
   const instance: AxiosInstance = axios.create({
-    baseURL: config.baseURL,
+    baseURL,
     timeout: config.timeout || defaultConfig.timeout,
     headers: {
       'Content-Type': 'application/json',

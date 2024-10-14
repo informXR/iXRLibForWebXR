@@ -1,4 +1,4 @@
-import { iXRInit, iXRInstance } from './iXR';
+import { iXRInit, iXRInstance, ResultOptions, InteractionType } from './iXR';
 import { AuthenticationRequestSchema } from './network/types';
 import { logError, logInfo } from './network/utils/logger';
 
@@ -63,9 +63,14 @@ async function main(): Promise<void> {
     const pingResponse = await iXR.Ping();
     logInfo('Ping', 'Ping response received', pingResponse);
 
-    // Test new event methods
+    // Test new event methods with duration calculation
+    console.log('\nTesting Event Methods with Duration:');
+
     const levelStartResponse = await iXR.EventLevelStart('level_1', { difficulty: 'easy' });
     logInfo('EventLevelStart', 'Level start event response received', levelStartResponse);
+
+    // Simulate some time passing
+    await new Promise(resolve => setTimeout(resolve, 2000));
 
     const levelCompleteResponse = await iXR.EventLevelComplete('level_1', 100, { time_taken: '120s' });
     logInfo('EventLevelComplete', 'Level complete event response received', levelCompleteResponse);
@@ -73,17 +78,44 @@ async function main(): Promise<void> {
     const assessmentStartResponse = await iXR.EventAssessmentStart('math_quiz', { topic: 'algebra' });
     logInfo('EventAssessmentStart', 'Assessment start event response received', assessmentStartResponse);
 
-    //const assessmentCompleteResponse = await iXR.EventAssessmentComplete('math_quiz', 85, { questions_answered: '20' });
-    //logInfo('EventAssessmentComplete', 'Assessment complete event response received', assessmentCompleteResponse);
+    // Simulate some time passing
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    const assessmentCompleteResponse = await iXR.EventAssessmentComplete('math_quiz', 85, ResultOptions.Pass, { questions_answered: '20' });
+    logInfo('EventAssessmentComplete', 'Assessment complete event response received', assessmentCompleteResponse);
+
+    const objectiveStartResponse = await iXR.EventObjectiveStart('collect_coins', { total_coins: '50' });
+    logInfo('EventObjectiveStart', 'Objective start event response received', objectiveStartResponse);
+
+    // Simulate some time passing
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    const objectiveCompleteResponse = await iXR.EventObjectiveComplete('collect_coins', 45, ResultOptions.Complete, { coins_collected: '45' });
+    logInfo('EventObjectiveComplete', 'Objective complete event response received', objectiveCompleteResponse);
 
     const interactionStartResponse = await iXR.EventInteractionStart('npc_dialogue', { npc_name: 'Guide' });
     logInfo('EventInteractionStart', 'Interaction start event response received', interactionStartResponse);
 
-    const interactionCompleteResponse = await iXR.EventInteractionComplete('npc_dialogue', 1, { dialogue_path: 'friendly' });
+    // Simulate some time passing
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const interactionCompleteResponse = await iXR.EventInteractionComplete('npc_dialogue', 'Friendly', 'Player chose to help NPC', InteractionType.Select, { dialogue_path: 'friendly' });
     logInfo('EventInteractionComplete', 'Interaction complete event response received', interactionCompleteResponse);
 
     // Test storage methods
     console.log('\nTesting Storage Methods:');
+
+    //const setStorageResponse = await iXR.SetStorageEntry({ key1: 'value1', key2: 'value2' }, 'test_storage');
+    // logInfo('SetStorageEntry', 'Set storage entry response received', setStorageResponse);
+
+    // const getStorageResponse = await iXR.GetStorageEntry('test_storage');
+    // logInfo('GetStorageEntry', 'Get storage entry response received', getStorageResponse);
+
+    // const getAllStorageResponse = await iXR.GetAllStorageEntries();
+    // logInfo('GetAllStorageEntries', 'Get all storage entries response received', getAllStorageResponse);
+
+    // const removeStorageResponse = await iXR.RemoveStorageEntry('test_storage');
+    // logInfo('RemoveStorageEntry', 'Remove storage entry response received', removeStorageResponse);
 
   } catch (error) {
     logError('Main test function', error);
