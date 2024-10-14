@@ -19,6 +19,6 @@
     "@babylonjs/loaders": "^6.11.1",
     "babylonjs": "^6.11.1",
     "express": "^4.18.2",
-    "ixrlibforwebxr": "^1.0.36"
+    "ixrlibforwebxr": "^1.0.38"
   }
 }
