@@ -12,6 +12,8 @@ interface DecodedToken {
   jti?: string;
 }
 
+const generateRandomId = () => Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
 export const createApiClient = (authData: AuthenticationRequestSchema, customUrl?: string): ApiClient => {
   const baseURL = customUrl || defaultConfig.baseURL;
 
@@ -36,7 +38,7 @@ export const createApiClient = (authData: AuthenticationRequestSchema, customUrl
 
   let apiToken: string = storage.getItem('apiToken') || '';
   let apiSecret: string = storage.getItem('apiSecret') || '';
-  let sessionId: string = storage.getItem('sessionId') || '';
+  let sessionId: string = storage.getItem('sessionId') || generateRandomId();
   let tokenExpiration: Date | null = storage.getItem('tokenExpiration') 
     ? new Date(storage.getItem('tokenExpiration')!) 
     : null;
