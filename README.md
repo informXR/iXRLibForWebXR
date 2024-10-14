@@ -75,12 +75,12 @@ To get started with iXRLibForWebXR, you'll need to configure your application wi
 
 ### Organization ID and Authorization Secret Location - Web App
 Follow the visual instructions below for clarification on how to get to the Organization ID and Authorization Secret in Settings.
-![Visual Tutorial to get to Settings](https://github.com/informXR/iXRLibForWebXR/blob/development-/READMEFiles/GotoSettings.png?raw=true "Go to Settings")
-![Visual Tutorial to get to Organization Codes](https://github.com/informXR/iXRLibForWebXR/blob/development-/READMEFiles/goToOrganizationCodes.png?raw=true "Go to Organization Codes")
+![Visual Tutorial to get to Settings](https://github.com/informXR/iXRLibForWebXR/blob/main/READMEFiles/GotoSettings.png?raw=true "Go to Settings")
+![Visual Tutorial to get to Organization Codes](https://github.com/informXR/iXRLibForWebXR/blob/main/READMEFiles/goToOrganizationCodes.png?raw=true "Go to Organization Codes")
 
 ### Application ID Location - Web App
 Simply use the provided tutorials with the 'Get Started Button' shown below, and choose the 'Content Developer' path.
-![Visual Tutorial to get App ID](https://github.com/informXR/iXRLibForWebXR/blob/development-/READMEFiles/PubAppTour1.png?raw=true "Press Get Started")
+![Visual Tutorial to get App ID](https://github.com/informXR/iXRLibForWebXR/blob/main/READMEFiles/PubAppTour1.png?raw=true "Press Get Started")
 
 ## Features
 
