@@ -11,7 +11,7 @@ import { Scene } from "@babylonjs/core/scene.js";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial.js";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector.js";
 import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperience.js";
-import { iXRInit, iXRInstance } from "ixrlibforwebxr";
+import { iXRInit } from "ixrlibforwebxr";
 
 // Required for EnvironmentHelper
 import "@babylonjs/core/Materials/Textures/Loaders";
@@ -25,11 +25,10 @@ import "@babylonjs/loaders/glTF";
 //  FragmentOutput[FragmentOutputBlock] is not connected and is not optional.
 import "@babylonjs/core/Materials/Node/Blocks";
 
-let iXR: iXRInstance;
 
 async function initializeIXR() {
   try {
-    iXR = await iXRInit({
+   let  iXR = await iXRInit({
       appId: '',
     });
     console.log('iXR instance created successfully');
@@ -88,9 +87,6 @@ async function main() {
   await initializeIXR();
 
   // You can add WebXR-specific iXR logging here if needed
-  if (iXR) {
-    await iXR.LogInfo('WebXR experience created');
-  }
 
   // Run render loop
   babylonEngine.runRenderLoop(() => {

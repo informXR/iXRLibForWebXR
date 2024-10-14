@@ -2,6 +2,8 @@
   "name": "ixrlibforwebxr",
   "version": "1.0.0",
   "main": "index.js",
+  "module": "index.js",
+  "browser": "index.js",
   "types": "index.d.ts",
   "description": "iXRLibWebForXR for node (npm)",
   "scripts": {
