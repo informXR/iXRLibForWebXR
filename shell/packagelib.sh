@@ -88,7 +88,7 @@ node -e "
     delete pkg.devDependencies;
     delete pkg.scripts;
     pkg.main = 'src/iXR.js';
-    pkg.types = 'src/iXR.d.ts';
+    pkg.types = 'src/network/types.d.ts';
     require('fs').writeFileSync('../iXRLibForWebXR/package.json', JSON.stringify(pkg, null, 2));
 "
 
