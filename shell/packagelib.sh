@@ -106,9 +106,13 @@ npm config set //registry.npmjs.org/:_authToken="${NPM_TOKEN}"
 # Navigate to build directory
 cd ../iXRLibForWebXR
 
+# Create a tarball of the package
+echo "Creating package tarball..."
+npm pack
+
 # Publish the package
 echo "Publishing version $NEW_VERSION to npm..."
-npm publish --access public
+npm publish ixrlibforwebxr-$NEW_VERSION.tgz --access public
 
 # Clean up - remove the token from npm config
 npm config delete //registry.npmjs.org/:_authToken

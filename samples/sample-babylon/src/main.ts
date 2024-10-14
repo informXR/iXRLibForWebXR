@@ -11,7 +11,7 @@ import { Scene } from "@babylonjs/core/scene.js";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial.js";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector.js";
 import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperience.js";
-import { iXRInit, iXRInstance } from "ixrlibforwebxr";
+import { iXRInit, iXRInstance } from "ixrlibforwebxr/build/src/iXR";
 
 // Required for EnvironmentHelper
 import "@babylonjs/core/Materials/Textures/Loaders";
@@ -41,47 +41,49 @@ async function initializeIXR() {
   }
 }
 
-// Create a canvas element for rendering
-const app = document.querySelector<HTMLDivElement>("#app");
-const canvas = document.createElement("canvas");
-app?.appendChild(canvas);
+async function main() {
+  // Create a canvas element for rendering
+  const app = document.querySelector<HTMLDivElement>("#app");
+  const canvas = document.createElement("canvas");
+  app?.appendChild(canvas);
 
-// Create engine and a scene
-const babylonEngine = new Engine(canvas, true);
-const scene = new Scene(babylonEngine);
+  // Create engine and a scene
+  const babylonEngine = new Engine(canvas, true);
+  const scene = new Scene(babylonEngine);
 
-// Add a basic light
-new HemisphericLight("light1", new Vector3(0, 2, 0), scene);
+  // Add a basic light
+  new HemisphericLight("light1", new Vector3(0, 2, 0), scene);
 
-// Create a default environment (skybox, ground mesh, etc)
-const envHelper = new EnvironmentHelper(
-  {
-    skyboxSize: 30,
-    groundColor: new Color3(0.5, 0.5, 0.5),
-  },
-  scene,
-);
+  // Create a default environment (skybox, ground mesh, etc)
+  const envHelper = new EnvironmentHelper(
+    {
+      skyboxSize: 30,
+      groundColor: new Color3(0.5, 0.5, 0.5),
+    },
+    scene,
+  );
 
-// Add a camera for the non-VR view in browser
-const camera = new ArcRotateCamera("Camera", -(Math.PI / 4) * 3, Math.PI / 4, 10, new Vector3(0, 0, 0), scene);
-camera.attachControl(true);
+  // Add a camera for the non-VR view in browser
+  const camera = new ArcRotateCamera("Camera", -(Math.PI / 4) * 3, Math.PI / 4, 10, new Vector3(0, 0, 0), scene);
+  camera.attachControl(true);
 
-// Add a sphere to have something to look at
-const sphereD = 1.0;
-const sphere = MeshBuilder.CreateSphere("xSphere", { segments: 16, diameter: sphereD }, scene);
-sphere.position.x = 0;
-sphere.position.y = sphereD * 2;
-sphere.position.z = 0;
-const rMat = new StandardMaterial("matR", scene);
-rMat.diffuseColor = new Color3(1.0, 0, 0);
-sphere.material = rMat;
+  // Add a sphere to have something to look at
+  const sphereD = 1.0;
+  const sphere = MeshBuilder.CreateSphere("xSphere", { segments: 16, diameter: sphereD }, scene);
+  sphere.position.x = 0;
+  sphere.position.y = sphereD * 2;
+  sphere.position.z = 0;
+  const rMat = new StandardMaterial("matR", scene);
+  rMat.diffuseColor = new Color3(1.0, 0, 0);
+  sphere.material = rMat;
 
-// Setup default WebXR experience
-// Use the environment floor to enable teleportation
-WebXRDefaultExperience.CreateAsync(scene, {
-  floorMeshes: [envHelper?.ground as Mesh],
-  optionalFeatures: true,
-}).then(async () => {
+  // Setup default WebXR experience
+  // Use the environment floor to enable teleportation
+  await WebXRDefaultExperience.CreateAsync(scene, {
+    floorMeshes: [envHelper?.ground as Mesh],
+    optionalFeatures: true,
+  });
+
   // Initialize iXR after WebXR is set up
   await initializeIXR();
 
@@ -89,14 +91,17 @@ WebXRDefaultExperience.CreateAsync(scene, {
   if (iXR) {
     await iXR.LogInfo('WebXR experience created');
   }
-});
 
-// Run render loop
-babylonEngine.runRenderLoop(() => {
-  scene.render();
-});
+  // Run render loop
+  babylonEngine.runRenderLoop(() => {
+    scene.render();
+  });
 
-// Handle window resize
-window.addEventListener('resize', () => {
-  babylonEngine.resize();
-});
+  // Handle window resize
+  window.addEventListener('resize', () => {
+    babylonEngine.resize();
+  });
+}
+
+// Call the main function to start the application
+main().catch(console.error);
