@@ -39,7 +39,7 @@ const DEVICE_MODEL = 'iXRLibForWebXR_device_model';
 async function initializeIXR() {
   try {
     iXR = await iXRInit({
-      appId: "471fd6fd-f5d0-4096-bc0c-17100c1c4fa0",
+      appId: "insert-app-id-here",
       deviceId: DEVICE_ID,
       deviceModel: DEVICE_MODEL,
     });
