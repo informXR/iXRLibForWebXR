@@ -8,6 +8,7 @@ import { createCollectController } from './network/controllers/collect';
 import { createServicesController } from './network/controllers/services';
 import { createStorageController } from './network/controllers/storage';
 import { logError, logInfo } from './network/utils/logger';
+import { defaultConfig } from './network/config';
 
 declare const window: Window & typeof globalThis;
 
@@ -43,13 +44,14 @@ export interface iXRInstance {
   EventObjectiveStart: (objectiveName: string, meta?: Record<string, string>) => Promise<ApiResponse<{ status: string }>>;
   EventObjectiveComplete: (objectiveName: string, score: number, result: ResultOptions, meta?: Record<string, string>) => Promise<ApiResponse<{ status: string }>>;
   EventInteractionStart: (interactionName: string, meta?: Record<string, string>) => Promise<ApiResponse<{ status: string }>>;
-  EventInteractionComplete: (interactionName: string, score: number, meta?: Record<string, string>) => Promise<ApiResponse<{ status: string }>>;
+  EventInteractionComplete: (interactionName: string, result: string, resultDetails?: string, type?: InteractionType, meta?: Record<string, string>) => Promise<ApiResponse<{ status: string }>>;
 
   // Updated and new Storage Methods
   SetStorageEntry: (data: Record<string, string>, name?: string, keepLatest?: boolean, origin?: string, sessionData?: boolean) => Promise<ApiResponse<void>>;
   GetStorageEntry: (name?: string, origin?: string, tagsAny?: string[], tagsAll?: string[], userOnly?: boolean) => Promise<ApiResponse<Record<string, string>>>;
   RemoveStorageEntry: (name?: string) => Promise<ApiResponse<{ status: string }>>;
   GetAllStorageEntries: () => Promise<ApiResponse<Record<string, Record<string, string>>>>;
+  setApiUrl: (url: string) => void;
 }
 
 export enum ResultOptions {
@@ -64,7 +66,18 @@ async function getUserIPFallback(): Promise<string> {
   return '0.0.0.0'; // Fallback IP address for non-browser environments
 }
 
-export async function iXRInit(authData: AuthDataWithRequiredAppId): Promise<iXRInstance> {
+// Add these at the top of the file, after the imports
+const startTimes: Record<string, number> = {};
+
+// Add this interface near the top of the file, after other interface declarations
+export interface iXRConfig {
+  apiUrl?: string;
+}
+
+// Add this variable to store the custom API URL
+let customApiUrl: string | undefined;
+
+export async function iXRInit(authData: AuthDataWithRequiredAppId, config?: iXRConfig): Promise<iXRInstance> {
   try {
     if (!authData.appId) {
       throw new Error('appId is required and must be provided directly to iXRInit');
@@ -108,7 +121,7 @@ export async function iXRInit(authData: AuthDataWithRequiredAppId): Promise<iXRI
       throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
     }
 
-    const apiClient = createApiClient(fullAuthData);
+    const apiClient = createApiClient(fullAuthData, customApiUrl || config?.apiUrl);
 
     const authController = createAuthController(apiClient);
     const collectController = createCollectController(apiClient);
@@ -288,55 +301,85 @@ export async function iXRInit(authData: AuthDataWithRequiredAppId): Promise<iXRI
 
     async function EventLevelStart(levelName: string, meta?: Record<string, string>): Promise<ApiResponse<{ status: string }>> {
       const eventName = `level_start_${levelName}`;
+      startTimes[eventName] = Date.now();
       const metaString = meta ? Object.entries(meta).map(([k, v]) => `${k}=${v}`).join(',') : '';
       return Event(eventName, metaString);
     }
 
     async function EventLevelComplete(levelName: string, score: number, meta?: Record<string, string>): Promise<ApiResponse<{ status: string }>> {
       const eventName = `level_complete_${levelName}`;
-      const metaWithScore = { ...meta, score: score.toString() };
-      const metaString = Object.entries(metaWithScore).map(([k, v]) => `${k}=${v}`).join(',');
+      const startEventName = `level_start_${levelName}`;
+      const startTime = startTimes[startEventName];
+      const duration = startTime ? Date.now() - startTime : 0;
+      delete startTimes[startEventName];
+
+      const metaWithScoreAndDuration = { ...meta, score: score.toString(), duration: duration.toString() };
+      const metaString = Object.entries(metaWithScoreAndDuration).map(([k, v]) => `${k}=${v}`).join(',');
       return Event(eventName, metaString);
     }
 
     async function EventAssessmentStart(assessmentName: string, meta?: Record<string, string>): Promise<ApiResponse<{ status: string }>> {
       const eventName = `assessment_start_${assessmentName}`;
+      startTimes[eventName] = Date.now();
       const metaString = meta ? Object.entries(meta).map(([k, v]) => `${k}=${v}`).join(',') : '';
       return Event(eventName, metaString);
     }
 
-    async function EventAssessmentComplete(assessmentName: string, score: number, result: ResultOptions = ResultOptions.Null, meta?: Record<string, string>): Promise<ApiResponse<{ status: string }>> {
+    async function EventAssessmentComplete(assessmentName: string, score: number, result: ResultOptions = ResultOptions.Complete, meta?: Record<string, string>): Promise<ApiResponse<{ status: string }>> {
       const eventName = `assessment_complete_${assessmentName}`;
-      const metaWithScoreAndResult = { ...meta, score: score.toString(), result: ResultOptions[result] };
-      const metaString = Object.entries(metaWithScoreAndResult).map(([k, v]) => `${k}=${v}`).join(',');
+      const startEventName = `assessment_start_${assessmentName}`;
+      const startTime = startTimes[startEventName];
+      const duration = startTime ? Date.now() - startTime : 0;
+      delete startTimes[startEventName];
+
+      const metaWithScoreResultAndDuration = { ...meta, score: score.toString(), result: ResultOptions[result], duration: duration.toString() };
+      const metaString = Object.entries(metaWithScoreResultAndDuration).map(([k, v]) => `${k}=${v}`).join(',');
       return Event(eventName, metaString);
     }
 
 
     async function EventObjectiveStart(objectiveName: string, meta?: Record<string, string>): Promise<ApiResponse<{ status: string }>> {
       const eventName = `objective_start_${objectiveName}`;
+      startTimes[eventName] = Date.now();
       const metaString = meta ? Object.entries(meta).map(([k, v]) => `${k}=${v}`).join(',') : '';
       return Event(eventName, metaString);
     }
 
-    async function EventObjectiveComplete(objectiveName: string, score: number, result: ResultOptions = ResultOptions.Null, meta?: Record<string, string>): Promise<ApiResponse<{ status: string }>> {
+    async function EventObjectiveComplete(objectiveName: string, score: number, result: ResultOptions = ResultOptions.Complete, meta?: Record<string, string>): Promise<ApiResponse<{ status: string }>> {
       const eventName = `objective_complete_${objectiveName}`;
-      const metaWithScoreAndResult = { ...meta, score: score.toString(), result: ResultOptions[result] };
-      const metaString = Object.entries(metaWithScoreAndResult).map(([k, v]) => `${k}=${v}`).join(',');
+      const startEventName = `objective_start_${objectiveName}`;
+      const startTime = startTimes[startEventName];
+      const duration = startTime ? Date.now() - startTime : 0;
+      delete startTimes[startEventName];
+
+      const metaWithScoreResultAndDuration = { ...meta, score: score.toString(), result: ResultOptions[result], duration: duration.toString() };
+      const metaString = Object.entries(metaWithScoreResultAndDuration).map(([k, v]) => `${k}=${v}`).join(',');
       return Event(eventName, metaString);
     }
 
 
     async function EventInteractionStart(interactionName: string, meta?: Record<string, string>): Promise<ApiResponse<{ status: string }>> {
       const eventName = `interaction_start_${interactionName}`;
+      startTimes[eventName] = Date.now();
       const metaString = meta ? Object.entries(meta).map(([k, v]) => `${k}=${v}`).join(',') : '';
       return Event(eventName, metaString);
     }
 
-    async function EventInteractionComplete(interactionName: string, score: number, meta?: Record<string, string>): Promise<ApiResponse<{ status: string }>> {
+    async function EventInteractionComplete(interactionName: string, result: string, resultDetails?: string, type: InteractionType = InteractionType.Text, meta?: Record<string, string>): Promise<ApiResponse<{ status: string }>> {
       const eventName = `interaction_complete_${interactionName}`;
-      const metaWithScore = { ...meta, score: score.toString() };
-      const metaString = Object.entries(metaWithScore).map(([k, v]) => `${k}=${v}`).join(',');
+      const startEventName = `interaction_start_${interactionName}`;
+      const startTime = startTimes[startEventName];
+      const duration = startTime ? Date.now() - startTime : 0;
+      delete startTimes[startEventName];
+
+      const metaWithResultAndDuration = { 
+        ...meta, 
+        result, 
+        result_details: resultDetails || '',
+        type: InteractionType[type],
+        duration: duration.toString()
+      };
+      const metaString = Object.entries(metaWithResultAndDuration).map(([k, v]) => `${k}=${v}`).join(',');
       return Event(eventName, metaString);
     }
 
@@ -400,6 +443,11 @@ export async function iXRInit(authData: AuthDataWithRequiredAppId): Promise<iXRI
       }
     }
 
+    // Implement the setApiUrl function
+    function setApiUrl(url: string): void {
+      customApiUrl = url;
+    }
+
     await initialize(); // Wait for initialization to complete
 
     const iXRInstance: iXRInstance = {
@@ -425,7 +473,8 @@ export async function iXRInit(authData: AuthDataWithRequiredAppId): Promise<iXRI
       SetStorageEntry,
       GetStorageEntry,
       RemoveStorageEntry,
-      GetAllStorageEntries
+      GetAllStorageEntries,
+      setApiUrl
     };
 
     return iXRInstance;
@@ -491,4 +540,14 @@ function redirectWithoutAuthParams(): void {
     url.search = newParams.toString();
     window.history.replaceState({}, '', url.toString());
   }
+}
+
+// Add this enum for InteractionType
+export enum InteractionType {
+  Null,
+  Bool,
+  Select,
+  Text,
+  Rating,
+  Number
 }
