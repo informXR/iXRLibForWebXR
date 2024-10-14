@@ -9,6 +9,6 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "ixrlibforwebxr": "^1.0.38"
+    "ixrlibforwebxr": "^1.0.39"
   }
 }
