@@ -11,7 +11,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      'ixrlibforwebxr': 'ixrlibforwebxr/dist/iXR'
+      'ixrlibforwebxr': 'ixrlibforwebxr'
     }
   },
   optimizeDeps: {
