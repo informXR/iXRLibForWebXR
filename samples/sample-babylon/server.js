@@ -8,10 +8,10 @@ const port = process.env.PORT || 6001;
 // Middleware to inject simulated GET parameters
 app.use((req, res, next) => {
   const simulatedParams = {
-    xrdm_orgid: '5304ef74-423f-4bd4-87d9-cba4f19c3bdb',
+    xrdm_orgid: '',
     xrdm_deviceid: 'iXRLibForWebXR_device_id',
     xrdm_devicemodel: 'iXRLibForWebXR_device_model',
-    xrdm_authsecret: 'vEwWpJs5K2Kib3XeWBhXgQnQr43XNJCSyb5QJoGCU5ec590hFyb63vBSx6dX6Clj'
+    xrdm_authsecret: ''
   };
 
   // Parse the existing query parameters
