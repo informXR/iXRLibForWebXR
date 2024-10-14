@@ -1,13 +1,13 @@
 {
   "name": "ixrlibforwebxr",
   "version": "1.0.0",
-  "main": "index.js",
-  "types": "index.d.ts",
+  "main": "iXR.js",
+  "types": "iXR.d.ts",
   "description": "iXRLibWebForXR for node (npm)",
   "scripts": {
     "test-package": "npm link ixrlib",
     "login": "npm login",
-    "build": "tsc && npm run copy-files",
+    "build": "tsc",
     "ts-watch": "npx tsc -w",
     "publish": "npm publish",
     "lint": "gts lint",
@@ -16,8 +16,7 @@
     "fix": "gts fix",
     "prepare": "npm run compile",
     "pretest": "npm run compile",
-    "posttest": "npm run lint",
-    "copy-files": "cp build/src/iXR.js index.js && cp build/src/iXR.d.ts index.d.ts && cp -R build/src/network ."
+    "posttest": "npm run lint"
   },
   "author": "informXR",
   "license": "ISC",
@@ -33,9 +32,9 @@
     "localStorage": "^1.0.4"
   },
   "files": [
-    "index.js",
-    "index.d.ts",
-    "build/**/*",
+    "iXR.js",
+    "iXR.d.ts",
+    "network/**/*",
     "README.md",
     "LICENSE"
   ]
