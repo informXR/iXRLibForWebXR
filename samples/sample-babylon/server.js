@@ -9,27 +9,25 @@ const __dirname = dirname(__filename);
 const app = express();
 const port = process.env.PORT || 6001;
 
-// Middleware to inject simulated GET parameters
-app.use((req, res, next) => {
-  const simulatedParams = {
-    xrdm_orgid: '',
-    xrdm_deviceid: 'iXRLibForWebXR_device_id',
-    xrdm_devicemodel: 'iXRLibForWebXR_device_model',
-    xrdm_authsecret: ''
+// Add a webxrdemo route that redirects to the main app with parameters
+app.get('/webxrdemo', (req, res) => {
+  const { xrdm_orgid, xrdm_authsecret } = req.query;
+
+  if (!xrdm_orgid || !xrdm_authsecret) {
+    return res.status(400).send('Missing required parameters: xrdm_orgid and xrdm_authsecret');
+  }
+
+  const demoParams = {
+    xrdm_orgid,
+    xrdm_authsecret
   };
 
-  // Parse the existing query parameters
-  const url = new URL(req.url, `http://${req.headers.host}`);
-  
-  // Merge the simulated parameters with existing ones
-  for (const [key, value] of Object.entries(simulatedParams)) {
-    url.searchParams.set(key, value);
-  }
-  
-  // Update the request URL
-  req.url = url.pathname + url.search;
+  const demoUrl = new URL('/', `http://localhost:${port}`);
+  Object.entries(demoParams).forEach(([key, value]) => {
+    demoUrl.searchParams.append(key, value);
+  });
 
-  next();
+  res.redirect(demoUrl.toString());
 });
 
 // Serve static files from the 'dist' directory
@@ -42,4 +40,5 @@ app.get('*', (req, res) => {
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
+  console.log(`Visit http://localhost:${port}/webxrdemo?xrdm_orgid=YOUR_ORG_ID&xrdm_authsecret=YOUR_AUTH_SECRET to load the app with demo parameters`);
 });
