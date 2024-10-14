@@ -78,6 +78,10 @@ echo "Copying package files..."
 cp -R build/src/* ixrlibforwebxr/
 cp package.json README.md LICENSE ixrlibforwebxr/
 
+# Remove the build/src directory structure
+mv ixrlibforwebxr/build/src/* ixrlibforwebxr/
+rm -rf ixrlibforwebxr/build
+
 # Ensure the network folder is copied
 if [ -d "build/src/network" ]; then
     echo "Copying network folder..."
