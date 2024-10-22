@@ -156,7 +156,7 @@ For a detailed list of all available methods and their parameters, please refer 
 iXRLibForWebXR simplifies the authentication process by automatically extracting the necessary data from URL parameters. To use this feature, simply include the authentication parameters in the URL when launching your application:
 
 ```
-http://yourdomain.com/?xrdm_orgid=YOUR_ORG_ID&xrdm_authsecret=YOUR_AUTH_SECRET&xrdm_appid=YOUR_APP_ID
+http://yourdomain.com/?xrdm_orgid=YOUR_ORG_ID&xrdm_authsecret=YOUR_AUTH_SECRET
 ```
 
 Replace `YOUR_ORG_ID`, `YOUR_AUTH_SECRET`, and `YOUR_APP_ID` with your actual credentials.
@@ -169,7 +169,9 @@ When initializing the iXR instance in your code, you don't need to manually extr
 import { iXRInit } from 'ixrlibforwebxr';
 
 async function main() {
-  const iXR = await iXRInit();
+  const iXR = await iXRInit({
+    appId : 'YOUR_APP_ID' 
+  });
   // The iXR instance is now initialized with the credentials from the URL
   // Continue with using iXR...
 }
