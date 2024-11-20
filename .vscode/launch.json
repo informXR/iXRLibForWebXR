@@ -6,8 +6,8 @@
             "type": "node",
             "request": "launch",
             "skipFiles": ["<node_internals>/**"],
-            "program": "${workspaceFolder}/iXRLibForWebXR/src/test.ts",
-            "cwd": "${workspaceFolder}/iXRLibForWebXR",
+            "program": "${workspaceFolder}/src/test.ts",
+            "cwd": "${workspaceFolder}",
             "runtimeArgs": [
                 "-r",
                 "ts-node/register"
@@ -16,7 +16,10 @@
             "protocol": "inspector",
             "console": "integratedTerminal",
             "internalConsoleOptions": "openOnSessionStart",
-            "outFiles": ["${workspaceFolder}/iXRLibForWebXR/build/**/*.js"]
+            "outFiles": ["${workspaceFolder}/build/**/*.js"],
+            "env": {
+                "TS_NODE_PROJECT": "${workspaceFolder}/tsconfig.json"
+            }
         }
     ]
 } 
