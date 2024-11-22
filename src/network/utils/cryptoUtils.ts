@@ -14,6 +14,28 @@ export async function sha256(message: string): Promise<string> {
   }
 }
 
+export async function SHA256(message: string): Promise<Buffer>
+{
+    if (typeof window !== 'undefined' && window.crypto)
+    {
+        // Browser environment
+        const msgBuffer = new TextEncoder().encode(message);
+        const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgBuffer);
+        const hashArray = Buffer.from(new Uint8Array(hashBuffer));
+        return hashArray;
+    }
+    else if (typeof process !== 'undefined' && process.versions && process.versions.node)
+    {
+        // Node.js environment
+        const crypto = require('crypto');
+        return crypto.createHash('sha256').update(message).digest('binary');
+    }
+    else
+    {
+        throw new Error('Unsupported environment for SHA-256 hashing');
+    }
+}
+
 export function jwtDecode(token: string): any {
   if (typeof window !== 'undefined') {
     // Browser environment

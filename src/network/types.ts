@@ -1,6 +1,14 @@
 import { AxiosRequestConfig } from 'axios';
 import { Agent } from 'https';
 
+export const DATEMAXVALUE = 2222;
+
+export class Base64
+{
+    public static Decode = (str: string):Buffer => Buffer.from(str, 'base64');
+    public static Encode = (buf: Buffer):string => buf.toString('base64');
+}
+
 export interface ApiResponse<T = any> {
   data: T;
   status: number;
