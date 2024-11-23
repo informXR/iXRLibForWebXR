@@ -2,6 +2,7 @@ import { AxiosRequestConfig } from 'axios';
 import { Agent } from 'https';
 
 export const DATEMAXVALUE = 2222;
+export const DATEMINVALUE = 1972;
 
 export class Base64
 {

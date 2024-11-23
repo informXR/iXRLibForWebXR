@@ -2,6 +2,9 @@
 /// Main return code for library operations.
 ///		In here as it is needed by Task.
 ///		Co-maintained with the one in iXRInterop.cs.
+
+import { DATEMAXVALUE, DATEMINVALUE } from "../types";
+
 /// </summary>
 export enum iXRResult
 {
@@ -159,3 +162,95 @@ export function ResultOptionsToString(eRet: ResultOptions): string
     }
     return "Null";
 }
+
+/// <summary>
+/// Datatype that makes it easy to port C# DateTime.
+/// </summary>
+export class DateTime extends Date
+{
+    public static Now() : number
+    {
+        return super.now();
+    }
+    public static MaxValue() : DateTime
+    {
+        // Let them deal with the headset apocalypse when the y2224 bug happens.
+        const dt = new DateTime();
+        dt.setFullYear(DATEMAXVALUE);
+        // ---
+        return dt;
+    }
+    public static MinValue() : DateTime
+    {
+        const dt = new DateTime();
+        dt.setFullYear(DATEMINVALUE);
+        // ---
+        return dt;
+    }
+    /// <summary>
+    /// Core constructor.
+    ///		Constructs to local time... i.e. ToLocalTimeString() will yield exactly what was constructed here
+    ///		whereas ToUtcTimeString() will timezone-convert from what is passed in here.
+    /// </summary>
+    /// <param name="nYear">Year, i.e. 1957 indicates the year 1957</param>
+    /// <param name="nMonth">1-based</param>
+    /// <param name="nDay">1-based</param>
+    /// <param name="nHour">0-based</param>
+    /// <param name="nMinute">0-based</param>
+    /// <param name="nSecond">0-based</param>
+    /// <param name="nMilliseconds">0-based</param>
+    constructor(nYear?: number, nMonth?: number, nDay?: number, nHour?: number, nMinute?: number, nSecond?: number, nMilliseconds?: number)
+    {
+        super();
+        // this = new DateConstructor(nYear, nMonth, nDay, nHour, nMinute, nSecond, nMilliseconds);
+    }
+    // ---
+    public ToLocalTimeString(): string
+    {
+        return '';
+    }
+    public ToUtcTimeString(): string
+    {
+        return '';
+    }
+    public ToString(): string
+    {
+        return this.ToUtcTimeString();
+    }
+    public ToUnixTime(): string
+    {
+        return '';
+    }
+    public ToInt64(): string
+    {
+        return '';
+    }
+    public ToUnixTimeAsString(): string
+    {
+        return '';
+    }
+    public FromUnixTime(nTime: number): void
+    {
+        // *this = std::chrono::system_clock::from_time_t(nTime);
+    }
+    public FromInt64(nTime: number): void
+    {
+        // *(int64_t*)this = nTime;
+    }
+    // Cannot overload static and non-static, hence this slight inelegancy.
+    public static ConvertUnixTime(nTime: number): DateTime
+    {
+        var dt = new DateTime();
+
+        // dt.FromUnixTime(nTime);
+        // ---
+        return dt;
+    }
+    // Calls core constructor therefore follows same convention (local / UTC)... referring to constructor
+    // rather than saying what the constructor does here as it is too easy to forget to update this as
+    // any change to the constructor is likely to be a hasty fix.
+    public static Parse(sz: string): DateTime
+    {
+        return new Date(super.parse(sz)) as DateTime;
+    }
+};
