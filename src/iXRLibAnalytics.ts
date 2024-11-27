@@ -398,7 +398,7 @@ export class iXRLibAnalytics
 	/// <param name="bNoCallbackOnSuccess">true = Only call pfnStatusCallback on error, false = always call pfnStatusCallback (assuming pfnStatusCallback not null, do not call at all otherwise).</param>
 	/// <param name="pfnStatusCallback">null = do not want status callback, else call according to ^^^.</param>
 	/// <returns>As the call has not happened yet on return, this is the status of adding the task or failing to add it.</returns>
-	private static AddXXXTask<T, CB, iXRLibStorage>(ixrT: T, szTableName: string, (listpT: DbSet<T>, bOneAtATime: boolean, refparam{szResponse: string}), bOneAtATime: boolean, bNoCallbackOnSuccess: boolean, pfnStatusCallback: CB) => pfnPostIXRXXX: iXRResult
+	private static AddXXXTask<T, CB, iXRLibStorage>(ixrT: T, szTableName: string, (listpT: DbSet<T>, bOneAtATime: boolean, refparam{szResponse: string}), bOneAtATime: boolean, bNoCallbackOnSuccess: boolean, pfnStatusCallback: CB): iXRResult => pfnPostIXRXXX
 	{
 		var	nTrimCount : int;
 		var	dtNow = DateTime.Now(),
@@ -508,7 +508,7 @@ export class iXRLibAnalytics
 	/// <param name="bNoCallbackOnSuccess">true = Only call pfnStatusCallback on error, false = always call pfnStatusCallback (assuming pfnStatusCallback not null, do not call at all otherwise).</param>
 	/// <param name="pfnStatusCallback">null = do not want status callback, else call according to ^^^.</param>
 	/// <returns>As the call has not happened yet on return, this is the status of adding the task or failing to add it.</returns>
-	private static DeleteXXXTask<T, CB, iXRLibStorage>(ixrT: T, szTableName: string, (ixrT: T, refparam {szResponse: string}) => pfnDeleteIXRXXX: iXRResult, bNoCallbackOnSuccess: boolean, pfnStatusCallback: CB): iXRResult
+	private static DeleteXXXTask<T, CB, iXRLibStorage>(ixrT: T, szTableName: string, (ixrT: T, refparam {szResponse: string}): iXRResult => pfnDeleteIXRXXX, bNoCallbackOnSuccess: boolean, pfnStatusCallback: CB): iXRResult
 	{
 		var	nTrimCount: int;
 		var	dtNow = DateTime.Now(),

@@ -492,127 +492,114 @@ export class Dictionary<KEY, VALUE> extends Map<KEY, VALUE>
 	// ---
 	constructor()
 	{
-		this = {};
+		super();
+		//this = {};
 	}
 	Add(kKey: KEY, vValue: VALUE): void
 	{
-		super.set(key, vValue);
+		super.set(kKey, vValue);
 	}
-	Remove(kKey: KEY): bool
+	Remove(kKey: KEY): boolean
 	{
 		return this.delete(kKey);
 	}
 	Count(): number
 	{
-		return this.size();
+		return this.size;
 	}
-	TryGetValue(kKey: KEY, OUT VALUE& vRet): bool
+	TryGetValue(kKey: KEY, refparam: {vRet: VALUE}): boolean
 	{
-		typename super::iterator	it = super::find(kKey);
+		var	vValue = this.get(kKey);
 
-		if (it != super::end())
+		if (vValue != undefined)
 		{
-			vRet = it->second;
+			refparam.vRet = vValue;
 			// ---
 			return true;
 		}
 		// ---
 		return false;
 	}
-	template <typename CHAR> basic_mstring<CHAR> ToStringT() const
+	ToString(): string
 	{
-		typename super::const_iterator	it;
-		basic_mstring<CHAR>				szRet;
+		var	szRet : string = "";
 
-		for (it = super::begin(); it != super::end(); it++)
+		for (let entry of this.entries())
 		{
-			if (!szRet.empty())
+			if (szRet.length > 0)
 			{
-				szRet << CHAR(',');
+				szRet += ',';
 			}
-			szRet << static_cast<const KEY&>(it->first);
-			szRet << CHAR('=');
-			szRet << static_cast<const VALUE&>(it->second);
+			szRet += entry[0];
+			szRet += '=';
+			szRet += entry[1];
 		}
 		// ---
 		return szRet;
 	}
-	mstringb ToString() const
+	LoadFromJson(): JsonResult
 	{
-		return ToStringT<char>();
-	}
-	mstring16 ToString16() const
-	{
-		//return ToStringT<char16_t>();
-		// This ultrastink springs from the Android compiler's utter refusal to instantiate the template on char16_t.
-		// I tried every kind of casting and declare a CHAR[2] and copy ',' into it, etc and to no avail.  Then I tried
-		// simply inlining a char16_t-specific implementation with u',' for the commas... same error.  The good way
-		// works on every other compiler.
-		return mstring16(ToStringT<char>());
-	}
-	JsonResult LoadFromJson(const json& jsontree)
-	{
-		JsonResult	eRet = JsonResult::eOk,
-					eTestRet;
+		var	eRet = JsonResult.eOk,
+			eTestRet: JsonResult;
 
-		super::clear();
-		for (detail::iteration_proxy_value<detail::iter_impl<const json>> it = jsontree.items().begin(); it != jsontree.items().end(); ++it)
-		{
-			eTestRet = LoadFromJsonGuts(it.value());
-			if (eTestRet != JsonResult::eOk)
-			{
-				eRet = eTestRet;
-			}
-		}
+		// super::clear();
+		// for (detail::iteration_proxy_value<detail::iter_impl<const json>> it = jsontree.items().begin(); it != jsontree.items().end(); ++it)
+		// {
+		// 	eTestRet = LoadFromJsonGuts(it.value());
+		// 	if (eTestRet != JsonResult::eOk)
+		// 	{
+		// 		eRet = eTestRet;
+		// 	}
+		// }
 		// ---
 		return eRet;
 	}
-private:
-	JsonResult LoadFromJsonGuts(const json& jsontree)
-	{
-		JsonResult	eRet = JsonResult::eOk;
+// private:
+// 	JsonResult LoadFromJsonGuts(const json& jsontree)
+// 	{
+// 		JsonResult	eRet = JsonResult::eOk;
 
-		for (detail::iteration_proxy_value<detail::iter_impl<const json>> it = jsontree.items().begin(); it != jsontree.items().end(); ++it)
-		{
-			Add(KEY(it.key().c_str()), VALUE(((const std::string)(it.value())).c_str()));
-		}
-		// ---
-		return eRet;
-	}
+// 		for (detail::iteration_proxy_value<detail::iter_impl<const json>> it = jsontree.items().begin(); it != jsontree.items().end(); ++it)
+// 		{
+// 			Add(KEY(it.key().c_str()), VALUE(((const std::string)(it.value())).c_str()));
+// 		}
+// 		// ---
+// 		return eRet;
+// 	}
 };
 
 /// <summary>
 /// The specific Dictionary<mstringb, mstringb>, which makes it easy to convert comma-separated string to dictionary of strings.
 /// </summary>
-struct PythonDictStrings : public Dictionary<mstringb, mstringb>
+export class PythonDictStrings extends Dictionary<string, string>
 {
-	using super = Dictionary<mstringb, mstringb>;
-	// ---
-	PythonDictStrings() = default;
-	PythonDictStrings(const mstringb& szCommaSeparatedNameEqualsValueList)
+	constructor()
 	{
-		CommaSeparatedStringToDictionary(szCommaSeparatedNameEqualsValueList);
+		super();
 	}
-private:
-	void CommaSeparatedStringToDictionary(const mstringb& szDict)
+	public FromCommaSeparatedList(szCommaSeparatedNameEqualsValueList: string): void
 	{
-		std::vector<mstringb>			vsz;
-		mstringb						szKey,
-										szValue;
-		std::vector<mstringb>::iterator	it;
+		this.CommaSeparatedStringToDictionary(szCommaSeparatedNameEqualsValueList);
+	}
+	// ---
+	private CommaSeparatedStringToDictionary(szDict: string): void
+	{
+		var	vsz: Array<string> = new Array<string>;
+		var	szKey: string,
+			szValue: string;
 
-		super::clear();
-		szDict.Split(',', vsz, false, false);
-		for (it = vsz.begin(); it != vsz.end();)
+		this.clear();
+		vsz = szDict.split(',');
+		for (let sz of vsz.values())
 		{
-			std::vector<mstringb>	vszEquals;
+			var	vszEquals: Array<string> = new Array<string>;
 
-			(*it++).Split('=', vszEquals, false, false);
-			if (vszEquals.size() >= 1)
+			vszEquals = sz.split('=');
+			if (vszEquals.length >= 1)
 			{
-				szKey = vszEquals[0].Trim();
-				szValue = (vszEquals.size() >= 2) ? vszEquals[1].Trim() : mstringb("");
-				super::Add(szKey, szValue);
+				szKey = vszEquals[0].trim();
+				szValue = (vszEquals.length >= 2) ? vszEquals[1].trim() : "";
+				super.Add(szKey, szValue);
 			}
 		}
 	}
@@ -621,117 +608,64 @@ private:
 /// <summary>
 /// For having a primary datatype among the self-describing datatypes (DataObjectBase.h).
 /// </summary>
-struct StringList : public std::list<mstringb>
+export class StringList extends Array<string>
 {
-	using super = std::list<mstringb>;
-	// ---
-	mbinary	m_mbBinaryData;	// Makes it easy to handle BLOB conversions from database... i.e. pass this object into the Type-overloaded column bindings.
-	// ---
-	StringList() = default;
-	StringList(const mstringb& szCommaSeparatedList)
+	constructor()
 	{
-		CommaSeparatedStringToStringList(szCommaSeparatedList);
+		super();
+	}
+	FromCommaSeparatedList(szCommaSeparatedList: string): void
+	{
+		this.CommaSeparatedStringToStringList(szCommaSeparatedList);
 	}
 	// ---
-	void SerializeToBinary()
+	LoadFromJson(): JsonResult
 	{
-		typename super::const_iterator	it;
+		var	eRet = JsonResult.eOk,
+			eTestRet: JsonResult;
 
-		m_mbBinaryData.clear();
-		for (it = super::begin(); it != super::end(); it++)
-		{
-			m_mbBinaryData << true;
-			m_mbBinaryData << *it;
-		}
-		m_mbBinaryData << false;
-	}
-	void DeserializeFromBinary()
-	{
-		bool		bNode;
-		mstringb	value;
-
-		super::clear();
-		m_mbBinaryData.ResetSerializationState();
-		do
-		{
-			m_mbBinaryData >> bNode;
-			if (bNode)
-			{
-				m_mbBinaryData >> value;
-				super::emplace_back(value);
-			}
-		} while (bNode);
-	}
-	JsonResult LoadFromJson(const json& jsontree)
-	{
-		JsonResult	eRet = JsonResult::eOk,
-					eTestRet;
-
-		super::clear();
-		for (detail::iteration_proxy_value<detail::iter_impl<const json>> it = jsontree.items().begin(); it != jsontree.items().end(); ++it)
-		{
-			eTestRet = LoadFromJsonGuts(it.value());
-			if (eTestRet != JsonResult::eOk)
-			{
-				eRet = eTestRet;
-			}
-		}
+		// super::clear();
+		// for (detail::iteration_proxy_value<detail::iter_impl<const json>> it = jsontree.items().begin(); it != jsontree.items().end(); ++it)
+		// {
+		// 	eTestRet = LoadFromJsonGuts(it.value());
+		// 	if (eTestRet != JsonResult::eOk)
+		// 	{
+		// 		eRet = eTestRet;
+		// 	}
+		// }
 		// ---
 		return eRet;
 	}
-	template <typename CHAR> basic_mstring<CHAR> ToStringT() const
+	ToString(): string
 	{
-		typename super::const_iterator	it;
-		std::basic_stringstream<CHAR>	szRet;
+		var	szRet: string = "";
 
-		for (it = super::begin(); it != super::end(); it++)
+		for (let sz of this.entries())
 		{
-			if (szRet.peek() != decltype(szRet)::traits_type::eof())
+			if (szRet.length > 0)
 			{
-				szRet << CHAR(',');
+				szRet += ',';
 			}
-			szRet << *it;
+			szRet += sz;
 		}
 		// ---
-		return basic_mstring<CHAR>(szRet.str().c_str());
+		return szRet;
 	}
-	mstringb ToString() const
+	// ---
+	private CommaSeparatedStringToStringList(szStringList: string): void
 	{
-		return ToStringT<char>();
-	}
-	mstring16 ToString16() const
-	{
-//			return ToStringT<char16_t>();
-		// This ultrastink springs from the Android compiler's utter refusal to instantiate the template on char16_t.
-		// I tried every kind of casting and declare a CHAR[2] and copy ',' into it, etc and to no avail.  Then I tried
-		// simply inlining a char16_t-specific implementation with u',' for the commas... same error.  The good way
-		// works on every other compiler.
-		return mstring16(ToStringT<char>());
-	}
-private:
-	JsonResult LoadFromJsonGuts(const json& jsontree)
-	{
-		JsonResult	eRet = JsonResult::eOk;
+		var	vsz: Array<string>;
 
-		for (detail::iteration_proxy_value<detail::iter_impl<const json>> it = jsontree.items().begin(); it != jsontree.items().end(); ++it)
+		// No doubt better way to do this.
+		while (this.length > 0)
 		{
-			super::emplace_back(mstringb(((const std::string)(it.value())).c_str()));
+			this.pop();
 		}
-		// ---
-		return eRet;
-	}
-	void CommaSeparatedStringToStringList(const mstringb& szStringList)
-	{
-		std::vector<mstringb>			vsz;
-		mstringb						szKey,
-										szValue;
-		std::vector<mstringb>::iterator	it;
-
-		super::clear();
-		szStringList.Split(',', vsz, false, false);
-		for (it = vsz.begin(); it != vsz.end();)
+		vsz = szStringList.split(',');
+		// Probably better way to do this as well, something similar to this.push(vsz.values()) which is unkosher apparently.
+		for (let sz of vsz.values())
 		{
-			super::emplace_back(*it++);
+			this.push(sz);
 		}
 	}
 };
@@ -739,23 +673,29 @@ private:
 /// <summary>
 /// Analogous to .NET Random object.
 /// </summary>
-struct Random
+export class Random
 {
-	Random()
+	public Next(nFirst?: number, nLast?: number): number
 	{
-		std::srand((unsigned)std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count());
+		if (nFirst != null && nFirst != undefined)
+		{
+			if (nLast != null && nLast != undefined)
+			{
+				return (nLast <= nFirst) ? nFirst : Math.floor(Math.random() * (nLast - nFirst) + nFirst);
+			}
+			else
+			{
+				return Math.floor(Math.random() * nFirst);
+			}
+		}
+		return 0;
 	}
-	unsigned Next(const unsigned nModulo)
+	NextBytes(mbBytes: Buffer): void
 	{
-		return std::rand() % nModulo;
-	}
-	unsigned Next(const unsigned nFirst, const unsigned nLast)
-	{
-		return (nLast <= nFirst) ? nFirst : std::rand() % (nLast - nFirst) + nFirst;
-	}
-	void NextBytes(mbinary& mbBytes)
-	{
-		std::transform(mbBytes.begin(), mbBytes.end(), mbBytes.begin(), [](uint8_t b){ return std::rand(); });
+		for (let b of mbBytes.values())
+		{
+			b = Math.floor(Math.random() * 256);
+		}
 	}
 };
 
@@ -763,23 +703,28 @@ struct Random
 /// Analogous to .NET Task with just enough functionality for our purposes... basically just needs
 ///		to encapsulate a function pointer and its data and be able to call it synchronously.
 /// </summary>
-struct Task
+export class Task
 {
-	std::function<iXRResult(void*)>	m_pfnTask = nullptr;	// The task to be done.
-	void							*m_pObject = nullptr;	// The task data, iXREvent, list of events, etc.
-	std::function<void(void*)>		m_pfnCleanup = nullptr;	// How to clean up m_pObject.
+	m_pfnTask?: (pObject?: object) => void = undefined;		// The task to be done.
+	m_pObject?: object = undefined;							// The task data, iXREvent, list of events, etc.
+	m_pfnCleanup?: (pObject?: object) => void = undefined;	// How to clean up m_pObject.
 	// ---
-	Task() = default;
-	Task(const std::function<iXRResult(void*)>& pfnTask, void* pObject, const std::function<void(void*)>& pfnCleanup) :
-		m_pfnTask(pfnTask),
-		m_pObject(pObject),
-		m_pfnCleanup(pfnCleanup)
+	constructor(pfnTask?: (pObject?: object) => void, pObject?: object, pfnCleanup?: (pObject?: object) => void)
 	{
+		this.m_pfnTask = pfnTask;
+		this.m_pObject = pObject;
+		this.m_pfnCleanup = pfnCleanup;
 	}
-	void RunSynchronously()
+	RunSynchronously(): void
 	{
-		m_pfnTask(m_pObject);
-		m_pfnCleanup(m_pObject);
+		if (this.m_pfnTask != undefined)
+		{
+			this.m_pfnTask(this.m_pObject);
+		}
+		if (this.m_pfnCleanup != undefined)
+		{
+			this.m_pfnCleanup(this.m_pObject);
+		}
 	}
 };
 
@@ -787,24 +732,21 @@ struct Task
 /// Analogous to .NET Queue<> with enough functionality for our purposes (Queue of Task).
 /// </summary>
 /// <typeparam name="T">Type of object being queued</typeparam>
-template <typename T> struct Queue : public std::deque<T>
+export class Queue<T> extends Array<T>
 {
-	using super = std::deque<T>;
-	// ---
-	T& Enqueue(T&& t)
+	public Enqueue(t: T): T
 	{
-		return super::emplace_back(t);
+		// Probably more efficient way to implement this.
+		return this[super.push(t) - 1];
 	}
-	T Dequeue()
+	Dequeue(): T
 	{
-		if (super::size() > 0)
+		if (super.length > 0)
 		{
-			T	t = super::front();
-
-			super::pop_front();
+			var	t?: T = this.shift();
 			// ---
-			return t;
+			return (t != undefined) ? t : new T();
 		}
-		return T();
+		return new T();
 	}
 };
