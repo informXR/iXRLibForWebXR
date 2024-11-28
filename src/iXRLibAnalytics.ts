@@ -2,7 +2,7 @@ import { Partner, PartnerToString } from './iXRLibClient';
 import { Base64, DATEMAXVALUE } from './network/types';
 import { crc32 } from './network/utils/crc32';
 import { SHA256 } from './network/utils/cryptoUtils';
-import { iXRResult, DateTime } from './network/utils/DotNetishTypes';
+import { iXRResult, DateTime, StringList, PythonDictStrings } from './network/utils/DotNetishTypes';
 import { TimeSpan } from './network/utils/timeSpan';
 
 /// <summary>
@@ -301,18 +301,17 @@ class iXRLibInit
 /// <summary>
 /// The main API object.
 /// </summary>
+// --- MJP:  templatize these?
+type iXRLibAnalyticsGeneralCallback = (eResult: iXRResult, szExceptionMessage: string) => void;
+type iXRLibAnalyticsAIProxyCallback = (ixrAIProxy: iXRAIProxy, eResult: iXRResult, szExceptionMessage: string) => void;
+type iXRLibAnalyticsStorageCallback = (ixrStorage: iXRStorage, eResult: iXRResult, szExceptionMessage: string) => void;
+// ---
+type iXRLibGetAuthSecretCallback = (pUserData: object) => string;
+type iXRLibDiagnosticCallback = (szDiagnostic: string) => void;
+// ---
 export class iXRLibAnalytics
 {
-	// using iXRLibAnalyticsGeneralCallback = std::function<void(iXRResult eResult, const mstringb& szExceptionMessage)>;
-	// // --- MJP:  templatize these?
-	// using iXRLibAnalyticsAIProxyCallback = std::function<void(const iXRAIProxy& ixrAIProxy, iXRResult eResult, const mstringb& szExceptionMessage)>;
-	// using iXRLibAnalyticsStorageCallback = std::function<void(const iXRStorage& ixrStorage, iXRResult eResult, const mstringb& szExceptionMessage)>;
-	// // ---
-	// using iXRLibGetAuthSecretCallback = std::function<mstringb(void* pUserData)>;
-	// using iXRLibDiagnosticCallback = std::function<void(const char* szDiagnostic)>;
-	// ---
-	// ---
-	public static						m_listErrors: StringList;
+	public static						m_listErrors: StringList = new StringList();
 	public static						m_dtLastSuccessfulSend: DateTime = new DateTime();	// State variable... for knowing when to wake up and send stragglers.
 	public static						m_bCheckForStragglers: boolean;	// State variable... flip flops on send-main-chunks / send-stragglers.
 	// --- App.Config entries.
@@ -320,7 +319,7 @@ export class iXRLibAnalytics
     // --- Will be either userId or deviceId and currentId aliases whichever it is.  This is current global... snapshot in each IXREvent as well.
 	private static						m_szUserId : string;
 	private static						m_szDeviceId: string;
-	private static						m_dssCurrentData = new PythonDictStrings();   // where we will store the current data in memory for quick access.  MJP:  may already have implemented this as IXRAnalytics.allEvents.
+	private static						m_dssCurrentData: PythonDictStrings = new PythonDictStrings();   // where we will store the current data in memory for quick access.  MJP:  may already have implemented this as IXRAnalytics.allEvents.
 	//private static					m_dsbAllEvents = new Dictionary<mstringb, bool>;
 	public static get_UserId(): string { return m_szUserId; }
 	public static set_UserId(value: string): void { m_szUserId = value; }
@@ -342,7 +341,7 @@ export class iXRLibAnalytics
 	// Calculate this when we have "valid" userId or deviceId then it gets used thereafter on all relevant filtering.
 	public static GetCurrentId(): string
 	{
-		return (m_szUserId.length() > 0) ? m_szUserId : m_szDeviceId;
+		return (m_szUserId.length > 0) ? m_szUserId : m_szDeviceId;
 	}
     /// <summary>
     /// General TaskErrorReturn() that implements the callback logic on asynchronous calls.
@@ -398,9 +397,9 @@ export class iXRLibAnalytics
 	/// <param name="bNoCallbackOnSuccess">true = Only call pfnStatusCallback on error, false = always call pfnStatusCallback (assuming pfnStatusCallback not null, do not call at all otherwise).</param>
 	/// <param name="pfnStatusCallback">null = do not want status callback, else call according to ^^^.</param>
 	/// <returns>As the call has not happened yet on return, this is the status of adding the task or failing to add it.</returns>
-	private static AddXXXTask<T, CB, iXRLibStorage>(ixrT: T, szTableName: string, (listpT: DbSet<T>, bOneAtATime: boolean, refparam{szResponse: string}), bOneAtATime: boolean, bNoCallbackOnSuccess: boolean, pfnStatusCallback: CB): iXRResult => pfnPostIXRXXX
+	private static AddXXXTask<T, CB, iXRLibStorage>(ixrT: T, szTableName: string, pfnPostIXRXXX: (listpT: DbSet<T>, bOneAtATime: boolean, refparam: {szResponse: string}) => iXRRresult, bOneAtATime: boolean, bNoCallbackOnSuccess: boolean, pfnStatusCallback: CB): iXRResult
 	{
-		var	nTrimCount : int;
+		var	nTrimCount : number;
 		var	dtNow = DateTime.Now(),
 			dtOlderThan = dtNow - iXRLibStorage.m_ixrLibConfiguration.m_tsPruneSentItemsOlderThan;
 		var	pdsIXRXXX: DbSet<T> = null;
@@ -478,7 +477,7 @@ export class iXRLibAnalytics
 					pdsIXRXXX->remove_if([](T& t) { return t.m_bSyncedWithCloud; });
 				}
 			}
-			eRet = SendUnsentXXXs<T, iXRLibStorage>(ixrDbContext, *pdsIXRXXX, szTableName, pfnPostIXRXXX, bOneAtATime, iXRLibStorage.m_ixrLibConfiguration.m_nEventsPerSendAttempt, false);
+			eRet = SendUnsentXXXs<T, iXRLibStorage>(ixrDbContext, pdsIXRXXX, szTableName, pfnPostIXRXXX, bOneAtATime, iXRLibStorage.m_ixrLibConfiguration.m_nEventsPerSendAttempt, false);
 			// ---
 			if (iXRLibStorage.m_ixrLibConfiguration.m_bUseDatabase)
 			{
@@ -508,7 +507,7 @@ export class iXRLibAnalytics
 	/// <param name="bNoCallbackOnSuccess">true = Only call pfnStatusCallback on error, false = always call pfnStatusCallback (assuming pfnStatusCallback not null, do not call at all otherwise).</param>
 	/// <param name="pfnStatusCallback">null = do not want status callback, else call according to ^^^.</param>
 	/// <returns>As the call has not happened yet on return, this is the status of adding the task or failing to add it.</returns>
-	private static DeleteXXXTask<T, CB, iXRLibStorage>(ixrT: T, szTableName: string, (ixrT: T, refparam {szResponse: string}): iXRResult => pfnDeleteIXRXXX, bNoCallbackOnSuccess: boolean, pfnStatusCallback: CB): iXRResult
+	private static DeleteXXXTask<T, CB, iXRLibStorage>(ixrT: T, szTableName: string, pfnDeleteIXRXXX: (ixrT: T, refparam: {szResponse: string}) => iXRResult, bNoCallbackOnSuccess: boolean, pfnStatusCallback: CB): iXRResult
 	{
 		var	nTrimCount: int;
 		var	dtNow = DateTime.Now(),
@@ -599,18 +598,18 @@ export class iXRLibAnalytics
 	/// <param name="nConfiguredXXXPerSendAttempt">The corresponding how many T's per send attempt from iXRLibConfiguration.</param>
 	/// <param name="bSendingStragglers">true when being called by TimerCallback to drive Nagle-algorithmish-straggler-send, false when doing a main send</param>
 	/// <returns>iXRResult status code</returns>
-	template <typename T, typename iXRLibStorage> public static iXRResult SendUnsentXXXs(iXRDbContext& ixrDbContext, DbSet<T>& dsIXRXXX, const char* szTableName, iXRResult (*pfnPostIXRXXX)(const DbSet<T*>& listpT, bool bOneAtATime, OUT mstringb& szResponse), bool bOneAtATime, size_t nConfiguredXXXPerSendAttempt, bool bSendingStragglers)
+	private SendUnsentXXXs<T, iXRLibStorage>(ixrDbContext: iXRDbContext, dsIXRXXX: DbSet<T>, szTableName: string, pfnPostIXRXXX: (listpT: DbSet<T>, bOneAtATime: boolean, refparam: {szResponse: string}) => iXRRresult, bOneAtATime: boolean, nConfiguredXXXPerSendAttempt: number, bSendingStragglers: boolean): iXRResult
 	{
-		iXRResult	eRet = iXRResult.eOk,
-					eTestRet = iXRResult.eOk;
+		var	eRet: iXRResult.eOk,
+			eTestRet = iXRResult.eOk;
 
 		// If we have enough new yet-to-be-pushed-to-REST items, then do that and mark as sent.
 		if (iXRLibStorage.m_ixrLibConfiguration.RESTConfigured())
 		{
-			DbSet<T*>		dspObjectsToSend;
-			int				i;
-			bool			bDoneSending = false;
-			DatabaseResult	eDb;
+			var	dspObjectsToSend: DbSet<T>;
+			var	i: number;
+			var	bDoneSending: boolean = false;
+			var	eDb: DatabaseResult;
 
 			if (iXRLibStorage.m_ixrLibConfiguration.m_bUseDatabase)
 			{
@@ -650,14 +649,14 @@ export class iXRLibAnalytics
 				{
 					try
 					{
-						mstringb	szResponse;
+						var	szResponse: string = "";
 
 						if (pfnPostIXRXXX(dspObjectsToSend, bOneAtATime, szResponse) == iXRResult.eOk)
 						{
-							JsonResult					eSuccessParse,
-														eFailureParse;
-							PostObjectsResponseSuccess	objResponseSuccess;
-							PostObjectsResponseFailure	objResponseFailure;
+							var	eSuccessParse: JsonResult,
+								eFailureParse: JsonResult;
+							var	objResponseSuccess: PostObjectsResponseSuccess;
+							var	objResponseFailure: PostObjectsResponseFailure;
 
 							eSuccessParse = LoadFromJson(objResponseSuccess, szResponse);
 							eFailureParse = LoadFromJson(objResponseFailure, szResponse);
@@ -755,36 +754,36 @@ export class iXRLibAnalytics
 	/// <param name="bNoCallbackOnSuccess">When asynchronous and pfnStatusCallback not null, call always when this is false, only on failure when true.</param>
 	/// <param name="pfnStatusCallback">null = no-op, not-null = callback in asynchronous case with respect to bNoCallbackOnSuccess.</param>
 	/// <returns>iXRResult status code.</returns>
-	template <typename T, typename CB, typename iXRLibStorage> public static iXRResult AddXXXNoDbTask(T& ixrT, iXRResult (*pfnPostIXRXXX)(const DbSet<T*>& listpT, bool bOneAtATime, OUT mstringb& szResponse), bool bOneAtATime, bool bNoCallbackOnSuccess, const CB& pfnStatusCallback)
+	private static AddXXXNoDbTask<T, CB, iXRLibStorage>(ixrT: T, pfnPostIXRXXX: (listpT: DbSet<T>, bOneAtATime: boolean, refparam: { szResponse: string}) => iXRResult, bOneAtATime: boolean, bNoCallbackOnSuccess: boolean, pfnStatusCallback: CB): iXRResult
 	{
-		iXRResult	eRet = iXRResult.eOk;
+		var	eRet: iXRResult = iXRResult.eOk;
 
 		try
 		{
 			// If we have enough new yet-to-be-pushed-to-REST items, then do that and mark as sent.
 			if (iXRLibStorage.m_ixrLibConfiguration.RESTConfigured())
 			{
-				DbSet<T*>	pObjectsToSend;
-				int			i;
-				bool		bDoneSending = false;
+				var	pObjectsToSend: DbSet<T>;
+				var	i: number;
+				var	bDoneSending: boolean = false;
 
 				// While the remaining unpushed > eventsPerSendAttempt...
-				pObjectsToSend.Add(&ixrT);
+				pObjectsToSend.Add(ixrT);
 				while (!bDoneSending)
 				{
 					for (i = 0; i < (int)iXRLibStorage.m_ixrLibConfiguration.m_nSendRetriesOnFailure; i++)
 					{
 						try
 						{
-							mstringb	szResponse;
+							var	szResponse: string;
 
 							if (pfnPostIXRXXX(pObjectsToSend, bOneAtATime, szResponse) == iXRResult.eOk)
 							{
-								JsonResult					eSuccessParse,
-															eFailureParse;
-								PostObjectsResponseSuccess	objResponseSuccess;
-								PostObjectsResponseFailure	objResponseFailure;
-								iXRResult					eTestRet = iXRResult.eOk;
+								var	eSuccessParse: JsonResult,
+									eFailureParse: JsonResult;
+								var	objResponseSuccess: PostObjectsResponseSuccess;
+								var	objResponseFailure: PostObjectsResponseFailure;
+								var	eTestRet: iXRResult = iXRResult.eOk;
 
 								eSuccessParse = LoadFromJson(objResponseSuccess, szResponse);
 								eFailureParse = LoadFromJson(objResponseFailure, szResponse);
@@ -823,50 +822,135 @@ export class iXRLibAnalytics
 		// ---
 		return TaskErrorReturn<T, CB>(eRet, ixrT, bNoCallbackOnSuccess, pfnStatusCallback, "");
 	}
-    public static iXRResult ForceSendUnsentSynchronous();
-public:
-    // Would be cool to have these be private but the dll Interface.cpp code makes that too much of a pain at this point, maybe revisit later.
-    public static void SetHeadersFromCurrentState(CurlHttp& objRequest, const mstringb& szBodyContent, const bool bHasBody, bool bIncludeAuthHeaders)
-    {
-        SetHeadersFromCurrentState(objRequest, mbinary(szBodyContent), bHasBody, bIncludeAuthHeaders);
-    }
-    public static void SetHeadersFromCurrentState(CurlHttp& objRequest, const mbinary& pbBodyContent, const bool bHasBody, const bool bIncludeAuthHeaders);
-    // --- API (C++ dll and C# dll) versions of AddAIProxy().
-    public static iXRResult AddAIProxySynchronous(const mstringb& szPrompt, const mstringb& szLMMProvider)
-    {
-        iXRAIProxy	ixrAIProxy(szPrompt, "", szLMMProvider);
+	/// <summary>
+	/// Core-core function to force send unsent objects synchronously.  Used to be inlined in ^^^ TimerCallback().
+	///		Now we want it to be callable on its own for the user-goes-to-the-bog-then-resumes-playing workflow.
+	/// </summary>
+	/// <returns>iXRResult enum.</returns>
+    private static ForceSendUnsentSynchronous(): iXRResult
+	{
+		var	eRet: iXRResult = iXRResult.eOk,
+			eTestRet: iXRResult;
+		var	ixrDbContext: iXRDbContext;
 
-        return AddAIProxySynchronous(ixrAIProxy);
-    }
-    public static iXRResult AddAIProxySynchronous(const mstringb& szPrompt, const mstringb& szPastMessages, const mstringb& szLMMProvider)
-    {
-        iXRAIProxy	ixrAIProxy(szPrompt, szPastMessages, szLMMProvider);
+		eTestRet = SendUnsentXXXs<iXREvent, iXRLibStorage>(ixrDbContext, ixrDbContext.m_dsIXREvents, "IXREvents", iXRLibClient.PostIXREvents, false, iXRLibStorage.m_ixrLibConfiguration.m_nEventsPerSendAttempt, true);
+		if (eTestRet != iXRResult.eOk)
+		{
+			eRet = eTestRet;
+		}
+		eTestRet = SendUnsentXXXs<iXRLog, iXRLibStorage>(ixrDbContext, ixrDbContext.m_dsIXRLogs, "IXRLogs", iXRLibClient.PostIXRLogs, false, iXRLibStorage.m_ixrLibConfiguration.m_nLogsPerSendAttempt, true);
+		if (eTestRet != iXRResult.eOk)
+		{
+			eRet = eTestRet;
+		}
+		eTestRet = SendUnsentXXXs<iXRTelemetry, iXRLibStorage>(ixrDbContext, ixrDbContext.m_dsIXRTelemetry, "IXRTelemetry", iXRLibClient.PostIXRTelemetry, false, iXRLibStorage.m_ixrLibConfiguration.m_nTelemetryEntriesPerSendAttempt, true);
+		if (eTestRet != iXRResult.eOk)
+		{
+			eRet = eTestRet;
+		}
+		eTestRet = SendUnsentXXXs<iXRStorage, iXRLibStorage>(ixrDbContext, ixrDbContext.m_dsIXRStorage, "IXRStorage", iXRLibClient.PostIXRStorage, true, iXRLibStorage.m_ixrLibConfiguration.m_nStorageEntriesPerSendAttempt, true);
+		if (eTestRet != iXRResult.eOk)
+		{
+			eRet = eTestRet;
+		}
+		// ---
+		return eRet;
+	}
+	// ---
+	// Would be cool to have these be private but the dll Interface.cpp code makes that too much of a pain at this point, maybe revisit later.
+	public static SetHeadersFromCurrentState(objRequest: CurlHttp, szBodyContent: string, bHasBody: boolean, bIncludeAuthHeaders: boolean): void
+	{
+		SetHeadersFromCurrentState(objRequest, Buffer.from(szBodyContent, "utf-8"), bHasBody, bIncludeAuthHeaders);
+	}
+	/// <summary>
+	/// Prepping request for send.
+	/// </summary>
+	/// <param name="objRequest">The request being prepared</param>
+	/// <param name="pbBodyContent">Body content where applicable (POST, PUT, ...)</param>
+	/// <param name="bIncludeAuthHeaders">Include X-iXRLib-xxx headers computed from Authenticate() data... i.e. false when Authenticate()ing</param>
+	public static SetHeadersFromCurrentState(CurlHttp& objRequest, pbBodyContent: Buffer, bHasBody: boolean, bIncludeAuthHeaders: boolean): void
+	{
+		try
+		{
+			objRequest.AddHttpHeader("Host", iXRLibStorage.m_ixrLibConfiguration.GetRestUrlObject().HostAndPort());
+			objRequest.AddHttpHeader("Accept", "application/json");
+			objRequest.AddHttpHeader("UserAgent", "Mozilla/5.0 (Windows NT 10.0; Win64; rv:109.0) Gecko/20100101 Firefox/119.0");
+			objRequest.AddHttpHeader("Accept-Language", "en-US; q=0.5, en; q=0.5");
+			objRequest.AddHttpHeader("Accept-Encoding", "gzip, deflate");
+			objRequest.AddHttpHeader("Content-Type", "application/json");	// May need to parse pbBodyContent someday to distinguish Content-Type and Accept header settings.
+			// ---
+			if (bIncludeAuthHeaders)
+			{
+				iXRLibInit.m_ixrLibAuthentication.SetHeadersFromCurrentState(objRequest, pbBodyContent, bHasBody);
+			}
+		}
+		catch (error)
+		{
+			//iXRLibClient.WriteLine($"Error: {ex.Message}\nStackTrace: {ex.StackTrace}");
+		}
+	}
+	// --- API (C++ dll and C# dll) versions of AddAIProxy().
+	public static AddAIProxySynchronous(szPrompt: string, szLMMProvider: string): iXRResult
+	{
+		var	ixrAIProxy: new iXRAIProxy(szPrompt, "", szLMMProvider);
 
-        return AddAIProxySynchronous(ixrAIProxy);
-    }
-    public static iXRResult AddAIProxy(const mstringb& szPrompt, const mstringb& szLMMProvider)
-    {
-        iXRAIProxy	ixrAIProxy(szPrompt, "", szLMMProvider);
+		return AddAIProxySynchronous(ixrAIProxy);
+	}
+	public static AddAIProxySynchronous(szPrompt: string, szPastMessages: string, szLMMProvider: string): iXRResult
+	{
+		var	ixrAIProxy: new iXRAIProxy(szPrompt, szPastMessages, szLMMProvider);
 
-        return AddAIProxy(ixrAIProxy, true, nullptr);
-    }
-    public static iXRResult AddAIProxy(const mstringb& szPrompt, const mstringb& szPastMessages, const mstringb& szLMMProvider)
-    {
-        iXRAIProxy	ixrAIProxy(szPrompt, szPastMessages, szLMMProvider);
+		return AddAIProxySynchronous(ixrAIProxy);
+	}
+	public static AddAIProxy(szPrompt: string, szLMMProvider: string): iXRResult
+	{
+		var	ixrAIProxy: new iXRAIProxy(szPrompt, "", szLMMProvider);
 
-        return AddAIProxy(ixrAIProxy, true, nullptr);
-    }
-    public static iXRResult AddAIProxy(const mstringb& szPrompt, const PythonDictStrings& dictPastMessages, const mstringb& szLMMProvider)
-    {
-        iXRAIProxy	ixrAIProxy(szPrompt, dictPastMessages, szLMMProvider);
+		return AddAIProxy(ixrAIProxy, true, nullptr);
+	}
+	public static AddAIProxy(szPrompt: string, szPastMessages: string, szLMMProvider: string): iXRResult
+	{
+		var	ixrAIProxy: new iXRAIProxy(szPrompt, szPastMessages, szLMMProvider);
 
-        return AddAIProxy(ixrAIProxy, true, nullptr);
-    }
-    // --- End API (C++ dll and C# dll) versions of AddAIProxy().
-    public static iXRResult AddAIProxySynchronous(iXRAIProxy& ixrAIProxy);
-    public static iXRResult AddAIProxy(iXRAIProxy& ixrAIProxy, bool bNoCallbackOnSuccess, const iXRLibAnalyticsAIProxyCallback& pfnStatusCallback);
-    // ---
-    public static iXRResult AddAIProxyEntrySynchronous(iXRAIProxy& ixrAIProxy);
-    public static iXRResult AddAIProxyEntry(iXRAIProxy& ixrAIProxy, bool bNoCallbackOnSuccess, const iXRLibAnalyticsAIProxyCallback& pfnStatusCallback);
-    // --- End Core AddXXX() functions called by the API functions.
+		return AddAIProxy(ixrAIProxy, true, nullptr);
+	}
+	public static AddAIProxy(szPrompt: string, dictPastMessages: PythonDictStrings, szLMMProvider: string): iXRResult
+	{
+		var	ixrAIProxy: new iXRAIProxy(szPrompt, dictPastMessages, szLMMProvider);
+
+		return AddAIProxy(ixrAIProxy, true, nullptr);
+	}
+	// --- End API (C++ dll and C# dll) versions of AddAIProxy().
+	public static AddAIProxySynchronous(ixrAIProxy: iXRAIProxy): iXRResult
+	{
+		return AddXXXNoDbTask<iXRAIProxy, iXRLibAnalyticsAIProxyCallback, iXRLibStorage>(ixrAIProxy, iXRLibClient.PostIXRAIProxyObjects, false, false, null);
+	}
+	public static AddAIProxy(ixrAIProxy: iXRAIProxy, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsAIProxyCallback): iXRResult
+	{
+		DiagnosticWriteLine("Going to call AddAIProxy().");
+		// Notice the = capture... so pfnStatusCallback propagates by copy into the thread.
+		return m_ixrLibAsync.AddTask((pObject: object) => iXRResult { return iXRLibAnalytics.AddXXXNoDbTask<iXRAIProxy, iXRLibAnalyticsAIProxyCallback, iXRLibStorage>(pObject as iXRAIProxy, iXRLibClient.PostIXRAIProxyObjects, false, bNoCallbackOnSuccess, pfnStatusCallback); },
+			ixrAIProxy,
+			(pObject: object) => void { /*delete (iXRAIProxy*)pObject;*/ });
+		}
+	// ---
+	public static AddAIProxyEntrySynchronous(iXRAIProxy& ixrAIProxy): iXRResult
+	{
+		return AddXXXTask<iXRAIProxy, iXRLibAnalyticsAIProxyCallback, iXRLibStorage>(ixrAIProxy, "IXRAIProxy", iXRLibClient.PostIXRAIProxy, false, false, null);
+	}
+	public static AddAIProxyEntry(ixrAIProxy: iXRAIProxy, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsAIProxyCallback): iXRResult
+	{
+		iXRLibAnalytics.DiagnosticWriteLine("Going to call AddAIProxy().");
+		// Notice the = capture... so pfnStatusCallback propagates by copy into the thread.
+		return m_ixrLibAsync.AddTask((pObject: object) => iXRResult { return iXRLibAnalytics.AddXXXTask<iXRAIProxy, iXRLibAnalyticsAIProxyCallback, iXRLibStorage>(pObject: object, "IXRAIProxy", iXRLibClient.PostIXRAIProxy, false, bNoCallbackOnSuccess, pfnStatusCallback); },
+			ixrAIProxy,
+			(pObject: object) => void { /*delete (iXRAIProxy*)pObject;*/ });
+	}
+	// --- End Core AddXXX() functions called by the API functions.
+	public static DefaultDiagnosticCallback(szLine: string): void
+	{
+	// #ifdef _DEBUG
+	// 	iXRLibAnalyticsTests.WriteLine(szLine);
+	// #endif
+	}
 };

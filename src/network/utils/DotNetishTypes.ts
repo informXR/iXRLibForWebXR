@@ -303,7 +303,7 @@ export function JsonResultToString(eRet: JsonResult): string
 /// Data type that makes it easy to port C# Duration... double representation of seconds.  Easy to load/save to db,
 ///		debug, and easy enough to convert for adding to DateTime (below).
 /// </summary>
-export class TimeSpan : public std::chrono::duration<double>
+export class TimeSpan
 {
 	TimeSpan() :
 		std::chrono::duration<double>(0.0)
