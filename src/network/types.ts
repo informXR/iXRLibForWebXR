@@ -10,6 +10,10 @@ export class Base64
     public static Encode = (buf: Buffer):string => buf.toString('base64');
 }
 
+type time_t = number;
+
+// ---
+
 export interface ApiResponse<T = any> {
   data: T;
   status: number;

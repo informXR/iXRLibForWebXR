@@ -561,7 +561,7 @@ export class iXRLibAnalytics
 			{
 				ScopeThreadBlock	cs(m_csDB);
 
-				eDb = ExecuteSqlSelect(ixrDbContext.m_db, szTableName, "SELECT %s FROM %s WHERE SyncedWithCloud != 0 AND timestamp < ?", { {"timestamp", &dtOlderThan} }, *pdsIXRXXX);
+				eDb = ExecuteSqlSelect(ixrDbContext.m_db, szTableName, "SELECT %s FROM %s WHERE SyncedWithCloud != 0 AND timestamp < ?", { {"timestamp", &dtOlderThan} }, pdsIXRXXX);
 				if (pdsIXRXXX->Count() > 0)
 				{
 					pdsIXRXXX->RemoveRange();
@@ -868,7 +868,7 @@ export class iXRLibAnalytics
 	/// <param name="objRequest">The request being prepared</param>
 	/// <param name="pbBodyContent">Body content where applicable (POST, PUT, ...)</param>
 	/// <param name="bIncludeAuthHeaders">Include X-iXRLib-xxx headers computed from Authenticate() data... i.e. false when Authenticate()ing</param>
-	public static SetHeadersFromCurrentState(CurlHttp& objRequest, pbBodyContent: Buffer, bHasBody: boolean, bIncludeAuthHeaders: boolean): void
+	public static SetHeadersFromCurrentState(objRequest: CurlHttp, pbBodyContent: Buffer, bHasBody: boolean, bIncludeAuthHeaders: boolean): void
 	{
 		try
 		{
@@ -892,31 +892,31 @@ export class iXRLibAnalytics
 	// --- API (C++ dll and C# dll) versions of AddAIProxy().
 	public static AddAIProxySynchronous(szPrompt: string, szLMMProvider: string): iXRResult
 	{
-		var	ixrAIProxy: new iXRAIProxy(szPrompt, "", szLMMProvider);
+		var	ixrAIProxy:	iXRAIProxy = new iXRAIProxy(szPrompt, "", szLMMProvider);
 
 		return AddAIProxySynchronous(ixrAIProxy);
 	}
 	public static AddAIProxySynchronous(szPrompt: string, szPastMessages: string, szLMMProvider: string): iXRResult
 	{
-		var	ixrAIProxy: new iXRAIProxy(szPrompt, szPastMessages, szLMMProvider);
+		var	ixrAIProxy:	iXRAIProxy = new iXRAIProxy(szPrompt, szPastMessages, szLMMProvider);
 
 		return AddAIProxySynchronous(ixrAIProxy);
 	}
 	public static AddAIProxy(szPrompt: string, szLMMProvider: string): iXRResult
 	{
-		var	ixrAIProxy: new iXRAIProxy(szPrompt, "", szLMMProvider);
+		var	ixrAIProxy:	iXRAIProxy = new iXRAIProxy(szPrompt, "", szLMMProvider);
 
 		return AddAIProxy(ixrAIProxy, true, nullptr);
 	}
 	public static AddAIProxy(szPrompt: string, szPastMessages: string, szLMMProvider: string): iXRResult
 	{
-		var	ixrAIProxy: new iXRAIProxy(szPrompt, szPastMessages, szLMMProvider);
+		var	ixrAIProxy:	iXRAIProxy = new iXRAIProxy(szPrompt, szPastMessages, szLMMProvider);
 
 		return AddAIProxy(ixrAIProxy, true, nullptr);
 	}
 	public static AddAIProxy(szPrompt: string, dictPastMessages: PythonDictStrings, szLMMProvider: string): iXRResult
 	{
-		var	ixrAIProxy: new iXRAIProxy(szPrompt, dictPastMessages, szLMMProvider);
+		var	ixrAIProxy:	iXRAIProxy = new iXRAIProxy(szPrompt, dictPastMessages, szLMMProvider);
 
 		return AddAIProxy(ixrAIProxy, true, nullptr);
 	}

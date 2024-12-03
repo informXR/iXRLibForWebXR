@@ -2,7 +2,7 @@
 /// All the partners of which we are aware (for authentication purposes).
 ///		Comaintain with iXRAnalytics.cs.
 
-import { PythonDictStrings } from "./network/utils/DotNetishTypes";
+import { iXRResult, PythonDictStrings, StringList } from "./network/utils/DotNetishTypes";
 
 /// </summary>
 export enum Partner
@@ -40,53 +40,53 @@ export function StringToPartner(szString: string): Partner
 export class AuthTokenRequest extends DataObjectBase
 {
 	// --- Fixed auth fields taken as parameters to Authenticate().
-	m_szAppId:				string;
-	m_szOrgId:				string;
-	m_szAuthSecret:			string;
-	m_szDeviceId:			string;
-	m_szSessionId:			string;
-	m_szPartner:			string;	// Blank if it is just us (iXR).  Otherwise, "arborxr", ... if not blank this is how backend knows to do further authentication with partner.
+	m_szAppId:				string = "";
+	m_szOrgId:				string = "";
+	m_szAuthSecret:			string = "";
+	m_szDeviceId:			string = "";
+	m_szSessionId:			string = "";
+	m_szPartner:			string = "";	// Blank if it is just us (iXR).  Otherwise, "arborxr", ... if not blank this is how backend knows to do further authentication with partner.
 	// --- Extra environment-variable kind of data set by properties.
-	m_szOsVersion:			string;
-	m_szIpAddress:			string;
-	m_szXrdmVersion:		string;
-	m_szAppVersion:			string;
-	m_szUnityVersion:		string;
-	m_szDeviceModel:		string;
-	m_szUserId:				string;
+	m_szOsVersion:			string = "";
+	m_szIpAddress:			string = "";
+	m_szXrdmVersion:		string = "";
+	m_szAppVersion:			string = "";
+	m_szUnityVersion:		string = "";
+	m_szDeviceModel:		string = "";
+	m_szUserId:				string = "";
 	m_lszTags:				StringList = new StringList();
 	m_dictGeoLocation:		PythonDictStrings = new PythonDictStrings();
 	m_dictAuthMechanism:	PythonDictStrings = new PythonDictStrings();
 	// ---
-	constexpr static auto properties = std.tuple_cat(std.make_tuple(
-		property(&AuthTokenRequest.m_szAppId, "app_id"),
-		property(&AuthTokenRequest.m_szOrgId, "org_id"),
-		property(&AuthTokenRequest.m_szAuthSecret, "auth_secret"),
-		property(&AuthTokenRequest.m_szDeviceId, "device_id"),
-		property(&AuthTokenRequest.m_szSessionId, "session_id"),
-		property(&AuthTokenRequest.m_szPartner, "partner"),
-		// ---
-		property(&AuthTokenRequest.m_szOsVersion, "os_version", ColumnAttributeBF(ColumnAttribute.bfStringOnly)),
-		property(&AuthTokenRequest.m_szIpAddress, "ip_address"),
-		property(&AuthTokenRequest.m_szXrdmVersion, "xrdm_version", ColumnAttributeBF(ColumnAttribute.bfStringOnly)),
-		property(&AuthTokenRequest.m_szAppVersion, "app_version", ColumnAttributeBF(ColumnAttribute.bfStringOnly)),
-		property(&AuthTokenRequest.m_szUnityVersion, "unity_version", ColumnAttributeBF(ColumnAttribute.bfStringOnly)),
-		property(&AuthTokenRequest.m_szDeviceModel, "device_model"),
-		property(&AuthTokenRequest.m_szUserId, "user_id"),
-		property(&AuthTokenRequest.m_lszTags, "tags"),
-		property(&AuthTokenRequest.m_dictGeoLocation, "geolocation"),
-		property(&AuthTokenRequest.m_dictAuthMechanism, "auth_mechanism")
-	));
+	// constexpr static auto properties = std.tuple_cat(std.make_tuple(
+	// 	property(&AuthTokenRequest.m_szAppId, "app_id"),
+	// 	property(&AuthTokenRequest.m_szOrgId, "org_id"),
+	// 	property(&AuthTokenRequest.m_szAuthSecret, "auth_secret"),
+	// 	property(&AuthTokenRequest.m_szDeviceId, "device_id"),
+	// 	property(&AuthTokenRequest.m_szSessionId, "session_id"),
+	// 	property(&AuthTokenRequest.m_szPartner, "partner"),
+	// 	// ---
+	// 	property(&AuthTokenRequest.m_szOsVersion, "os_version", ColumnAttributeBF(ColumnAttribute.bfStringOnly)),
+	// 	property(&AuthTokenRequest.m_szIpAddress, "ip_address"),
+	// 	property(&AuthTokenRequest.m_szXrdmVersion, "xrdm_version", ColumnAttributeBF(ColumnAttribute.bfStringOnly)),
+	// 	property(&AuthTokenRequest.m_szAppVersion, "app_version", ColumnAttributeBF(ColumnAttribute.bfStringOnly)),
+	// 	property(&AuthTokenRequest.m_szUnityVersion, "unity_version", ColumnAttributeBF(ColumnAttribute.bfStringOnly)),
+	// 	property(&AuthTokenRequest.m_szDeviceModel, "device_model"),
+	// 	property(&AuthTokenRequest.m_szUserId, "user_id"),
+	// 	property(&AuthTokenRequest.m_lszTags, "tags"),
+	// 	property(&AuthTokenRequest.m_dictGeoLocation, "geolocation"),
+	// 	property(&AuthTokenRequest.m_dictAuthMechanism, "auth_mechanism")
+	// ));
 	// ---
-	AuthTokenRequest()
+	constructor()
 	{
 		RefreshSessionId();
 	}
-	void RefreshSessionId()
+	public RefreshSessionId(): void
 	{
-		SUID	suid;
+		var	suid: SUID;
 
-		m_szSessionId = suid.ToStringPureHex<char>();
+		m_szSessionId = suid.ToStringPureHex();
 	}
 	// ---
 #ifdef _DEBUG
@@ -99,15 +99,15 @@ export class AuthTokenRequest extends DataObjectBase
 /// </summary>
 export class AuthTokenDecodedJWT extends DataObjectBase
 {
-	time_t		m_utTokenExpiration;	// Token expiration in Unix time (time_t).
-	mstringb	m_szType;
-	mstringb	m_szJti;
+	m_utTokenExpiration:	time_t;	// Token expiration in Unix time (time_t).
+	m_szType:				string = "";
+	m_szJti:				string = "";
 	// ---
-	constexpr static auto properties = std.tuple_cat(std.make_tuple(
-		property(&AuthTokenDecodedJWT.m_utTokenExpiration, "exp"),
-		property(&AuthTokenDecodedJWT.m_szType, "type"),
-		property(&AuthTokenDecodedJWT.m_szJti, "jti")
-	));
+	// constexpr static auto properties = std.tuple_cat(std.make_tuple(
+	// 	property(&AuthTokenDecodedJWT.m_utTokenExpiration, "exp"),
+	// 	property(&AuthTokenDecodedJWT.m_szType, "type"),
+	// 	property(&AuthTokenDecodedJWT.m_szJti, "jti")
+	// ));
 };
 
 /// <summary>
@@ -115,13 +115,13 @@ export class AuthTokenDecodedJWT extends DataObjectBase
 /// </summary>
 export class AuthTokenResponseSuccess extends DataObjectBase
 {
-	mstringb	m_szToken;		// Bearer token to use in future POSTs/etc (JWT).
-	mstringb	m_szApiSecret;	// Key to use for SHA256 hashing in the header.
+	m_szToken:		string = "";		// Bearer token to use in future POSTs/etc (JWT).
+	m_szApiSecret:	string = "";	// Key to use for SHA256 hashing in the header.
 	// ---
-	constexpr static auto properties = std.tuple_cat(std.make_tuple(
-		property(&AuthTokenResponseSuccess.m_szToken, "token"),
-		property(&AuthTokenResponseSuccess.m_szApiSecret, "secret")
-	));
+	// constexpr static auto properties = std.tuple_cat(std.make_tuple(
+	// 	property(&AuthTokenResponseSuccess.m_szToken, "token"),
+	// 	property(&AuthTokenResponseSuccess.m_szApiSecret, "secret")
+	// ));
 };
 
 /// <summary>
@@ -129,11 +129,11 @@ export class AuthTokenResponseSuccess extends DataObjectBase
 /// </summary>
 export class PostObjectsResponseSuccess extends DataObjectBase
 {
-	mstringb	m_szStatus;
+	m_szStatus:	string = "";
 	// ---
-	constexpr static auto properties = std.tuple_cat(std.make_tuple(
-		property(&PostObjectsResponseSuccess.m_szStatus, "status")
-	));
+	// constexpr static auto properties = std.tuple_cat(std.make_tuple(
+	// 	property(&PostObjectsResponseSuccess.m_szStatus, "status")
+	// ));
 };
 
 /// <summary>
@@ -141,11 +141,11 @@ export class PostObjectsResponseSuccess extends DataObjectBase
 /// </summary>
 export class PostObjectsResponseFailure extends DataObjectBase
 {
-	mstringb	m_szDetail;
+	m_szDetail:	string = "";
 	// ---
-	constexpr static auto properties = std.tuple_cat(std.make_tuple(
-		property(&PostObjectsResponseFailure.m_szDetail, "detail")
-	));
+	// constexpr static auto properties = std.tuple_cat(std.make_tuple(
+	// 	property(&PostObjectsResponseFailure.m_szDetail, "detail")
+	// ));
 };
 
 /// <summary>
@@ -153,21 +153,21 @@ export class PostObjectsResponseFailure extends DataObjectBase
 /// </summary>
 export class AuthTokenResponseFailureDetail extends DataObjectBase
 {
-	DbSet<JsonScalarArrayElement<mstringb>>	m_lszLoc;
-	mstringb								m_szMsg;
-	mstringb								m_szType;
-	mstringb								m_szInput;
-	mstringb								m_szUrl;
+	m_lszLoc:	DbSet<JsonScalarArrayElement<string>> = new DbSet<JsonScalarArrayElement<string>>();
+	m_szMsg:	string = "";
+	m_szType:	string = "";
+	m_szInput:	string = "";
+	m_szUrl:	string = "";
 	// ---
-	constexpr static auto properties = std.tuple_cat(std.make_tuple(
-		property(&AuthTokenResponseFailureDetail.m_szMsg, "msg"),
-		property(&AuthTokenResponseFailureDetail.m_szType, "type"),
-		property(&AuthTokenResponseFailureDetail.m_szInput, "input"),
-		property(&AuthTokenResponseFailureDetail.m_szUrl, "url")
-	));
-	constexpr static auto childobjectlistproperties = std.tuple_cat(std.make_tuple(
-		childobjectlistproperty(&AuthTokenResponseFailureDetail.m_lszLoc, "loc")
-	));
+	// constexpr static auto properties = std.tuple_cat(std.make_tuple(
+	// 	property(&AuthTokenResponseFailureDetail.m_szMsg, "msg"),
+	// 	property(&AuthTokenResponseFailureDetail.m_szType, "type"),
+	// 	property(&AuthTokenResponseFailureDetail.m_szInput, "input"),
+	// 	property(&AuthTokenResponseFailureDetail.m_szUrl, "url")
+	// ));
+	// constexpr static auto childobjectlistproperties = std.tuple_cat(std.make_tuple(
+	// 	childobjectlistproperty(&AuthTokenResponseFailureDetail.m_lszLoc, "loc")
+	// ));
 };
 
 /// <summary>
@@ -175,16 +175,16 @@ export class AuthTokenResponseFailureDetail extends DataObjectBase
 /// </summary>
 export class AuthTokenResponseFailure extends DataObjectBase
 {
-	mstringb								m_szMessage;	// This is for failures in the LMS/AuthMechanism flow where we get e.g. {"message": "Invalid assessment pin or the assessment is already active."}
-	DbSet<AuthTokenResponseFailureDetail>	m_listDetail;	// This is for more general case when we get one of those "detail": "<list of details dump>" error structures.
+	m_szMessage:	string = "";	// This is for failures in the LMS/AuthMechanism flow where we get e.g. {"message": "Invalid assessment pin or the assessment is already active."}
+	m_listDetail:	DbSet<AuthTokenResponseFailureDetail> = new DbSet<AuthTokenResponseFailureDetail>();	// This is for more general case when we get one of those "detail": "<list of details dump>" error structures.
 	// ^^^ Both of these are simply unioned and it will find and parse whichever is present.
 	// ---
-	constexpr static auto properties = std.tuple_cat(std.make_tuple(
-		property(&AuthTokenResponseFailure.m_szMessage, "message")
-	));
-	constexpr static auto childobjectlistproperties = std.tuple_cat(std.make_tuple(
-		childobjectlistproperty(&AuthTokenResponseFailure.m_listDetail, "detail")
-	));
+	// constexpr static auto properties = std.tuple_cat(std.make_tuple(
+	// 	property(&AuthTokenResponseFailure.m_szMessage, "message")
+	// ));
+	// constexpr static auto childobjectlistproperties = std.tuple_cat(std.make_tuple(
+	// 	childobjectlistproperty(&AuthTokenResponseFailure.m_listDetail, "detail")
+	// ));
 };
 
 /// <summary>
@@ -193,43 +193,33 @@ export class AuthTokenResponseFailure extends DataObjectBase
 /// </summary>
 export class ApiTokenJWT extends DataObjectBase
 {
-	mstringb	m_szType;
-	mstringb	m_szDeviceId;
-	mstringb	m_szUserId;
+	m_szType:		string = "";
+	m_szDeviceId:	string = "";
+	m_szUserId:		string = "";
 	// ---
-	ApiTokenJWT() = default;
-	ApiTokenJWT(const char* szDeviceId, const char* szUserId)
+	// ApiTokenJWT() = default;
+	constructor(szDeviceId: string, szUserId: string)
 	{
 		SetupAccessJWT(szDeviceId, szUserId);
 	}
-	void SetupAccessJWT(const char* szDeviceId, const char* szUserId)
+	void SetupAccessJWT(szDeviceId: string, szUserId: string): void
 	{
 		m_szType = "access";
 		m_szDeviceId = szDeviceId;
 		m_szUserId = szUserId;
 	}
-	//mstringb ToEncryptedString(const char* szKey)
-	//{
-	//	mstringb											szJson = GenerateJson(*this);
-	//	std.array<uint8_t, HMAC_SHA256.SHA256_HASH_SIZE>	pbOut;
-
-	//	HMAC_SHA256.ComputeHash(szKey, strlen(szKey), szJson, szJson.length(), pbOut.data(), pbOut.size());
-	//	// ---
-	//	//return mstringb.to_hex_string(pbOut.data(), pbOut.size());
-	//	return Base64.Encode(pbOut.data(), pbOut.size());
-	//}
-	mstringb ToJWTString(const char* szKey)
+	ToJWTString(szKey: string): string
 	{
-		std.unordered_map<std.string, std.string>	mapPayload = { { "type", m_szType }, { "device_id", m_szDeviceId }, { "user_id", m_szUserId } };
+		var	mapPayload = { ["type", m_szType], ["device_id", m_szDeviceId], ["user_id", m_szUserId] };
 
-		return JWTEncode(szKey, std.move(mapPayload)).c_str();
+		return JWTEncode(szKey, mapPayload);
 	}
 	// ---
-	constexpr static auto properties = std.tuple_cat(std.make_tuple(
-		property(&ApiTokenJWT.m_szType, "type"),
-		property(&ApiTokenJWT.m_szDeviceId, "device_id"),
-		property(&ApiTokenJWT.m_szUserId, "user_id")
-	));
+	// constexpr static auto properties = std.tuple_cat(std.make_tuple(
+	// 	property(&ApiTokenJWT.m_szType, "type"),
+	// 	property(&ApiTokenJWT.m_szDeviceId, "device_id"),
+	// 	property(&ApiTokenJWT.m_szUserId, "user_id")
+	// ));
 };
 
 // ---
@@ -251,40 +241,39 @@ export class iXRLibClient
 	/// <param name="szRESTEndpoint">Backend REST endpoint that receives the POST.</param>
 	/// <param name="szResponse">Response from backend... either success JSON or failure JSON.</param>
 	/// <returns>iXRResult status code.</returns>
-	template <typename T, typename iXRLibInit, typename iXRLibAnalytics, typename iXRLibConfiguration> static iXRResult PostIXRXXXs(const DbSet<T*>& listpXXXs, bool bOneAtATime, OUT mstringb& szResponse)
+	public static PostIXRXXXs<T, iXRLibInit, iXRLibAnalytics, iXRLibConfiguration>(listpXXXs: DbSet<T>, bOneAtATime: boolean, refparam: {szResponse: string}): iXRResult
 	{
 		try
 		{
-			iXRXXXContainer<T, int>		ixrXXXContainer;
-			//CurlHttp					objRequest;
-			CURLcode					eTestCurlRet,
-										eCurlRet = CURLE_OK;
-			JsonResult					eJsonRet;
-			mstringb					szJSON;
-			iXRResult					eReauthResult;
-			mbinary						mbBodyContent;
-			PostObjectsResponseSuccess	objResponseSuccess;	// e.g. {"status":"success"}
-			PostObjectsResponseFailure	objResponseFailure;	// e.g. {"detail":"Invalid Login - Hash"}
+			var	ixrXXXContainer:	iXRXXXContainer<T, int> = new iXRXXXContainer<T, int>();
+			var	eTestCurlRet:		CURLcode,
+				eCurlRet:			CURLcode = CURLE_OK;
+			var	eJsonRet:			JsonResult;
+			var	szJSON:				string = "";
+			var	eReauthResult:		iXRResult;
+			var	mbBodyContent:		Buffer = new Buffer("");
+			var	objResponseSuccess:	PostObjectsResponseSuccess = new PostObjectsResponseSuccess();	// e.g. {"status":"success"}
+			var	objResponseFailure:	PostObjectsResponseFailure = new PostObjectsResponseFailure();	// e.g. {"detail":"Invalid Login - Hash"}
 
 			if (bOneAtATime)
 			{
-				DbSet<T*>	list1pXXXs;
+				var	list1pXXXs = new DbSet<T>();
 
-				list1pXXXs.push_back(nullptr);
-				for (const T* pT : listpXXXs)
+				list1pXXXs.push_back(null);
+				for (let pT of listpXXXs.values())
 				{
-					CurlHttp	objRequest;
+					var	objRequest: CurlHttp = new CurlHttp();
 
 					// Backend complains about "missing name" which is not actually missing with this one.
 					//szJSON = GenerateJson(*pT, DumpCategory.eDumpingJsonForBackend);
 					// Backend complains about "it should be a valid list" with this one.
 					//szJSON = GenerateJsonAlternate(ixrXXXContainer, DumpCategory.eDumpingJsonForBackend, { {"data", [&]()->mstringb { return GenerateJson<T, 1>(*pT, DumpCategory.eDumpingJsonForBackend); } } });
-					*list1pXXXs.begin() = const_cast<T*>(pT);
+					list1pXXXs[0] = pT;
 					szJSON = GenerateJsonAlternate(ixrXXXContainer, DumpCategory.eDumpingJsonForBackend, { {"data", [&]()->mstringb { return GenerateJson<T, 1>(list1pXXXs, DumpCategory.eDumpingJsonForBackend); } } });
 					InPlaceRefresh<mbinary>(mbBodyContent, szJSON);
 					OUTPUTDEBUGSTRING(szJSON, "\n");
 					iXRLibAnalytics.SetHeadersFromCurrentState(objRequest, szJSON, true, true);
-					eTestCurlRet = objRequest.Post(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T, iXRLibConfiguration>()).c_str(), {}, mbBodyContent, szResponse);
+					eTestCurlRet = objRequest.Post(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T, iXRLibConfiguration>()), {}, mbBodyContent, szResponse);
 					OUTPUTDEBUGSTRING(szResponse, "\n");
 					if (eTestCurlRet != CURLE_OK)
 					{
@@ -294,13 +283,13 @@ export class iXRLibClient
 			}
 			else
 			{
-				CurlHttp	objRequest;
+				var	objRequest: CurlHttp = new CurlHttp();
 
 				szJSON = GenerateJsonAlternate(ixrXXXContainer, DumpCategory.eDumpingJsonForBackend, { {"data", [&]()->mstringb { return GenerateJson<T, 1>(listpXXXs, DumpCategory.eDumpingJsonForBackend); } } });
 				InPlaceRefresh<mbinary>(mbBodyContent, szJSON);
 				OUTPUTDEBUGSTRING(szJSON, "\n");
 				iXRLibAnalytics.SetHeadersFromCurrentState(objRequest, szJSON, true, true);
-				eCurlRet = objRequest.Post(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T, iXRLibConfiguration>()).c_str(), {}, mbBodyContent, szResponse);
+				eCurlRet = objRequest.Post(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T, iXRLibConfiguration>()), {}, mbBodyContent, szResponse);
 				OUTPUTDEBUGSTRING(szJSON, "\n\nRESPONSE:\n\n", szResponse);
 			}
 			// Judgment call here... if (bOneAtATime) then szResponse will be the last response and this will react to that.
@@ -348,29 +337,29 @@ export class iXRLibClient
 		return iXRResult.eOk;
 	}
 	// TODO:  Summary this when dust has settled.
-	template <typename T, typename iXRLibInit, typename iXRLibAnalytics, typename iXRLibConfiguration> static iXRResult GetIXRXXXs(const std.vector<std.pair<const char*, const char*>>& vpszQueryParameters, OUT iXRXXXContainer<T, PythonDictStrings>* ptContainedResponse, OUT T* ptResponse)
+	public static GetIXRXXXs<T, iXRLibInit, iXRLibAnalytics, iXRLibConfiguration>(vpszQueryParameters: Array<[string, string]>, /*OUT*/ ptContainedResponse: iXRXXXContainer<T, PythonDictStrings>, /*OUT*/ ptResponse: T): iXRResult
 	{
 		try
 		{
-			CurlHttp					objRequest;
-			CURLcode					eCurlRet;
-			JsonResult					eJsonRet;
-			iXRResult					eReauthResult;
-			mstringb					szResponse;
-			PostObjectsResponseFailure	objResponseFailure;	// e.g. {"detail":"Invalid Login - Hash"}
+			var	objRequest:			CurlHttp = new CurlHttp();
+			var	eCurlRet:			CURLcode;
+			var	eJsonRet:			JsonResult;
+			var	eReauthResult:		iXRResult;
+			var	szResponse:			string = "";
+			var	objResponseFailure:	PostObjectsResponseFailure = new PostObjectsResponseFailure();	// e.g. {"detail":"Invalid Login - Hash"}
 
 			iXRLibAnalytics.SetHeadersFromCurrentState(objRequest, "", false, true);
-			eCurlRet = objRequest.Get(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T, iXRLibConfiguration>()).c_str(), vpszQueryParameters, szResponse);
-			OUTPUTDEBUGSTRING("RESPONSE:\n", szResponse, "\n");
+			eCurlRet = objRequest.Get(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T, iXRLibConfiguration>()), vpszQueryParameters, szResponse);
+			// OUTPUTDEBUGSTRING("RESPONSE:\n", szResponse, "\n");
 			if (eCurlRet == CURLE_OK)
 			{
-				if (ptResponse != nullptr)
+				if (ptResponse != null)
 				{
-					eJsonRet = LoadFromJson(*ptResponse, szResponse);
+					eJsonRet = LoadFromJson(ptResponse, szResponse);
 				}
 				else
 				{
-					eJsonRet = LoadFromJson(*ptContainedResponse, szResponse);
+					eJsonRet = LoadFromJson(ptContainedResponse, szResponse);
 				}
 				if (eJsonRet == JsonResult.eOk)
 				{
@@ -411,20 +400,20 @@ export class iXRLibClient
 		return iXRResult.eOk;
 	}
 	// TODO:  Summary this when dust has settled.
-	template <typename T, typename iXRLibInit, typename iXRLibAnalytics, typename iXRLibConfiguration> static iXRResult DeleteIXRXXX(const std.vector<std.pair<const char*, const char*>>& vpszQueryParameters, OUT mstringb& szResponse)
+	public static DeleteIXRXXX<T, iXRLibInit, iXRLibAnalytics, iXRLibConfiguration>(vpszQueryParameters: Array<[string, string]>, refparam: {szResponse: string}): iXRResult
 	{
 		try
 		{
-			CurlHttp					objRequest;
-			CURLcode					eCurlRet;
-			JsonResult					eJsonRet;
-			iXRResult					eReauthResult;
-			PostObjectsResponseSuccess	objResponseSuccess;	// e.g. {"status":"all data reset"}
-			PostObjectsResponseFailure	objResponseFailure;	// e.g. {"detail":"Invalid Login - Hash"}
+			var	objRequest:			CurlHttp = new CurlHttp();
+			var	eCurlRet:			CURLcode;
+			var	eJsonRet:			JsonResult;
+			var	eReauthResult:		iXRResult;
+			var	objResponseSuccess:	PostObjectsResponseSuccess = new PostObjectsResponseSuccess();	// e.g. {"status":"all data reset"}
+			var	objResponseFailure:	PostObjectsResponseFailure = new PostObjectsResponseFailure();	// e.g. {"detail":"Invalid Login - Hash"}
 
 			iXRLibAnalytics.SetHeadersFromCurrentState(objRequest, "", false, true);
-			eCurlRet = objRequest.Delete(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T, iXRLibConfiguration>()).c_str(), vpszQueryParameters, szResponse);
-			OUTPUTDEBUGSTRING(szResponse, "\n");
+			eCurlRet = objRequest.Delete(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T, iXRLibConfiguration>()), vpszQueryParameters, szResponse);
+			// OUTPUTDEBUGSTRING(szResponse, "\n");
 			if (eCurlRet == CURLE_OK)
 			{
 				eJsonRet = LoadFromJson(objResponseSuccess, szResponse);
@@ -467,19 +456,117 @@ export class iXRLibClient
 		return iXRResult.eOk;
 	}
 	// ---
-	static iXRResult PostAuthenticate(const AuthTokenRequest& authTokenRequest, OUT mstringb& szResponse);
+	/// <summary>
+	/// POST as JSON an authentication request and acquire the token (or error if not).
+	/// </summary>
+	/// <param name="authTokenRequest"></param>
+	/// <returns>Success or failure</returns>
+	public static PostAuthenticate(authTokenRequest: AuthTokenRequest, refparam: {szResponse: string}): iXRResult
+	{
+		var	objRequest:		CurlHttp = new CurlHttp();
+		var	eCurlRet:		CURLcode;
+		var	szJSON:			string = GenerateJson(authTokenRequest, DumpCategory.eDumpEverything);	// Save a few ns not going with eDumpingJsonForBackend... this is not a database object, no need to exclude fields.
+		var	mbBodyContent:	Buffer = new Buffer(szJSON);
+
+		try
+		{
+			iXRLibAnalytics.SetHeadersFromCurrentState(objRequest, szJSON, true, false);
+			eCurlRet = objRequest.Post(iXRLibAnalytics.FinalUrl("auth/token"), {}, mbBodyContent, szResponse);
+			if (eCurlRet != CURLE_OK)
+			{
+				return iXRResult.eAuthenticateFailedNetworkError;
+			}
+		}
+		catch (error)
+		{
+			//WriteLine($"Error: {ex.Message}\nStackTrace: {ex.StackTrace}");
+			return iXRResult.eAuthenticateFailed;
+		}
+		// ---
+		return iXRResult.eOk;
+	}
 	// ---
-	static iXRResult GetIXRConfig(OUT iXRLibConfiguration& ixrConfiguration);
-	static iXRResult GetIXRStorage(OUT iXRXXXContainer<iXRStorage, PythonDictStrings>& ixrStorage);
-	static iXRResult DeleteIXRStorageEntry(const mstringb& szName, OUT mstringb& szResponse);
-	static iXRResult DeleteMultipleIXRStorageEntries(const bool bSessionOnly, OUT mstringb& szResponse);
+	public static GetIXRConfig(/*OUT*/ ixrConfiguration: iXRLibConfiguration): iXRResult
+	{
+		var	szRestUrl:	string = ixrConfiguration.GetRestUrl();
+		var	eRet:		iXRResult = GetIXRXXXs<iXRLibConfiguration, iXRLibInit, iXRLibAnalytics, iXRLibConfiguration>({}, null, ixrConfiguration);
+
+		// Judgment call here... restore the REST_URL to what it was before getting the config from the backend.
+		// For example, when I am running test code, the local backend populates this field with the cloud URL,
+		// which bwns up the future requests if allowed to stand.  And I do not see any downside as how could we
+		// have communicated to the backend without a URL that was valid to begin with?
+		ixrConfiguration.SetRestUrl(szRestUrl);
+		// ---
+		return eRet;
+	}
+	public static GetIXRStorage(/*OUT*/ ixrStorage: iXRXXXContainer<iXRStorage, PythonDictStrings>): iXRResult
+	{
+		return GetIXRXXXs<iXRStorage, iXRLibInit, iXRLibAnalytics, iXRLibConfiguration>({}, ixrStorage, null);
+	}
+	/// <summary>
+	/// Delete single iXRStorage entry by name.
+	///		Note neither of these are using the "userOnly" flag as it should always be default false indicating current device.
+	/// </summary>
+	/// <param name="szName">Name of the Storage element.</param>
+	/// <param name="szResponse">Response from backend.</param>
+	/// <returns>iXRResult status code.</returns>
+	public static DeleteIXRStorageEntry(szName: string, refparam: {szResponse: string}): iXRResult
+	{
+		return DeleteIXRXXX<iXRStorage, iXRLibInit, iXRLibAnalytics, iXRLibConfiguration>({ ["name", szName] }, szResponse);
+	}
+	/// <summary>
+	/// Delete iXRStorage entries for this device, either session only or all of them.
+	///		Note neither of these are using the "userOnly" flag as it should always be default false indicating current device.
+	/// </summary>
+	/// <param name="bSessionOnly">true if only session data is to be deleted, else all data.</param>
+	/// <param name="szResponse">Response from backend.</param>
+	/// <returns>iXRResult status code.</returns>
+	public static DeleteMultipleIXRStorageEntries(bSessionOnly: boolean, refparam: {szResponse: string}): iXRResult
+	{
+		return DeleteIXRXXX<iXRStorage, iXRLibInit, iXRLibAnalytics, iXRLibConfiguration>({ ["sessionOnly", (bSessionOnly) ? "true" : "false"] }, szResponse);
+	}
 	// ---
-	static iXRResult PostIXREvents(const DbSet<iXREvent*>& listpEvents, bool bOneAtATime, OUT mstringb& szResponse);
-	static iXRResult PostIXRAIProxyObjects(const DbSet<iXRAIProxy*>& listpAIProxyObjects, bool bOneAtATime, OUT mstringb& szResponse);
-	static iXRResult PostIXRLogs(const DbSet<iXRLog*>& listpLogs, bool bOneAtATime, OUT mstringb& szResponse);
-	static iXRResult PostIXRTelemetry(const DbSet<iXRTelemetry*>& listpTelemetry, bool bOneAtATime, OUT mstringb& szResponse);
-	static iXRResult PostIXRAIProxy(const DbSet<iXRAIProxy*>& listpAIProxy, bool bOneAtATime, OUT mstringb& szResponse);
-	static iXRResult PostIXRStorage(const DbSet<iXRStorage*>& listpStorage, bool bOneAtATime, OUT mstringb& szResponse);
+	public static PostIXREvents(listpEvents: DbSet<iXREvent>, bOneAtATime boolean, refparam: {szResponse: string}): iXRResult
+	{
+		return PostIXRXXXs<iXREvent, iXRLibInit, iXRLibAnalytics, iXRLibConfiguration>(listpEvents, bOneAtATime, szResponse);
+	}
+	public static PostIXRAIProxyObjects(listpAIProxyObjects: DbSet<iXRAIProxy>, bOneAtATime boolean, refparam: {szResponse: string}): iXRResult
+	{
+		return PostIXRXXXs<iXRAIProxy, iXRLibInit, iXRLibAnalytics, iXRLibConfiguration>(listpAIProxyObjects, bOneAtATime, szResponse);
+	}
+	public static PostIXRLogs(listpLogs: DbSet<iXRLog>, bOneAtATime boolean, refparam: {szResponse: string}): iXRResult
+	{
+		return PostIXRXXXs<iXRLog, iXRLibInit, iXRLibAnalytics, iXRLibConfiguration>(listpLogs, bOneAtATime, szResponse);
+	}
+	public static PostIXRTelemetry(listpTelemetry: DbSet<iXRTelemetry>, bOneAtATime: boolean, refparam: {szResponse: string}): iXRResult
+	{
+		return PostIXRXXXs<iXRTelemetry, iXRLibInit, iXRLibAnalytics, iXRLibConfiguration>(listpTelemetry, bOneAtATime, szResponse);
+	}
+	public static PostIXRAIProxy(listpAIProxy: DbSet<iXRAIProxy>, bOneAtATime: boolean, refparam: {szResponse: string}): iXRResult
+	{
+		return PostIXRXXXs<iXRAIProxy, iXRLibInit, iXRLibAnalytics, iXRLibConfiguration>(listpAIProxy, bOneAtATime, szResponse);
+	}
+	public static PostIXRStorage(listpStorage: DbSet<iXRStorage>, bOneAtATime: boolean, refparam: {szResponse: string}): iXRResult
+	{
+		return PostIXRXXXs<iXRStorage, iXRLibInit, iXRLibAnalytics, iXRLibConfiguration>(listpStorage, bOneAtATime, szResponse);
+	}
 	// ---
-	static void WriteLine(mstringb szLine);
+	/// <summary>
+	/// Debug/Test code... output diagnostic information for other debug/test code.
+	/// </summary>
+	/// <param name="szLine"></param>
+	public static WriteLine(szLine: string): void
+	{
+		// https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/preprocessor-directives
+		szLine.EnsureSingleEndingCharacter('\n');
+		if (Platform.IsWindows())
+		{
+			OutputDebugStringA(szLine);
+		}
+		else
+		{
+			OutputDebugStringA(szLine);
+		}
+		iXRLibAnalytics.DiagnosticWriteLine(szLine);
+	}
 };
