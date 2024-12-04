@@ -1,4 +1,5 @@
 import { Partner, PartnerToString } from './iXRLibClient';
+import { iXRAIProxy, iXRStorage } from './iXRLibCoreModel';
 import { Base64, DATEMAXVALUE } from './network/types';
 import { crc32 } from './network/utils/crc32';
 import { SHA256 } from './network/utils/cryptoUtils';
@@ -108,7 +109,7 @@ class iXRLibInit
 		if (!bNewSession)
 		{
 			// Using pre-existing session, countermand constructed new one.
-			objAuthTokenRequest.m_szSessionId = m_ixrLibAuthentication.m_szSessionId;
+			objAuthTokenRequest.m_szSessionId = iXRLibInit.m_ixrLibAuthentication.m_szSessionId;
 		}
 		iXRLibAnalytics.set_DeviceId(szDeviceId);
 		set_Partner(ePartner);
@@ -119,16 +120,16 @@ class iXRLibInit
 		objAuthTokenRequest.m_szDeviceId = szDeviceId;	// May also need UserId at some point.
 		objAuthTokenRequest.m_szPartner = PartnerToString(ePartner);
 		// Set the environment/session fields that come along for the ride in the auth payload.
-		objAuthTokenRequest.m_szOsVersion = m_ixrLibAuthentication.m_objAuthTokenRequest.m_szOsVersion;
-		objAuthTokenRequest.m_szIpAddress = m_ixrLibAuthentication.m_objAuthTokenRequest.m_szIpAddress;
-		objAuthTokenRequest.m_szXrdmVersion = m_ixrLibAuthentication.m_objAuthTokenRequest.m_szXrdmVersion;
-		objAuthTokenRequest.m_szAppVersion = m_ixrLibAuthentication.m_objAuthTokenRequest.m_szAppVersion;
-		objAuthTokenRequest.m_szUnityVersion = m_ixrLibAuthentication.m_objAuthTokenRequest.m_szUnityVersion;
-		objAuthTokenRequest.m_szDeviceModel = m_ixrLibAuthentication.m_objAuthTokenRequest.m_szDeviceModel;
-		objAuthTokenRequest.m_szUserId = m_ixrLibAuthentication.m_objAuthTokenRequest.m_szUserId;
-		objAuthTokenRequest.m_lszTags = m_ixrLibAuthentication.m_objAuthTokenRequest.m_lszTags;
-		objAuthTokenRequest.m_dictGeoLocation = m_ixrLibAuthentication.m_objAuthTokenRequest.m_dictGeoLocation;
-		objAuthTokenRequest.m_dictAuthMechanism = m_ixrLibAuthentication.m_objAuthTokenRequest.m_dictAuthMechanism;
+		objAuthTokenRequest.m_szOsVersion = iXRLibInit.m_ixrLibAuthentication.m_objAuthTokenRequest.m_szOsVersion;
+		objAuthTokenRequest.m_szIpAddress = iXRLibInit.m_ixrLibAuthentication.m_objAuthTokenRequest.m_szIpAddress;
+		objAuthTokenRequest.m_szXrdmVersion = iXRLibInit.m_ixrLibAuthentication.m_objAuthTokenRequest.m_szXrdmVersion;
+		objAuthTokenRequest.m_szAppVersion = iXRLibInit.m_ixrLibAuthentication.m_objAuthTokenRequest.m_szAppVersion;
+		objAuthTokenRequest.m_szUnityVersion = iXRLibInit.m_ixrLibAuthentication.m_objAuthTokenRequest.m_szUnityVersion;
+		objAuthTokenRequest.m_szDeviceModel = iXRLibInit.m_ixrLibAuthentication.m_objAuthTokenRequest.m_szDeviceModel;
+		objAuthTokenRequest.m_szUserId = iXRLibInit.m_ixrLibAuthentication.m_objAuthTokenRequest.m_szUserId;
+		objAuthTokenRequest.m_lszTags = iXRLibInit.m_ixrLibAuthentication.m_objAuthTokenRequest.m_lszTags;
+		objAuthTokenRequest.m_dictGeoLocation = iXRLibInit.m_ixrLibAuthentication.m_objAuthTokenRequest.m_dictGeoLocation;
+		objAuthTokenRequest.m_dictAuthMechanism = iXRLibInit.m_ixrLibAuthentication.m_objAuthTokenRequest.m_dictAuthMechanism;
 		// ---
 		eRet = iXRLibClient.PostAuthenticate(objAuthTokenRequest, szResponse);
 		if (eRet == iXRResult.eOk)
@@ -150,19 +151,19 @@ class iXRLibInit
 			{
 				var	szJWT: string;
 
-				m_ixrLibAuthentication.m_szApiToken = objAuthTokenResponseSuccess.m_szToken;
-				m_ixrLibAuthentication.m_szApiSecret = objAuthTokenResponseSuccess.m_szApiSecret;
+				iXRLibInit.m_ixrLibAuthentication.m_szApiToken = objAuthTokenResponseSuccess.m_szToken;
+				iXRLibInit.m_ixrLibAuthentication.m_szApiSecret = objAuthTokenResponseSuccess.m_szApiSecret;
 				// This is purely internal to this object... for two-step authentications using dictAuthMechanism so FinalAuthenticate() can use the same one used here.
-				m_ixrLibAuthentication.m_szAuthSecret = szAuthSecret;
+				iXRLibInit.m_ixrLibAuthentication.m_szAuthSecret = szAuthSecret;
 				// Set current session only on successful login.
-				m_ixrLibAuthentication.m_szSessionId = objAuthTokenRequest.m_szSessionId;
-				// --- m_ixrLibAuthentication.m_szApiToken is a JWT token that contains, among other things, an "exp"
+				iXRLibInit.m_ixrLibAuthentication.m_szSessionId = objAuthTokenRequest.m_szSessionId;
+				// --- iXRLibInit.m_ixrLibAuthentication.m_szApiToken is a JWT token that contains, among other things, an "exp"
 				//		field which is the Unix time of token expiration.
-				szJWT = JWTDecode(nullptr, m_ixrLibAuthentication.m_szApiToken).c_str();
+				szJWT = JWTDecode(nullptr, iXRLibInit.m_ixrLibAuthentication.m_szApiToken).c_str();
 				eJWTParse = LoadFromJson(objAuthTokenDecodedJWT, szJWT);
 				if (eJWTParse == JsonResult.eOk)
 				{
-					m_ixrLibAuthentication.m_dtTokenExpiration.FromUnixTime(objAuthTokenDecodedJWT.m_utTokenExpiration);
+					iXRLibInit.m_ixrLibAuthentication.m_dtTokenExpiration.FromUnixTime(objAuthTokenDecodedJWT.m_utTokenExpiration);
 				}
 				else
 				{
@@ -209,7 +210,7 @@ class iXRLibInit
 	/// <returns>iXRResult enum</returns>
 	public static FinalAuthenticate(): iXRResult
 	{
-		return AuthenticateGuts(iXRLibInit.get_AppID(), iXRLibInit.get_OrgID(), iXRLibAnalytics.get_DeviceId(), m_ixrLibAuthentication.m_szAuthSecret, iXRLibInit.get_Partner(), false, false);
+		return AuthenticateGuts(iXRLibInit.get_AppID(), iXRLibInit.get_OrgID(), iXRLibAnalytics.get_DeviceId(), iXRLibInit.m_ixrLibAuthentication.m_szAuthSecret, iXRLibInit.get_Partner(), false, false);
 	}
 	/// <summary>
 	/// Called by POST/PUT/WHATEVER objects to backend when backend returns an auth error.
@@ -321,13 +322,13 @@ export class iXRLibAnalytics
 	private static						m_szDeviceId: string;
 	private static						m_dssCurrentData: PythonDictStrings = new PythonDictStrings();   // where we will store the current data in memory for quick access.  MJP:  may already have implemented this as IXRAnalytics.allEvents.
 	//private static					m_dsbAllEvents = new Dictionary<mstringb, bool>;
-	public static get_UserId(): string { return m_szUserId; }
-	public static set_UserId(value: string): void { m_szUserId = value; }
+	public static get_UserId(): string { return iXRLibAnalytics.m_szUserId; }
+	public static set_UserId(value: string): void { iXRLibAnalytics.m_szUserId = value; }
 	// ---
-	public static get_DeviceId(): string { return m_szDeviceId; }
-	public static set_DeviceId(value: string): void { m_szDeviceId = value; }	// https://docs.unity3d.com/ScriptReference/SystemInfo-deviceUniqueIdentifier.html
+	public static get_DeviceId(): string { return iXRLibAnalytics.m_szDeviceId; }
+	public static set_DeviceId(value: string): void { iXRLibAnalytics.m_szDeviceId = value; }	// https://docs.unity3d.com/ScriptReference/SystemInfo-deviceUniqueIdentifier.html
 	// ---
-	public static get_CurrentId(): string { return GetCurrentId(); }			// This may be a copy of userId or some other unique value we come up with.
+	public static get_CurrentId(): string { return iXRLibAnalytics.GetCurrentId(); }			// This may be a copy of userId or some other unique value we come up with.
 	public static set_CurrentId(value: string): void { }
 	// ---
     public static FinalUrl(szEndpoint: string): string
@@ -341,7 +342,7 @@ export class iXRLibAnalytics
 	// Calculate this when we have "valid" userId or deviceId then it gets used thereafter on all relevant filtering.
 	public static GetCurrentId(): string
 	{
-		return (m_szUserId.length > 0) ? m_szUserId : m_szDeviceId;
+		return (this.m_szUserId.length > 0) ? this.m_szUserId : this.m_szDeviceId;
 	}
     /// <summary>
     /// General TaskErrorReturn() that implements the callback logic on asynchronous calls.
