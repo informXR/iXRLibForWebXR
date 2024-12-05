@@ -2,7 +2,9 @@
 /// All the partners of which we are aware (for authentication purposes).
 ///		Comaintain with iXRAnalytics.cs.
 
-import { iXRResult, PythonDictStrings, StringList } from "./network/utils/DotNetishTypes";
+import { iXRLibAnalytics, iXRLibInit } from "./iXRLibAnalytics";
+import { iXRLibConfiguration, iXRXXXContainer } from "./iXRLibCoreModel";
+import { iXRResult, JsonResult, PythonDictStrings, StringList } from "./network/utils/DotNetishTypes";
 
 /// </summary>
 export enum Partner
@@ -89,9 +91,9 @@ export class AuthTokenRequest extends DataObjectBase
 		m_szSessionId = suid.ToStringPureHex();
 	}
 	// ---
-#ifdef _DEBUG
-	void FakeUpSomeRandomCrap();
-#endif
+// #ifdef _DEBUG
+// 	void FakeUpSomeRandomCrap();
+// #endif
 };
 
 /// <summary>
@@ -245,7 +247,7 @@ export class iXRLibClient
 	{
 		try
 		{
-			var	ixrXXXContainer:	iXRXXXContainer<T, int> = new iXRXXXContainer<T, int>();
+			var	ixrXXXContainer:	iXRXXXContainer<T, number> = new iXRXXXContainer<T, number>();
 			var	eTestCurlRet:		CURLcode,
 				eCurlRet:			CURLcode = CURLE_OK;
 			var	eJsonRet:			JsonResult;

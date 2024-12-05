@@ -1,4 +1,4 @@
-import { Partner, PartnerToString } from './iXRLibClient';
+import { iXRLibClient, Partner, PartnerToString } from './iXRLibClient';
 import { iXRAIProxy, iXRStorage } from './iXRLibCoreModel';
 import { Base64, DATEMAXVALUE } from './network/types';
 import { crc32 } from './network/utils/crc32';
@@ -65,7 +65,7 @@ class Authentication
 /// <summary>
 /// Object for setting up and cleaning up the library, and authenticating.
 /// </summary>
-class iXRLibInit
+export class iXRLibInit
 {
 	//friend struct iXRLibAnalyticsTests;
 	// ---
@@ -104,15 +104,15 @@ class iXRLibInit
 		var szResponse : string;
 
 		// Stuff these into this object's property variables for future ReAuthenticate().
-		set_AppID(szAppId);
-		set_OrgID(szOrgId);
+		this.set_AppID(szAppId);
+		this.set_OrgID(szOrgId);
 		if (!bNewSession)
 		{
 			// Using pre-existing session, countermand constructed new one.
 			objAuthTokenRequest.m_szSessionId = iXRLibInit.m_ixrLibAuthentication.m_szSessionId;
 		}
 		iXRLibAnalytics.set_DeviceId(szDeviceId);
-		set_Partner(ePartner);
+		this.set_Partner(ePartner);
 		// Set the core auth fields.
 		objAuthTokenRequest.m_szAppId = szAppId;
 		objAuthTokenRequest.m_szOrgId = szOrgId;

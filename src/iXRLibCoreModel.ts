@@ -910,8 +910,9 @@ export class iXRDbContext extends DbContext
 	// 	iXRDbContext(false)
 	// {
 	// }
-	// iXRDbContext(bool bDeleteIfExists)
-	// {
+	constructor(bDeleteIfExists: boolean)
+	{
+		super();
 	// 	m_szDbPath = NormalizePath("InformXR.db").c_str();
 	// 	if (bDeleteIfExists)
 	// 	{
@@ -923,7 +924,7 @@ export class iXRDbContext extends DbContext
 	// 		}
 	// 	}
 	// 	ConstructGuts();
-	// }
+	}
 	// iXRDbContext(const mstringb& szDbPath) :
 	// 	iXRDbContext(szDbPath, false)
 	// {

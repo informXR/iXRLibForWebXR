@@ -1,8 +1,10 @@
 /// <summary>
 /// API for sending objects to backend.
 
+import { iXRLibAnalytics } from "./iXRLibAnalytics";
+import { iXRLibClient } from "./iXRLibClient";
 import { iXREvent, iXRLog, iXRTelemetry, LogLevel } from "./iXRLibCoreModel";
-import { iXRResult, PythonDictStrings, ResultOptions } from "./network/utils/DotNetishTypes";
+import { DateTime, iXRResult, PythonDictStrings, ResultOptions, ResultOptionsToString, TimeSpan } from "./network/utils/DotNetishTypes";
 
 // --- MJP:  templatize these?
 type iXRLibAnalyticsLogCallback = (ixrLog: iXRLog, eResult: iXRResult, szExceptionMessage: string) => void;
@@ -15,13 +17,13 @@ export class iXRLibSend
 	// --- (C++ dll and C# dll) versions of LogXXX().
 	private static LogSynchronous(eLogLevel: LogLevel, szText: string): iXRResult
 	{
-		iXRLog	ixrLog(eLogLevel, szText);
+		var	ixrLog:	iXRLog = new iXRLog().Construct(eLogLevel, szText);
 
 		return iXRLibSend.AddLogSynchronous(ixrLog);
 	}
 	private static Log(eLogLevel: LogLevel, szText: string): iXRResult
 	{
-		iXRLog	ixrLog(eLogLevel, szText);
+		var	ixrLog:	iXRLog = new iXRLog().Construct(eLogLevel, szText);
 
 		return iXRLibSend.AddLog(ixrLog, true, null);
 	}
@@ -76,7 +78,7 @@ export class iXRLibSend
 	}
 	public static Event(szName: string, dictMeta: PythonDictStrings): iXRResult
 	{
-		iXREvent	ixrEvent(szName, dictMeta);
+		var	ixrEvent:	iXREvent = new iXREvent().Construct(szName, dictMeta);
 
 		return iXRLibSend.Event(ixrEvent, true, null);
 	}
@@ -94,8 +96,8 @@ export class iXRLibSend
 	}
 	public static EventAssessmentComplete(szAssessmentName: string, szScore: string, eResultOptions: ResultOptions, dictMeta: PythonDictStrings): iXRResult
 	{
-		DateTime	dtStartTime;
-		bool		bGotValue;
+		var	dtStartTime:	DateTime = new DateTime();
+		var	bGotValue:		boolean;
 
 		dictMeta["verb"] = "completed";
 		dictMeta["assessment_name"] = szAssessmentName;
@@ -107,7 +109,7 @@ export class iXRLibSend
 		iXREvent.m_csDictProtect.unlock();
 		if (bGotValue)
 		{
-			TimeSpan	tsDuration = DateTime.Now() - dtStartTime;
+			var	tsDuration:	TimeSpan = DateTime.Now() - dtStartTime;
 
 			dictMeta["duration"] = tsDuration.ToString();
 			// ---
@@ -135,8 +137,8 @@ export class iXRLibSend
 	}
 	public static EventObjectiveComplete(szObjectiveName: string, szScore: string, eResultOptions: ResultOptions, dictMeta: PythonDictStrings): iXRResult
 	{
-		DateTime	dtStartTime;
-		bool		bGotValue;
+		var	dtStartTime:	DateTime = new DateTime();
+		var	bGotValue:		boolean;
 
 		dictMeta["verb"] = "completed";
 		dictMeta["objective_name"] = szObjectiveName;
@@ -148,7 +150,7 @@ export class iXRLibSend
 		iXREvent.m_csDictProtect.unlock();
 		if (bGotValue)
 		{
-			TimeSpan	tsDuration = DateTime.Now() - dtStartTime;
+			var	tsDuration:	TimeSpan = DateTime.Now() - dtStartTime;
 
 			dictMeta["duration"] = tsDuration.ToString();
 			// ---
@@ -177,8 +179,8 @@ export class iXRLibSend
 	// Modified EventInteractionComplete methods.
 	public static EventInteractionComplete(szInteractionName: string, szResult: string, szResultDetails: string, eInteractionType: InteractionType, dictMeta: PythonDictStrings): iXRResult
 	{
-		DateTime	dtStartTime;
-		bool		bGotValue;
+		var	dtStartTime:	DateTime = new DateTime();
+		var	bGotValue:		boolean;
 
 		dictMeta["verb"] = "completed";
 		dictMeta["interaction_name"] = szInteractionName;
@@ -190,7 +192,7 @@ export class iXRLibSend
 		iXREvent.m_csDictProtect.unlock();
 		if (bGotValue)
 		{
-			TimeSpan	tsDuration = DateTime.Now() - dtStartTime;
+			var	tsDuration:	TimeSpan = DateTime.Now() - dtStartTime;
 
 			dictMeta["duration"] = tsDuration.ToString();
 			// ---
@@ -225,8 +227,8 @@ export class iXRLibSend
 	}
 	public static EventLevelComplete(szLevelName: string, szScore: string, dictMeta: PythonDictStrings): iXRResult
 	{
-		DateTime	dtStartTime;
-		bool		bGotValue;
+		var	dtStartTime:	DateTime = new DateTime();
+		var	bGotValue:		boolean;
 
 		dictMeta["verb"] = "completed";
 		dictMeta["level_name"] = szLevelName;
@@ -237,7 +239,7 @@ export class iXRLibSend
 		iXREvent.m_csDictProtect.unlock();
 		if (bGotValue)
 		{
-			TimeSpan	tsDuration = DateTime.Now() - dtStartTime;
+			var	tsDuration:	TimeSpan = DateTime.Now() - dtStartTime;
 
 			dictMeta["duration"] = tsDuration.ToString();
 			iXREvent.m_dictLevelStartTimes.Remove(szLevelName);
@@ -252,15 +254,15 @@ export class iXRLibSend
 	// --- End API (C++ dll and C# dll) versions of iXRLibSend.Event().
 	// ---
 	// --- API (C++ dll and C# dll) versions of AddTelemetryEntry().
-	public static AddTelemetryEntrySynchronous(szName: string, const PythonDictStrings& dictData): iXRResult
+	public static AddTelemetryEntrySynchronous(szName: string, dictData: PythonDictStrings): iXRResult
 	{
-		iXRTelemetry	ixrTelemetryEntry(szName, dictData);
+		var	ixrTelemetryEntry:	iXRTelemetry = new iXRTelemetry().Construct(szName, dictData);
 
 		return iXRLibSend.AddTelemetryEntrySynchronous(ixrTelemetryEntry);
 	}
-	public static AddTelemetryEntry(szName: string, const PythonDictStrings& dictData): iXRResult
+	public static AddTelemetryEntry(szName: string, dictData: PythonDictStrings): iXRResult
 	{
-		iXRTelemetry	ixrTelemetryEntry(szName, dictData);
+		var	ixrTelemetryEntry:	iXRTelemetry = new iXRTelemetry().Construct(szName, dictData);
 
 		return iXRLibSend.AddTelemetryEntry(ixrTelemetryEntry, true, null);
 	}
@@ -269,43 +271,43 @@ export class iXRLibSend
 	// --- Core AddXXX() functions called by the API functions.
 	//		These are deliberately public... users who are using the C++ lib directly may find it
 	//		expedient/elegant to construct their own objects and call these directly.
-	public static AddLogSynchronous(iXRLog& ixrLog): iXRResult
+	public static AddLogSynchronous(ixrLog: iXRLog): iXRResult
 	{
 		return iXRLibAnalytics.AddXXXTask<iXRLog, iXRLibAnalyticsLogCallback, iXRLibStorage>(ixrLog, "IXRLogs", iXRLibClient.PostIXRLogs, false, false, null);
 	}
-	public static AddLog(iXRLog& ixrLog, bool bNoCallbackOnSuccess, const iXRLibAnalyticsLogCallback& pfnStatusCallback): iXRResult
+	public static AddLog(ixrLog: iXRLog, bNoCallbackOnSuccess: boolean, pfnStatusCallback?: iXRLibAnalyticsLogCallback): iXRResult
 	{
 		iXRLibAnalytics.DiagnosticWriteLine("Going to call AddLog().");
-		// Notice the = capture... so pfnStatusCallback propagates by copy into the thread.
-		return iXRLibAnalytics.m_ixrLibAsync.AddTask([=](void* pObject)->iXRResult { return iXRLibAnalytics.AddXXXTask<iXRLog, iXRLibAnalyticsLogCallback, iXRLibStorage>(*(iXRLog*)pObject, "IXRLogs", iXRLibClient.PostIXRLogs, false, bNoCallbackOnSuccess, pfnStatusCallback); },
-			new iXRLog(ixrLog),
-			[](void* pObject)->void { delete (iXRLog*)pObject; });
+		// Notice the = capture... so pfnStatusCallback propagates by copy into the thread. <- Comment from C++... irrelevant here but leaving it to document that this is a port from C++.
+		return iXRLibAnalytics.m_ixrLibAsync.AddTask((pObject: object) => iXRResult { return iXRLibAnalytics.AddXXXTask<iXRLog, iXRLibAnalyticsLogCallback, iXRLibStorage>(pObject, "IXRLogs", iXRLibClient.PostIXRLogs, false, bNoCallbackOnSuccess, pfnStatusCallback); },
+			ixrLog,
+			(pObject: object) => void { /*delete (iXRLog*)pObject;*/ });
 	}
 	// ---
-	public static EventSynchronous(iXREvent& ixrEvent): iXRResult
+	public static EventSynchronous(ixrEvent: iXREvent): iXRResult
 	{
 		return iXRLibAnalytics.AddXXXTask<iXREvent, iXRLibAnalyticsEventCallback, iXRLibStorage>(ixrEvent, "IXREvents", iXRLibClient.PostIXREvents, false, false, null);
 	}
-	public static Event(iXREvent& ixrEvent, bool bNoCallbackOnSuccess, const iXRLibAnalyticsEventCallback& pfnStatusCallback): iXRResult
+	public static Event(ixrEvent: iXREvent, bNoCallbackOnSuccess: boolean, pfnStatusCallback?: iXRLibAnalyticsEventCallback): iXRResult
 	{
 		iXRLibAnalytics.DiagnosticWriteLine("Going to call iXRLibSend.Event().");
-		// Notice the = capture... so pfnStatusCallback propagates by copy into the thread.
-		return iXRLibAnalytics.m_ixrLibAsync.AddTask([=](void* pObject)->iXRResult { return iXRLibAnalytics.AddXXXTask<iXREvent, iXRLibAnalyticsEventCallback, iXRLibStorage>(*(iXREvent*)pObject, "IXREvents", iXRLibClient.PostIXREvents, false, bNoCallbackOnSuccess, pfnStatusCallback); },
-			new iXREvent(ixrEvent),
-			[](void* pObject)->void { delete (iXREvent*)pObject; });
+		// Notice the = capture... so pfnStatusCallback propagates by copy into the thread. <- Comment from C++... irrelevant here but leaving it to document that this is a port from C++.
+		return iXRLibAnalytics.m_ixrLibAsync.AddTask((pObject: object) => iXRResult { return iXRLibAnalytics.AddXXXTask<iXREvent, iXRLibAnalyticsEventCallback, iXRLibStorage>(pObject, "IXREvents", iXRLibClient.PostIXREvents, false, bNoCallbackOnSuccess, pfnStatusCallback); },
+			ixrEvent,
+			(pObject: object) => void { /*delete (iXREvent*)pObject;*/ });
 	}
 	// ---
 	public static AddTelemetryEntrySynchronous(iXRTelemetry& ixrTelemetry): iXRResult
 	{
 		return iXRLibAnalytics.AddXXXTask<iXRTelemetry, iXRLibAnalyticsTelemetryCallback, iXRLibStorage>(ixrTelemetry, "IXRTelemetry", iXRLibClient.PostIXRTelemetry, false, false, null);
 	}
-	public static AddTelemetryEntry(iXRTelemetry& ixrTelemetry, bool bNoCallbackOnSuccess, const iXRLibAnalyticsTelemetryCallback& pfnStatusCallback): iXRResult
+	public static AddTelemetryEntry(iXRTelemetry& ixrTelemetry, bNoCallbackOnSuccess: boolean, const iXRLibAnalyticsTelemetryCallback& pfnStatusCallback): iXRResult
 	{
 		iXRLibAnalytics.DiagnosticWriteLine("Going to call AddTelemetry().");
 		DebugMessage.WriteLine("Adding telemetry entry named ", ixrTelemetry.m_szName, " at time ", DateTime.Now().ToLocalTimeString());
-		// Notice the = capture... so pfnStatusCallback propagates by copy into the thread.
-		return iXRLibAnalytics.m_ixrLibAsync.AddTask([=](void* pObject)->iXRResult { return iXRLibAnalytics.AddXXXTask<iXRTelemetry, iXRLibAnalyticsTelemetryCallback, iXRLibStorage>(*(iXRTelemetry*)pObject, "IXRTelemetry", iXRLibClient.PostIXRTelemetry, false, bNoCallbackOnSuccess, pfnStatusCallback); },
-			new iXRTelemetry(ixrTelemetry),
-			[](void* pObject)->void { delete (iXRTelemetry*)pObject; });
+		// Notice the = capture... so pfnStatusCallback propagates by copy into the thread. <- Comment from C++... irrelevant here but leaving it to document that this is a port from C++.
+		return iXRLibAnalytics.m_ixrLibAsync.AddTask((pObject: object) => iXRResult { return iXRLibAnalytics.AddXXXTask<iXRTelemetry, iXRLibAnalyticsTelemetryCallback, iXRLibStorage>(pObject, "IXRTelemetry", iXRLibClient.PostIXRTelemetry, false, bNoCallbackOnSuccess, pfnStatusCallback); },
+			ixrTelemetry,
+			(pObject: object) => void { /*delete (iXRTelemetry*)pObject;*/ });
 	}
 };
