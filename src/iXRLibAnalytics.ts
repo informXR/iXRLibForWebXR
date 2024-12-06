@@ -1,9 +1,12 @@
-import { iXRLibClient, Partner, PartnerToString } from './iXRLibClient';
-import { iXRAIProxy, iXRStorage } from './iXRLibCoreModel';
+import { AuthTokenDecodedJWT, AuthTokenRequest, AuthTokenResponseFailure, AuthTokenResponseSuccess, iXRLibClient, Partner, PartnerToString, PostObjectsResponseFailure, PostObjectsResponseSuccess } from './iXRLibClient';
+import { iXRAIProxy, iXRDbContext, iXRStorage } from './iXRLibCoreModel';
+import { iXRLibStorage } from './iXRLibStorage';
 import { Base64, DATEMAXVALUE } from './network/types';
 import { crc32 } from './network/utils/crc32';
 import { SHA256 } from './network/utils/cryptoUtils';
-import { iXRResult, DateTime, StringList, PythonDictStrings } from './network/utils/DotNetishTypes';
+import { DataObjectBase, DbSet } from './network/utils/DataObjectBase';
+import { iXRResult, DateTime, StringList, PythonDictStrings, JsonResult } from './network/utils/DotNetishTypes';
+import { JWTDecode } from './network/utils/JWT';
 import { TimeSpan } from './network/utils/timeSpan';
 
 /// <summary>
@@ -24,7 +27,7 @@ class Authentication
 		this.m_dtTokenExpiration.setFullYear(DATEMAXVALUE);
 	}
 	// ---
-	private m_szAuthSecret: string = "";	// Not exposed via properties or anything else, only available to iXRLibInit for use in 2-stage authentication (dictAuthMechanism flows).
+	public m_szAuthSecret: string = "";	// Not exposed via properties or anything else, only available to iXRLibInit for use in 2-stage authentication (dictAuthMechanism flows)... in C++, no friend classes in TypeScript so public.
 	// ---
 	public m_objAuthTokenRequest = new AuthTokenRequest();	// For setting the environment/session members of AuthTokenRequest as global properties that then get incorporated into the specific auth request on Authenticate().
 	// ---
@@ -78,7 +81,7 @@ export class iXRLibInit
 	{
 		if (!iXRLibStorage.m_ixrLibConfiguration.ReadConfig())
 		{
-			iXRLibAnalytics.m_listErrors.push_back("Could not read AppConfig.");
+			iXRLibAnalytics.m_listErrors.push("Could not read AppConfig.");
 			iXRLibAnalytics.DiagnosticWriteLine("Could not read AppConfig.");
 		}
 	}
@@ -131,18 +134,18 @@ export class iXRLibInit
 		objAuthTokenRequest.m_dictGeoLocation = iXRLibInit.m_ixrLibAuthentication.m_objAuthTokenRequest.m_dictGeoLocation;
 		objAuthTokenRequest.m_dictAuthMechanism = iXRLibInit.m_ixrLibAuthentication.m_objAuthTokenRequest.m_dictAuthMechanism;
 		// ---
-		eRet = iXRLibClient.PostAuthenticate(objAuthTokenRequest, szResponse);
+		eRet = iXRLibClient.PostAuthenticate(objAuthTokenRequest, {szResponse});
 		if (eRet == iXRResult.eOk)
 		{
 			var	eSuccessParse,
 				eFailureParse,
-				eJWTParse: JsonResult;
-			var	objAuthTokenResponseSuccess: AuthTokenResponseSuccess;
-			var	objAuthTokenResponseFailure: AuthTokenResponseFailure;
-			var	objAuthTokenDecodedJWT:AuthTokenDecodedJWT;
+				eJWTParse:						JsonResult;
+			var	objAuthTokenResponseSuccess:	AuthTokenResponseSuccess = new AuthTokenResponseSuccess();
+			var	objAuthTokenResponseFailure:	AuthTokenResponseFailure = new AuthTokenResponseFailure();
+			var	objAuthTokenDecodedJWT:			AuthTokenDecodedJWT = new AuthTokenDecodedJWT();
 
-			eSuccessParse = LoadFromJson(objAuthTokenResponseSuccess, szResponse);
-			eFailureParse = LoadFromJson(objAuthTokenResponseFailure, szResponse);
+			eSuccessParse = LoadFromJson(objAuthTokenResponseSuccess, {szResponse});
+			eFailureParse = LoadFromJson(objAuthTokenResponseFailure, {szResponse});
 			if (eSuccessParse == JsonResult.eBadJsonStructure || eFailureParse == JsonResult.eBadJsonStructure)
 			{
 				eRet = iXRResult.eCorruptJson;
@@ -159,9 +162,9 @@ export class iXRLibInit
 				iXRLibInit.m_ixrLibAuthentication.m_szSessionId = objAuthTokenRequest.m_szSessionId;
 				// --- iXRLibInit.m_ixrLibAuthentication.m_szApiToken is a JWT token that contains, among other things, an "exp"
 				//		field which is the Unix time of token expiration.
-				szJWT = JWTDecode(nullptr, iXRLibInit.m_ixrLibAuthentication.m_szApiToken).c_str();
+				szJWT = JWTDecode(iXRLibInit.m_ixrLibAuthentication.m_szApiToken);
 				eJWTParse = LoadFromJson(objAuthTokenDecodedJWT, szJWT);
-				if (eJWTParse == JsonResult.eOk)
+				if (eJWTParse === JsonResult.eOk)
 				{
 					iXRLibInit.m_ixrLibAuthentication.m_dtTokenExpiration.FromUnixTime(objAuthTokenDecodedJWT.m_utTokenExpiration);
 				}
@@ -195,7 +198,7 @@ export class iXRLibInit
 	/// <returns>iXRResult enum</returns>
 	public static Authenticate(szAppId: string, szOrgId: string, szDeviceId: string, szAuthSecret: string, ePartner: Partner): iXRResult
 	{
-		return AuthenticateGuts(szAppId, szOrgId, szDeviceId, szAuthSecret, ePartner, true, true);
+		return iXRLibInit.AuthenticateGuts(szAppId, szOrgId, szDeviceId, szAuthSecret, ePartner, true, true);
 	}
 	/// <summary>
 	/// Hit the authentication endpoint with the passed in data and if successful, store the (token, secret)
@@ -210,7 +213,7 @@ export class iXRLibInit
 	/// <returns>iXRResult enum</returns>
 	public static FinalAuthenticate(): iXRResult
 	{
-		return AuthenticateGuts(iXRLibInit.get_AppID(), iXRLibInit.get_OrgID(), iXRLibAnalytics.get_DeviceId(), iXRLibInit.m_ixrLibAuthentication.m_szAuthSecret, iXRLibInit.get_Partner(), false, false);
+		return iXRLibInit.AuthenticateGuts(iXRLibInit.get_AppID(), iXRLibInit.get_OrgID(), iXRLibAnalytics.get_DeviceId(), iXRLibInit.m_ixrLibAuthentication.m_szAuthSecret, iXRLibInit.get_Partner(), false, false);
 	}
 	/// <summary>
 	/// Called by POST/PUT/WHATEVER objects to backend when backend returns an auth error.
@@ -231,10 +234,10 @@ export class iXRLibInit
 			{
 				return iXRResult.eCouldNotObtainAuthSecret;
 			}
-			return AuthenticateGuts(iXRLibInit.get_AppID(), iXRLibInit.get_OrgID(), iXRLibAnalytics.get_DeviceId(), szAuthSecret, iXRLibInit.get_Partner(), false, false);
+			return iXRLibInit.AuthenticateGuts(iXRLibInit.get_AppID(), iXRLibInit.get_OrgID(), iXRLibAnalytics.get_DeviceId(), szAuthSecret, iXRLibInit.get_Partner(), false, false);
 		}
 		// ---
-		return AuthenticateGuts(iXRLibInit.get_AppID(), iXRLibInit.get_OrgID(), iXRLibAnalytics.get_DeviceId(), iXRLibInit.get_ApiSecret(), iXRLibInit.get_Partner(), false, false);
+		return iXRLibInit.AuthenticateGuts(iXRLibInit.get_AppID(), iXRLibInit.get_OrgID(), iXRLibAnalytics.get_DeviceId(), iXRLibInit.get_ApiSecret(), iXRLibInit.get_Partner(), false, false);
 	}
 	/// <summary>
 	/// Wrapper for Core-core function to force send unsent objects synchronously.  Used to be inlined in ^^^ TimerCallback().
@@ -307,20 +310,23 @@ type iXRLibAnalyticsGeneralCallback = (eResult: iXRResult, szExceptionMessage: s
 type iXRLibAnalyticsAIProxyCallback = (ixrAIProxy: iXRAIProxy, eResult: iXRResult, szExceptionMessage: string) => void;
 type iXRLibAnalyticsStorageCallback = (ixrStorage: iXRStorage, eResult: iXRResult, szExceptionMessage: string) => void;
 // ---
-type iXRLibGetAuthSecretCallback = (pUserData: object) => string;
+type iXRLibGetAuthSecretCallback = (pUserData: object|null) => string;
 type iXRLibDiagnosticCallback = (szDiagnostic: string) => void;
 // ---
 export class iXRLibAnalytics
 {
-	public static						m_listErrors: StringList = new StringList();
-	public static						m_dtLastSuccessfulSend: DateTime = new DateTime();	// State variable... for knowing when to wake up and send stragglers.
-	public static						m_bCheckForStragglers: boolean;	// State variable... flip flops on send-main-chunks / send-stragglers.
+	public static m_listErrors:						StringList = new StringList();
+	public static m_dtLastSuccessfulSend:			DateTime = new DateTime();	// State variable... for knowing when to wake up and send stragglers.
+	public static m_bCheckForStragglers:			boolean;					// State variable... flip flops on send-main-chunks / send-stragglers.
+	// Not C# callback mechanism.  Placeholder for now until we figure out how this is going to work with TypeScript.
+	public static m_pfnGetAuthSecretCallback:		iXRLibGetAuthSecretCallback = iXRLibAnalytics.DefaultGetAuthSecretCallback;	// Give the client a hook for (re)authenticating... the call returns new authSecret that then gets used by (re)Authenticate() to auth with current (appId, orgId, deviceId, authSecret).
+	public static m_pvGetAuthSecretCallbackData:	object|null = null;			// User data that gets passed to m_pfnAuthSecretCallback.
 	// --- App.Config entries.
 	// --- Information for encoding auth into HTTP headers.
     // --- Will be either userId or deviceId and currentId aliases whichever it is.  This is current global... snapshot in each IXREvent as well.
-	private static						m_szUserId : string;
-	private static						m_szDeviceId: string;
-	private static						m_dssCurrentData: PythonDictStrings = new PythonDictStrings();   // where we will store the current data in memory for quick access.  MJP:  may already have implemented this as IXRAnalytics.allEvents.
+	private static m_szUserId:						string;
+	private static m_szDeviceId:					string;
+	private static m_dssCurrentData:				PythonDictStrings = new PythonDictStrings();   // where we will store the current data in memory for quick access.  MJP:  may already have implemented this as IXRAnalytics.allEvents.
 	//private static					m_dsbAllEvents = new Dictionary<mstringb, bool>;
 	public static get_UserId(): string { return iXRLibAnalytics.m_szUserId; }
 	public static set_UserId(value: string): void { iXRLibAnalytics.m_szUserId = value; }
@@ -330,6 +336,16 @@ export class iXRLibAnalytics
 	// ---
 	public static get_CurrentId(): string { return iXRLibAnalytics.GetCurrentId(); }			// This may be a copy of userId or some other unique value we come up with.
 	public static set_CurrentId(value: string): void { }
+	// ---
+	/// <summary>
+	/// Not sure as I write this (during port) exactly how this is going to be used so this is a stub for now.
+	/// </summary>
+	/// <returns>Blank if no-op, return value from C# if C# provides a callback.</returns>
+	public static DefaultGetAuthSecretCallback(pUserData: object|null): string
+	{
+		// ---
+		return "";
+	}
 	// ---
     public static FinalUrl(szEndpoint: string): string
 	{
@@ -352,7 +368,7 @@ export class iXRLibAnalytics
     /// <param name="pfnStatusCallback">Callback to call if this logic ^^^ computes.</param>
     /// <param name="szExceptionMessage">Message describing problem to be passed to the callback.</param>
     /// <returns>eResult</returns>
-    private static TaskErrorReturn(eResult: iXRResult, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsGeneralCallback, szExceptionMessage: string): iXRResult
+    private static TaskErrorReturn0(eResult: iXRResult, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsGeneralCallback, szExceptionMessage: string): iXRResult
     {
         if (pfnStatusCallback != null && pfnStatusCallback != undefined)
         {
@@ -374,7 +390,7 @@ export class iXRLibAnalytics
 	/// <param name="pfnStatusCallback">Callback to call if this logic ^^^ computes.</param>
 	/// <param name="szExceptionMessage">Message describing problem to be passed to the callback.</param>
 	/// <returns>eResult</returns>
-	private static TaskErrorReturn<T, CB>(eResult: iXRResult, ixrXXX: T, bNoCallbackOnSuccess: boolean, pfnStatusCallback: CB, szExceptionMessage: string): iXRResult
+	private static TaskErrorReturn1<T>(eResult: iXRResult, ixrXXX: T, bNoCallbackOnSuccess: boolean, pfnStatusCallback: (ixrXXX: T, eResult: iXRResult, szExceptionMessage: string) => void | null, szExceptionMessage: string): iXRResult
 	{
 		if (pfnStatusCallback != null && pfnStatusCallback != undefined)
 		{
@@ -398,44 +414,44 @@ export class iXRLibAnalytics
 	/// <param name="bNoCallbackOnSuccess">true = Only call pfnStatusCallback on error, false = always call pfnStatusCallback (assuming pfnStatusCallback not null, do not call at all otherwise).</param>
 	/// <param name="pfnStatusCallback">null = do not want status callback, else call according to ^^^.</param>
 	/// <returns>As the call has not happened yet on return, this is the status of adding the task or failing to add it.</returns>
-	private static AddXXXTask<T, CB, iXRLibStorage>(ixrT: T, szTableName: string, pfnPostIXRXXX: (listpT: DbSet<T>, bOneAtATime: boolean, refparam: {szResponse: string}) => iXRRresult, bOneAtATime: boolean, bNoCallbackOnSuccess: boolean, pfnStatusCallback: CB): iXRResult
+	private static AddXXXTask<T extends DataObjectBase>(ixrT: T, szTableName: string, pfnPostIXRXXX: (listpT: DbSet<T extends DataObjectBase>, bOneAtATime: boolean, refparam: {szResponse: string}) => iXRResult, bOneAtATime: boolean, bNoCallbackOnSuccess: boolean, pfnStatusCallback: (ixrXXX: T, eResult: iXRResult, szExceptionMessage: string) => void | null): iXRResult
 	{
-		var	nTrimCount : number;
-		var	dtNow = DateTime.Now(),
-			dtOlderThan = dtNow - iXRLibStorage.m_ixrLibConfiguration.m_tsPruneSentItemsOlderThan;
-		var	pdsIXRXXX: DbSet<T> = null;
-		var	eDb: DatabaseResult;
-		var	eRet = iXRResult.eOk;
+		var	nTrimCount:		number;
+		var	dtNow:			DateTime = DateTime.Now(),
+			dtOlderThan:	DateTime = dtNow - iXRLibStorage.m_ixrLibConfiguration.m_tsPruneSentItemsOlderThan;
+		var	pdsIXRXXX:		DbSet<T extends DataObjectBase> = new DbSet<T extends DataObjectBase>();
+		var	eDb:			DatabaseResult;
+		var	eRet:			iXRResult = iXRResult.eOk;
 
 		try
 		{
-			var ixrDbContext: iXRDbContext;
+			var ixrDbContext: iXRDbContext = new iXRDbContext(false);
 
-			constexpr size_t nbChildObjectListProperties = std::tuple_size_v<decltype(iXRDbContext.childobjectlistproperties)>;
+			// constexpr size_t nbChildObjectListProperties = std::tuple_size_v<decltype(iXRDbContext.childobjectlistproperties)>;
+			// // ---
+			// // Find the ixrDbContext child list matching type T.
+			// for_sequence(std::make_index_sequence<nbChildObjectListProperties>{}, [&](auto i)
+			// {
+			// 	// Get the property.
+			// 	constexpr auto	objChildListProperty = std::get<i>(iXRDbContext.childobjectlistproperties);
+			// 	// Get the type of the property.
+			// 	using Type = typename decltype(objChildListProperty)::Type;
+			// 	if (std::is_same_v<T, Type>)
+			// 	{
+			// 		pdsIXRXXX = reinterpret_cast<DbSet<T extends DataObjectBase>*>(&(ixrDbContext.*(objChildListProperty.member)));
+			// 	}
+			// });
 			// ---
-			// Find the ixrDbContext child list matching type T.
-			for_sequence(std::make_index_sequence<nbChildObjectListProperties>{}, [&](auto i)
-			{
-				// Get the property.
-				constexpr auto	objChildListProperty = std::get<i>(iXRDbContext.childobjectlistproperties);
-				// Get the type of the property.
-				using Type = typename decltype(objChildListProperty)::Type;
-				if (std::is_same_v<T, Type>)
-				{
-					pdsIXRXXX = reinterpret_cast<DbSet<T>*>(&(ixrDbContext.*(objChildListProperty.member)));
-				}
-			});
-			// ---
-			newscope
-			{
-				ScopeThreadBlock	cs(m_csDB);
+			// newscope
+			// {
+			// 	ScopeThreadBlock	cs(m_csDB);
 
-				pdsIXRXXX->Add(ixrT);
+				pdsIXRXXX.Add(ixrT);
 				if (iXRLibStorage.m_ixrLibConfiguration.m_bUseDatabase)
 				{
 					eDb = ixrDbContext.SaveChanges();
 				}
-			}
+			// }
 			// If the un-pushed exceeds the limits (0 = ∞), trim out oldest necessary to get it under the limits.
 			if (iXRLibStorage.m_ixrLibConfiguration.m_nMaximumCachedItems > 0)
 			{
@@ -445,17 +461,17 @@ export class iXRLibAnalytics
 				{
 					// Could be faster by obtaining the count with a SELECT COUNT... in a hurry to finish this port so doing it this way for now.
 					eDb = ExecuteSqlSelect(ixrDbContext.m_db, szTableName, "SELECT %s FROM %s WHERE SyncedWithCloud != 0 ORDER BY timestamp", {}, *pdsIXRXXX);
-					nTrimCount = (int)pdsIXRXXX->Count() - (int)iXRLibStorage.m_ixrLibConfiguration.m_nMaximumCachedItems;
+					nTrimCount = pdsIXRXXX.Count() - iXRLibStorage.m_ixrLibConfiguration.m_nMaximumCachedItems;
 					if (nTrimCount > 0)
 					{
-						pdsIXRXXX->RemoveRange(nTrimCount);
+						pdsIXRXXX.RemoveRange(nTrimCount);
 						eDb = ixrDbContext.SaveChanges();
 					}
 				}
 				else
 				{
 					// If not using the db, simply remove everything that sent successfully.
-					pdsIXRXXX->remove_if([](T& t) { return t.m_bSyncedWithCloud; });
+					pdsIXRXXX.remove_if([](T& t) { return t.m_bSyncedWithCloud; });
 				}
 			}
 			// If pruneSentItemsOlderThan indicates a time (0 = ∞), trim older sent items.
@@ -466,16 +482,16 @@ export class iXRLibAnalytics
 				if (iXRLibStorage.m_ixrLibConfiguration.m_bUseDatabase)
 				{
 					eDb = ExecuteSqlSelect(ixrDbContext.m_db, szTableName, "SELECT %s FROM %s WHERE SyncedWithCloud != 0 AND timestamp < ?", { {"timestamp", &dtOlderThan} }, *pdsIXRXXX);
-					if (pdsIXRXXX->Count() > 0)
+					if (pdsIXRXXX.Count() > 0)
 					{
-						pdsIXRXXX->RemoveRange();
+						pdsIXRXXX.RemoveRange();
 						eDb = ixrDbContext.SaveChanges();
 					}
 				}
 				else
 				{
 					// If not using the db, simply remove everything that sent successfully.
-					pdsIXRXXX->remove_if([](T& t) { return t.m_bSyncedWithCloud; });
+					pdsIXRXXX.remove_if([](T& t) { return t.m_bSyncedWithCloud; });
 				}
 			}
 			eRet = SendUnsentXXXs<T, iXRLibStorage>(ixrDbContext, pdsIXRXXX, szTableName, pfnPostIXRXXX, bOneAtATime, iXRLibStorage.m_ixrLibConfiguration.m_nEventsPerSendAttempt, false);
@@ -491,10 +507,10 @@ export class iXRLibAnalytics
 		{
 			//iXRLibClient.WriteLine($"Error: {ex.Message}\nStackTrace: {ex.StackTrace}");
 			// ---
-			return TaskErrorReturn<T, CB>(iXRResult.eSendEventFailed, ixrT, bNoCallbackOnSuccess, pfnStatusCallback, "Caught exception.");
+			return TaskErrorReturn<T>(iXRResult.eSendEventFailed, ixrT, bNoCallbackOnSuccess, pfnStatusCallback, "Caught exception.");
 		}
 		// ---
-		return TaskErrorReturn<T, CB>(eRet, ixrT, bNoCallbackOnSuccess, pfnStatusCallback, "");
+		return TaskErrorReturn<T>(eRet, ixrT, bNoCallbackOnSuccess, pfnStatusCallback, "");
 	}
 	/// <summary>
 	/// The core Delete<Event, Log, etc> function template that is called directly by Delete<Event, Log, etc>Synchronous() or indirectly by asynchronous Delete<Event, Log, etc>().
@@ -513,7 +529,7 @@ export class iXRLibAnalytics
 		var	nTrimCount: int;
 		var	dtNow = DateTime.Now(),
 			dtOlderThan = dtNow - iXRLibStorage.m_ixrLibConfiguration.m_tsPruneSentItemsOlderThan;
-		var	pdsIXRXXX: DbSet<T>;
+		var	pdsIXRXXX: DbSet<T extends DataObjectBase>;
 		var	eDb: DatabaseResult;
 		var	eRet = iXRResult.eOk;
 
@@ -532,7 +548,7 @@ export class iXRLibAnalytics
 				using Type = typename decltype(objChildListProperty)::Type;
 				if (std::is_same_v<T, Type>)
 				{
-					pdsIXRXXX = reinterpret_cast<DbSet<T>*>(&(ixrDbContext.*(objChildListProperty.member)));
+					pdsIXRXXX = reinterpret_cast<DbSet<T extends DataObjectBase>*>(&(ixrDbContext.*(objChildListProperty.member)));
 				}
 			});
 			// ---
@@ -550,10 +566,10 @@ export class iXRLibAnalytics
 
 				// Could be faster by obtaining the count with a SELECT COUNT... in a hurry to finish this port so doing it this way for now.
 				eDb = ExecuteSqlSelect(ixrDbContext.m_db, szTableName, "SELECT %s FROM %s WHERE SyncedWithCloud != 0 ORDER BY timestamp", {}, *pdsIXRXXX);
-				nTrimCount = (int)pdsIXRXXX->Count() - (int)iXRLibStorage.m_ixrLibConfiguration.m_nMaximumCachedItems;
+				nTrimCount = pdsIXRXXX.Count() - iXRLibStorage.m_ixrLibConfiguration.m_nMaximumCachedItems;
 				if (nTrimCount > 0)
 				{
-					pdsIXRXXX->RemoveRange(nTrimCount);
+					pdsIXRXXX.RemoveRange(nTrimCount);
 					eDb = ixrDbContext.SaveChanges();
 				}
 			}
@@ -563,9 +579,9 @@ export class iXRLibAnalytics
 				ScopeThreadBlock	cs(m_csDB);
 
 				eDb = ExecuteSqlSelect(ixrDbContext.m_db, szTableName, "SELECT %s FROM %s WHERE SyncedWithCloud != 0 AND timestamp < ?", { {"timestamp", &dtOlderThan} }, pdsIXRXXX);
-				if (pdsIXRXXX->Count() > 0)
+				if (pdsIXRXXX.Count() > 0)
 				{
-					pdsIXRXXX->RemoveRange();
+					pdsIXRXXX.RemoveRange();
 					eDb = ixrDbContext.SaveChanges();
 				}
 			}
@@ -592,14 +608,14 @@ export class iXRLibAnalytics
 	/// <typeparam name="T">Type of straggler objects to be sent.</typeparam>
 	/// <typeparam name="iXRLibStorage">Resolves forward reference catch-22.</typeparam>
 	/// <param name="ixrDbContext">Database object that contains all the iXRLib object lists</param>
-	/// <param name="dsIXRXXX">DbSet<T> passed in by caller so we use the same one as we want any changes in its state to bubble up to the caller... contains the objects to send.</param>
+	/// <param name="dsIXRXXX">DbSet<T extends DataObjectBase> passed in by caller so we use the same one as we want any changes in its state to bubble up to the caller... contains the objects to send.</param>
 	/// <param name="szTableName">Name of corresponding table in the database.</param>
 	/// <param name="pfnPostIXRXXX">Pointer to function that sends a list of pointers to T which this function will calculate for sending to backend.</param>
 	/// <param name="bOneAtATime">true = POST the objects one object per POST, false = POST them as one single POST with all objects in the body content.</param>
 	/// <param name="nConfiguredXXXPerSendAttempt">The corresponding how many T's per send attempt from iXRLibConfiguration.</param>
 	/// <param name="bSendingStragglers">true when being called by TimerCallback to drive Nagle-algorithmish-straggler-send, false when doing a main send</param>
 	/// <returns>iXRResult status code</returns>
-	private SendUnsentXXXs<T, iXRLibStorage>(ixrDbContext: iXRDbContext, dsIXRXXX: DbSet<T>, szTableName: string, pfnPostIXRXXX: (listpT: DbSet<T>, bOneAtATime: boolean, refparam: {szResponse: string}) => iXRRresult, bOneAtATime: boolean, nConfiguredXXXPerSendAttempt: number, bSendingStragglers: boolean): iXRResult
+	private SendUnsentXXXs<T, iXRLibStorage>(ixrDbContext: iXRDbContext, dsIXRXXX: DbSet<T extends DataObjectBase>, szTableName: string, pfnPostIXRXXX: (listpT: DbSet<T extends DataObjectBase>, bOneAtATime: boolean, refparam: {szResponse: string}) => iXRRresult, bOneAtATime: boolean, nConfiguredXXXPerSendAttempt: number, bSendingStragglers: boolean): iXRResult
 	{
 		var	eRet: iXRResult.eOk,
 			eTestRet = iXRResult.eOk;
@@ -607,7 +623,7 @@ export class iXRLibAnalytics
 		// If we have enough new yet-to-be-pushed-to-REST items, then do that and mark as sent.
 		if (iXRLibStorage.m_ixrLibConfiguration.RESTConfigured())
 		{
-			var	dspObjectsToSend: DbSet<T>;
+			var	dspObjectsToSend: DbSet<T extends DataObjectBase>;
 			var	i: number;
 			var	bDoneSending: boolean = false;
 			var	eDb: DatabaseResult;
@@ -646,7 +662,7 @@ export class iXRLibAnalytics
 						break;
 					}
 				}
-				for (i = 0; i < (int)iXRLibStorage.m_ixrLibConfiguration.m_nSendRetriesOnFailure; i++)
+				for (i = 0; i < iXRLibStorage.m_ixrLibConfiguration.m_nSendRetriesOnFailure; i++)
 				{
 					try
 					{
@@ -679,7 +695,7 @@ export class iXRLibAnalytics
 								// Succeeded... mark them as sent.
 								for (T* pt : dspObjectsToSend)
 								{
-									pt->m_bSyncedWithCloud = true;
+									pt.m_bSyncedWithCloud = true;
 								}
 								newscope
 								{
@@ -755,7 +771,7 @@ export class iXRLibAnalytics
 	/// <param name="bNoCallbackOnSuccess">When asynchronous and pfnStatusCallback not null, call always when this is false, only on failure when true.</param>
 	/// <param name="pfnStatusCallback">null = no-op, not-null = callback in asynchronous case with respect to bNoCallbackOnSuccess.</param>
 	/// <returns>iXRResult status code.</returns>
-	private static AddXXXNoDbTask<T, CB, iXRLibStorage>(ixrT: T, pfnPostIXRXXX: (listpT: DbSet<T>, bOneAtATime: boolean, refparam: { szResponse: string}) => iXRResult, bOneAtATime: boolean, bNoCallbackOnSuccess: boolean, pfnStatusCallback: CB): iXRResult
+	private static AddXXXNoDbTask<T extends DataObjectBase>(ixrT: T, pfnPostIXRXXX: (listpT: DbSet<T extends DataObjectBase>, bOneAtATime: boolean, refparam: { szResponse: string}) => iXRResult, bOneAtATime: boolean, bNoCallbackOnSuccess: boolean, pfnStatusCallback: CB): iXRResult
 	{
 		var	eRet: iXRResult = iXRResult.eOk;
 
@@ -764,7 +780,7 @@ export class iXRLibAnalytics
 			// If we have enough new yet-to-be-pushed-to-REST items, then do that and mark as sent.
 			if (iXRLibStorage.m_ixrLibConfiguration.RESTConfigured())
 			{
-				var	pObjectsToSend: DbSet<T>;
+				var	pObjectsToSend: DbSet<T extends DataObjectBase>;
 				var	i: number;
 				var	bDoneSending: boolean = false;
 
@@ -772,7 +788,7 @@ export class iXRLibAnalytics
 				pObjectsToSend.Add(ixrT);
 				while (!bDoneSending)
 				{
-					for (i = 0; i < (int)iXRLibStorage.m_ixrLibConfiguration.m_nSendRetriesOnFailure; i++)
+					for (i = 0; i < iXRLibStorage.m_ixrLibConfiguration.m_nSendRetriesOnFailure; i++)
 					{
 						try
 						{
@@ -907,19 +923,19 @@ export class iXRLibAnalytics
 	{
 		var	ixrAIProxy:	iXRAIProxy = new iXRAIProxy(szPrompt, "", szLMMProvider);
 
-		return AddAIProxy(ixrAIProxy, true, nullptr);
+		return AddAIProxy(ixrAIProxy, true, null);
 	}
 	public static AddAIProxy(szPrompt: string, szPastMessages: string, szLMMProvider: string): iXRResult
 	{
 		var	ixrAIProxy:	iXRAIProxy = new iXRAIProxy(szPrompt, szPastMessages, szLMMProvider);
 
-		return AddAIProxy(ixrAIProxy, true, nullptr);
+		return AddAIProxy(ixrAIProxy, true, null);
 	}
 	public static AddAIProxy(szPrompt: string, dictPastMessages: PythonDictStrings, szLMMProvider: string): iXRResult
 	{
 		var	ixrAIProxy:	iXRAIProxy = new iXRAIProxy(szPrompt, dictPastMessages, szLMMProvider);
 
-		return AddAIProxy(ixrAIProxy, true, nullptr);
+		return AddAIProxy(ixrAIProxy, true, null);
 	}
 	// --- End API (C++ dll and C# dll) versions of AddAIProxy().
 	public static AddAIProxySynchronous(ixrAIProxy: iXRAIProxy): iXRResult
@@ -928,7 +944,7 @@ export class iXRLibAnalytics
 	}
 	public static AddAIProxy(ixrAIProxy: iXRAIProxy, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsAIProxyCallback): iXRResult
 	{
-		DiagnosticWriteLine("Going to call AddAIProxy().");
+		iXRLibAnalytics.DiagnosticWriteLine("Going to call AddAIProxy().");
 		// Notice the = capture... so pfnStatusCallback propagates by copy into the thread.
 		return m_ixrLibAsync.AddTask((pObject: object) => iXRResult { return iXRLibAnalytics.AddXXXNoDbTask<iXRAIProxy, iXRLibAnalyticsAIProxyCallback, iXRLibStorage>(pObject as iXRAIProxy, iXRLibClient.PostIXRAIProxyObjects, false, bNoCallbackOnSuccess, pfnStatusCallback); },
 			ixrAIProxy,
@@ -953,5 +969,8 @@ export class iXRLibAnalytics
 	// #ifdef _DEBUG
 	// 	iXRLibAnalyticsTests.WriteLine(szLine);
 	// #endif
+	}
+	public static DiagnosticWriteLine(szLine: string): void
+	{
 	}
 };

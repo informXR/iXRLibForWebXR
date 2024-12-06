@@ -45,10 +45,6 @@ export class SUID
 		// Format the hex string into a GUID format.
 		return '${hexString.slice(0, 8)}-${hexString.slice(8, 12)}-${hexString.slice(12, 16)}-${hexString.slice(16, 20)}-${hexString.slice(20)}';
 	}
-	SUID(const char* szHexString)
-	{
-		operator=(szHexString);
-	}
 	SUID(const wchar_t* wszHexString)
 	{
 		operator=(wszHexString);
