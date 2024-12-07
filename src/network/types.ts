@@ -4,6 +4,7 @@ import { Guid  } from 'guid-typescript';
 
 export const DATEMAXVALUE = 2222;
 export const DATEMINVALUE = 1972;
+export const DEFAULTNAME = "state";
 
 export class Base64
 {
@@ -12,6 +13,11 @@ export class Base64
 }
 
 export type time_t = number;
+
+export function Sleep(nMilliseconds: number)
+{
+	return new Promise(resolve => setTimeout(resolve, nMilliseconds));
+}
 
 /// <summary>
 /// GUID (globally-unique) conflicts with Windows(tm), UUID (universally-unique) also conflicts with a header file in Windows(tm).

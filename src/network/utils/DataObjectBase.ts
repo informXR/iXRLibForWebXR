@@ -1,4 +1,25 @@
 /// <summary>
+/// Allows for several categories of object dumping each with rules for which fields to dump or filter.
+/// </summary>
+export enum DumpCategory
+{
+	eDumpEverything,		// NULL/wildcard.
+	eDumpingJsonForBackend	// Sending JSON to the backend, in which case we want to filter db fields (primary key etc).
+};
+
+/// <summary>
+/// Due to the need to accommodate backend imprecision vis-a-vis object vs. array-of-object the object doing that has
+///		an object and a list named the same thing.  Need to not dump the object to JSON.
+/// </summary>
+export enum JsonFieldType
+{
+	eField,
+	eObject,
+	eObjectList,
+	eScalarList
+};
+
+/// <summary>
 /// Baseclass for anything that wants to load/save itself to SQLite db and/or JSON using the mechanisms in this header file.
 /// </summary>
 export class DataObjectBase

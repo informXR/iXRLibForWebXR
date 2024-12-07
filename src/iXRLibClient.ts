@@ -560,15 +560,15 @@ export class iXRLibClient
 	public static WriteLine(szLine: string): void
 	{
 		// https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/preprocessor-directives
-		szLine.EnsureSingleEndingCharacter('\n');
-		if (Platform.IsWindows())
-		{
-			OutputDebugStringA(szLine);
-		}
-		else
-		{
-			OutputDebugStringA(szLine);
-		}
-		iXRLibAnalytics.DiagnosticWriteLine(szLine);
+		// szLine.EnsureSingleEndingCharacter('\n');
+		// if (Platform.IsWindows())
+		// {
+		// 	OutputDebugStringA(szLine);
+		// }
+		// else
+		// {
+		// 	OutputDebugStringA(szLine);
+		// }
+		// iXRLibAnalytics.DiagnosticWriteLine(szLine);
 	}
 };

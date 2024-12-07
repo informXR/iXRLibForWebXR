@@ -1,7 +1,7 @@
 import { AuthTokenDecodedJWT, AuthTokenRequest, AuthTokenResponseFailure, AuthTokenResponseSuccess, iXRLibClient, Partner, PartnerToString, PostObjectsResponseFailure, PostObjectsResponseSuccess } from './iXRLibClient';
 import { iXRAIProxy, iXRDbContext, iXRStorage } from './iXRLibCoreModel';
 import { iXRLibStorage } from './iXRLibStorage';
-import { Base64, DATEMAXVALUE } from './network/types';
+import { Base64, DATEMAXVALUE, Sleep } from './network/types';
 import { crc32 } from './network/utils/crc32';
 import { SHA256 } from './network/utils/cryptoUtils';
 import { DataObjectBase, DbSet } from './network/utils/DataObjectBase';
@@ -491,10 +491,10 @@ export class iXRLibAnalytics
 				else
 				{
 					// If not using the db, simply remove everything that sent successfully.
-					pdsIXRXXX.remove_if([](T& t) { return t.m_bSyncedWithCloud; });
+					pdsIXRXXX = pdsIXRXXX.filter(t => { return t.m_bSyncedWithCloud; });
 				}
 			}
-			eRet = SendUnsentXXXs<T, iXRLibStorage>(ixrDbContext, pdsIXRXXX, szTableName, pfnPostIXRXXX, bOneAtATime, iXRLibStorage.m_ixrLibConfiguration.m_nEventsPerSendAttempt, false);
+			eRet = SendUnsentXXXs<T>(ixrDbContext, pdsIXRXXX, szTableName, pfnPostIXRXXX, bOneAtATime, iXRLibStorage.m_ixrLibConfiguration.m_nEventsPerSendAttempt, false);
 			// ---
 			if (iXRLibStorage.m_ixrLibConfiguration.m_bUseDatabase)
 			{
@@ -524,18 +524,18 @@ export class iXRLibAnalytics
 	/// <param name="bNoCallbackOnSuccess">true = Only call pfnStatusCallback on error, false = always call pfnStatusCallback (assuming pfnStatusCallback not null, do not call at all otherwise).</param>
 	/// <param name="pfnStatusCallback">null = do not want status callback, else call according to ^^^.</param>
 	/// <returns>As the call has not happened yet on return, this is the status of adding the task or failing to add it.</returns>
-	private static DeleteXXXTask<T, CB, iXRLibStorage>(ixrT: T, szTableName: string, pfnDeleteIXRXXX: (ixrT: T, refparam: {szResponse: string}) => iXRResult, bNoCallbackOnSuccess: boolean, pfnStatusCallback: CB): iXRResult
+	private static DeleteXXXTask<T extends DataObjectBase>(ixrT: T, szTableName: string, pfnDeleteIXRXXX: (ixrT: T, refparam: {szResponse: string}) => iXRResult, bNoCallbackOnSuccess: boolean, pfnStatusCallback: CB): iXRResult
 	{
-		var	nTrimCount: int;
+		var	nTrimCount: number;
 		var	dtNow = DateTime.Now(),
 			dtOlderThan = dtNow - iXRLibStorage.m_ixrLibConfiguration.m_tsPruneSentItemsOlderThan;
-		var	pdsIXRXXX: DbSet<T extends DataObjectBase>;
+		var	pdsIXRXXX: DbSet<T extends DataObjectBase> = new DbSet<T extends DataObjectBase>();
 		var	eDb: DatabaseResult;
 		var	eRet = iXRResult.eOk;
 
 		try
 		{
-			ixrDbContext: iXRDbContext;
+			var ixrDbContext:	iXRDbContext = new iXRDbContext(false);
 
 			constexpr size_t nbChildObjectListProperties = std::tuple_size_v<decltype(iXRDbContext.childobjectlistproperties)>;
 			// ---
@@ -565,7 +565,7 @@ export class iXRLibAnalytics
 				ScopeThreadBlock	cs(m_csDB);
 
 				// Could be faster by obtaining the count with a SELECT COUNT... in a hurry to finish this port so doing it this way for now.
-				eDb = ExecuteSqlSelect(ixrDbContext.m_db, szTableName, "SELECT %s FROM %s WHERE SyncedWithCloud != 0 ORDER BY timestamp", {}, *pdsIXRXXX);
+				eDb = ExecuteSqlSelect(ixrDbContext.m_db, szTableName, "SELECT %s FROM %s WHERE SyncedWithCloud != 0 ORDER BY timestamp", {}, pdsIXRXXX);
 				nTrimCount = pdsIXRXXX.Count() - iXRLibStorage.m_ixrLibConfiguration.m_nMaximumCachedItems;
 				if (nTrimCount > 0)
 				{
@@ -615,7 +615,7 @@ export class iXRLibAnalytics
 	/// <param name="nConfiguredXXXPerSendAttempt">The corresponding how many T's per send attempt from iXRLibConfiguration.</param>
 	/// <param name="bSendingStragglers">true when being called by TimerCallback to drive Nagle-algorithmish-straggler-send, false when doing a main send</param>
 	/// <returns>iXRResult status code</returns>
-	private SendUnsentXXXs<T, iXRLibStorage>(ixrDbContext: iXRDbContext, dsIXRXXX: DbSet<T extends DataObjectBase>, szTableName: string, pfnPostIXRXXX: (listpT: DbSet<T extends DataObjectBase>, bOneAtATime: boolean, refparam: {szResponse: string}) => iXRRresult, bOneAtATime: boolean, nConfiguredXXXPerSendAttempt: number, bSendingStragglers: boolean): iXRResult
+	private SendUnsentXXXs<T extends DataObjectBase>(ixrDbContext: iXRDbContext, dsIXRXXX: DbSet<T extends DataObjectBase>, szTableName: string, pfnPostIXRXXX: (listpT: DbSet<T extends DataObjectBase>, bOneAtATime: boolean, refparam: {szResponse: string}) => iXRRresult, bOneAtATime: boolean, nConfiguredXXXPerSendAttempt: number, bSendingStragglers: boolean): iXRResult
 	{
 		var	eRet: iXRResult.eOk,
 			eTestRet = iXRResult.eOk;
@@ -724,7 +724,7 @@ export class iXRLibAnalytics
 						}
 						else
 						{
-							std::this_thread::sleep_for(std::chrono::duration_cast<dmilliseconds>(iXRLibStorage.m_ixrLibConfiguration.m_tsSendRetryInterval));
+							Sleep(iXRLibStorage.m_ixrLibConfiguration.m_tsSendRetryInterval * 1000);
 						}
 					}
 					catch (error)
@@ -752,7 +752,7 @@ export class iXRLibAnalytics
 			else
 			{
 				// If not using the db, simply remove everything that sent successfully.
-				dsIXRXXX.remove_if([](T& t) { return t.m_bSyncedWithCloud; });
+				dsIXRXXX = dsIXRXXX.filter(t => { return t.m_bSyncedWithCloud; });
 			}
 		}
 		// ---
@@ -821,7 +821,7 @@ export class iXRLibAnalytics
 							}
 							else
 							{
-								std::this_thread::sleep_for(std::chrono::duration_cast<dmilliseconds>(iXRLibStorage.m_ixrLibConfiguration.m_tsSendRetryInterval));
+								Sleep(iXRLibStorage.m_ixrLibConfiguration.m_tsSendRetryInterval * 1000);
 							}
 						}
 						catch (error)
@@ -834,10 +834,10 @@ export class iXRLibAnalytics
 		}
 		catch (error)
 		{
-			return TaskErrorReturn<T, CB>(iXRResult.eSendEventFailed, ixrT, bNoCallbackOnSuccess, pfnStatusCallback, "Caught exception.");
+			return TaskErrorReturn<T>(iXRResult.eSendEventFailed, ixrT, bNoCallbackOnSuccess, pfnStatusCallback, "Caught exception.");
 		}
 		// ---
-		return TaskErrorReturn<T, CB>(eRet, ixrT, bNoCallbackOnSuccess, pfnStatusCallback, "");
+		return TaskErrorReturn<T>(eRet, ixrT, bNoCallbackOnSuccess, pfnStatusCallback, "");
 	}
 	/// <summary>
 	/// Core-core function to force send unsent objects synchronously.  Used to be inlined in ^^^ TimerCallback().
@@ -850,22 +850,22 @@ export class iXRLibAnalytics
 			eTestRet: iXRResult;
 		var	ixrDbContext: iXRDbContext;
 
-		eTestRet = SendUnsentXXXs<iXREvent, iXRLibStorage>(ixrDbContext, ixrDbContext.m_dsIXREvents, "IXREvents", iXRLibClient.PostIXREvents, false, iXRLibStorage.m_ixrLibConfiguration.m_nEventsPerSendAttempt, true);
+		eTestRet = SendUnsentXXXs<iXREvent>(ixrDbContext, ixrDbContext.m_dsIXREvents, "IXREvents", iXRLibClient.PostIXREvents, false, iXRLibStorage.m_ixrLibConfiguration.m_nEventsPerSendAttempt, true);
 		if (eTestRet != iXRResult.eOk)
 		{
 			eRet = eTestRet;
 		}
-		eTestRet = SendUnsentXXXs<iXRLog, iXRLibStorage>(ixrDbContext, ixrDbContext.m_dsIXRLogs, "IXRLogs", iXRLibClient.PostIXRLogs, false, iXRLibStorage.m_ixrLibConfiguration.m_nLogsPerSendAttempt, true);
+		eTestRet = SendUnsentXXXs<iXRLog>(ixrDbContext, ixrDbContext.m_dsIXRLogs, "IXRLogs", iXRLibClient.PostIXRLogs, false, iXRLibStorage.m_ixrLibConfiguration.m_nLogsPerSendAttempt, true);
 		if (eTestRet != iXRResult.eOk)
 		{
 			eRet = eTestRet;
 		}
-		eTestRet = SendUnsentXXXs<iXRTelemetry, iXRLibStorage>(ixrDbContext, ixrDbContext.m_dsIXRTelemetry, "IXRTelemetry", iXRLibClient.PostIXRTelemetry, false, iXRLibStorage.m_ixrLibConfiguration.m_nTelemetryEntriesPerSendAttempt, true);
+		eTestRet = SendUnsentXXXs<iXRTelemetry>(ixrDbContext, ixrDbContext.m_dsIXRTelemetry, "IXRTelemetry", iXRLibClient.PostIXRTelemetry, false, iXRLibStorage.m_ixrLibConfiguration.m_nTelemetryEntriesPerSendAttempt, true);
 		if (eTestRet != iXRResult.eOk)
 		{
 			eRet = eTestRet;
 		}
-		eTestRet = SendUnsentXXXs<iXRStorage, iXRLibStorage>(ixrDbContext, ixrDbContext.m_dsIXRStorage, "IXRStorage", iXRLibClient.PostIXRStorage, true, iXRLibStorage.m_ixrLibConfiguration.m_nStorageEntriesPerSendAttempt, true);
+		eTestRet = SendUnsentXXXs<iXRStorage>(ixrDbContext, ixrDbContext.m_dsIXRStorage, "IXRStorage", iXRLibClient.PostIXRStorage, true, iXRLibStorage.m_ixrLibConfiguration.m_nStorageEntriesPerSendAttempt, true);
 		if (eTestRet != iXRResult.eOk)
 		{
 			eRet = eTestRet;

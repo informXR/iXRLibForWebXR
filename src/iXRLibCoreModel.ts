@@ -2,8 +2,9 @@
 /// Everything (or nearly) that is in db and will POST/PUT/ETC to remote has a Guid and a timestamp.
 
 import { iXRLibClient } from "./iXRLibClient";
-import { DATEMAXVALUE } from "./network/types";
-import { DateTime, Dictionary, iXRResult, PythonDictStrings, StringList } from "./network/utils/DotNetishTypes";
+import { DATEMAXVALUE, DEFAULTNAME, SUID } from "./network/types";
+import { DataObjectBase, DbSet, DumpCategory, JsonFieldType } from "./network/utils/DataObjectBase";
+import { ConfigurationManager, DateTime, Dictionary, iXRResult, PythonDictStrings, StringList } from "./network/utils/DotNetishTypes";
 
 /// </summary>
 export class iXRBase extends DataObjectBase
@@ -11,8 +12,8 @@ export class iXRBase extends DataObjectBase
 	protected static m_bUseCapturedTimeStamp:	boolean = false;
 	protected static m_nCapturedTimeStamp:		number = DATEMAXVALUE;
 	// ---
-	public m_guidId:			SUID;
-	public m_guidParentId:		SUID;
+	public m_guidId:			SUID = new SUID();
+	public m_guidParentId:		SUID = new SUID();
 	// "Standard" timestamp... gets transmitted as text, subject to vagaries, should not be used for grouping objects that depend on precise comparison.
 	public m_dtTimeStamp:		DateTime = DATEMAXVALUE;
 	// A precise version of the timestamp that is declared as integer so it will only be subject to precise integer operations rather than time calculations which can introduce imprecisions.
@@ -54,7 +55,7 @@ export class iXRBase extends DataObjectBase
 		this.m_bUseCapturedTimeStamp = false;
 	}
 	// ---
-	public ShouldDump(szFieldName: string, eJsonFieldType: JsonFieldType, eDumpCategory: DumpCategory): bool // virtual
+	public ShouldDump(szFieldName: string, eJsonFieldType: JsonFieldType, eDumpCategory: DumpCategory): boolean // virtual
 	{
 		switch (eDumpCategory)
 		{
@@ -94,10 +95,9 @@ export class CaptureTimeStampLifetime
 /// iXRLibClient.h so it needs to be here.
 export class iXRLibConfiguration extends DataObjectBase
 {
-protected:
-	protected m_szRestUrl:	string = "";		// |_Would be cool to use __declspec(property) but that does not port to Linux.
-	protected m_urlRestUrl:	URLParser.HTTP_URL;	// | Using accessor instead.
-public:
+	protected m_szRestUrl:						string = "";		// |_Would be cool to use __declspec(property) but that does not port to Linux.
+	protected m_urlRestUrl:						URLParser.HTTP_URL;	// | Using accessor instead.
+	// ---
 	public m_nSendRetriesOnFailure:				number = 3;
 	public m_tsSendRetryInterval:				TimeSpan = { 0, 0, 3 };
 	public m_tsSendNextBatchWait:				TimeSpan = { 0, 0, 30 };
@@ -430,7 +430,7 @@ export class iXRAIProxy extends iXRBase
 {
 	public m_szPrompt:			string = "";									// String type value.
 	public m_dictPastMessages:	PythonDictStrings = new PythonDictStrings();	// The history of chat (if needed).
-	public m_szLLMProvider:	string = "";									// (Optional) a string type value that can be used to choose a specific pre-defined chatbot.
+	public m_szLLMProvider:		string = "";									// (Optional) a string type value that can be used to choose a specific pre-defined chatbot.
 	// ---
 	/// <summary>
 	/// For passing past messages in as comma-separated list.
@@ -673,6 +673,7 @@ export class iXRStorage extends iXRBase
 	// ---	
 	constructor()
 	{
+		super();
 		this.m_szKeepPolicy = "appendHistory";
 	}
 	Construct0(bKeepLatest: boolean, szName: string, dictData: PythonDictStrings, szOrigin: string, bSessionData: boolean) : iXRStorage
@@ -727,11 +728,11 @@ export class DbSetStorage extends DbSet<iXRStorage>
 	const DEFAULTNAME:	string = "state";
 	// ---
 	// Default name 'state'
-	public GetEntry0(): iXRStorage
+	public GetEntry0(): iXRStorage|null
 	{
-		return GetEntry(DEFAULTNAME);
+		return this.GetEntry1(DEFAULTNAME);
 	}
-	public GetEntry1(szName: string): iXRStorage
+	public GetEntry1(szName: string): iXRStorage|null
 	{
 		for (let ixd of this.values())
 		{
@@ -746,7 +747,7 @@ export class DbSetStorage extends DbSet<iXRStorage>
 	// Default name 'state'
 	public SetEntry0(dictData: PythonDictStrings, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): iXRResult
 	{
-		return SetEntry(DEFAULTNAME, dictData, bKeepLatest, szOrigin, bSessionData);
+		return this.SetEntry1(DEFAULTNAME, dictData, bKeepLatest, szOrigin, bSessionData);
 	}
 	public SetEntry1(szName: string, dictData: PythonDictStrings, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): iXRResult
 	{
@@ -763,18 +764,18 @@ export class DbSetStorage extends DbSet<iXRStorage>
 			}
 		}
 		// --- MJP:  for now, coding just the synchronous case.  As these are environment variables, blocking main thread should not be a big deal.
-		return iXRLibStorage.AddEntrySynchronous(super.push(new iXRStorage.Construct(bKeepLatest, szName, dictData, szOrigin, bSessionData)));
+		return iXRLibStorage.AddEntrySynchronous(super.push(new iXRStorage.Construct0(bKeepLatest, szName, dictData, szOrigin, bSessionData)));
 	}
 	// Default name 'state'
 	public SetEntry2(szdictData: string, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): iXRResult
 	{
-		return this.SetEntry(DbSetStorage.DEFAULTNAME, szdictData, bKeepLatest, szOrigin, bSessionData);
+		return this.SetEntry3(DEFAULTNAME, szdictData, bKeepLatest, szOrigin, bSessionData);
 	}
 	public SetEntry3(szName: string, szdictData: string, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): iXRResult
 	{
 		for (let ixd of this.values())
 		{
-			if (ixd.m_szName.compare(szName) == 0)
+			if (ixd.m_szName === szName)
 			{
 				if (!ixd.m_dsData.empty() && !ixd.m_dsData[0].m_dspIXRXXXs.empty())
 				{
@@ -785,7 +786,7 @@ export class DbSetStorage extends DbSet<iXRStorage>
 			}
 		}
 		// --- MJP:  for now, coding just the synchronous case.  As these are environment variables, blocking main thread should not be a big deal.
-		return iXRLibStorage.AddEntrySynchronous(super.push(iXRStorage.Construct(bKeepLatest, szName, PythonDictStrings(szdictData), szOrigin, bSessionData)));
+		return iXRLibStorage.AddEntrySynchronous(super.push(iXRStorage.Construct0(bKeepLatest, szName, new PythonDictStrings.Construct(szdictData), szOrigin, bSessionData)));
 	}
 	// ---
 	// Default name 'state'

@@ -266,6 +266,42 @@ export function JsonResultToString(eRet: JsonResult): string
 /// Lean and mean Appconfig reader.
 /// Assumes App.config is in current directory.
 /// </summary>
+export class ConfigurationManager
+{
+	public static AppSettings(szFieldName: string, szDefaultValue: string): string
+	{
+		var szAppConfig:	string = "";
+
+		// if (szAppConfig.LoadFromFile("App.config"))
+		// {
+		// 	csrstringb	csrszRegex;
+		// 	// ---
+		// 	csrszRegex.Format(R"(<add[\s]+key[\s]*=[\s]*"%s"[\s]+value[\s]*=[\s]*".*"[\s]*[/]?[\s]*>)", szFieldName);
+		// 	// ---
+		// 	std::vector<mstringb>	vszMatches;
+
+		// 	// Filter out any HTML comments.
+		// 	CSREGEXB::ProgressiveMatch(szAppConfig, { R"(<\!\-\-.*\-\->)" }, { { true, R"(.*)" } }, vszMatches);
+		// 	for (const mstringb& sz : vszMatches)
+		// 	{
+		// 		szAppConfig.Replace(sz, "");
+		// 	}
+		// 	// Now do the "real" match.
+		// 	CSREGEXB::DeepMatch(szAppConfig, { csrszRegex, R"(value[\s]*=[\s]*".*"[\s]*[/]?[\s]*>)" }, R"(value[\s]*=[\s]*")", R"("[\s]*[/]?[\s]*>)", vszMatches);
+		// 	if (vszMatches.size() > 0)
+		// 	{
+		// 		return vszMatches[0];
+		// 	}
+		// }
+		// ---
+		return szDefaultValue;
+	}
+};
+
+/// <summary>
+/// Lean and mean Appconfig reader.
+/// Assumes App.config is in current directory.
+/// </summary>
 // MJP:  writing this comment in the middle of porting... probably not going to need this as it implies reading a file.  Get rid of it when sure.
 // export class ConfigurationManager
 // {
@@ -576,6 +612,12 @@ export class PythonDictStrings extends Dictionary<string, string>
 	constructor()
 	{
 		super();
+	}
+	Construct(szCommaSeparatedNameEqualsValueList: string): PythonDictStrings
+	{
+		this.FromCommaSeparatedList(szCommaSeparatedNameEqualsValueList);
+		// ---
+		return this;
 	}
 	public FromCommaSeparatedList(szCommaSeparatedNameEqualsValueList: string): void
 	{
