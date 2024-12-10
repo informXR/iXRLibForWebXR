@@ -53,17 +53,40 @@ class FieldPropertiesRecordContainer
 	constructor(rfp: Record<string, FieldProperties>)
 	{
 		this.m_rfp = rfp;
+		// vvv need this for "this-binding" if replacer is function rather than lambda member-variable (other way of this-binding).
+		// this.replacer = this.replacer.bind(this);
 	}
-	public replacer(key: string, value: any): string
+	dispose()
 	{
-		for (const key in this.m_rfp)
+		const x = 3;
+	}
+	public replacer = (key: string, value: any): string =>
+	{
+		if (key === '')
 		{
-			if (key === value)
-			{
-				return this.m_rfp[key].m_szName;
-			}
+			return value;
 		}
-		return value;
+		// if (key === "m_nStrictlyCommercial")
+		// {
+		// 	return "strictly_effin_commercial";
+		// }
+		const fpNode:	FieldProperties = this.m_rfp[key];
+
+		if (fpNode)
+		{
+			return fpNode.m_szName;
+		}
+		return key;
+		// const rfp = this.m_rfp;
+
+		// for (const szKey in rfp)
+		// {
+		// 	if (szKey === value)
+		// 	{
+		// 		return this.m_rfp[szKey].m_szName;
+		// 	}
+		// }
+		// return value;
 	}
 }
 
