@@ -23,6 +23,69 @@ if (typeof window === 'undefined') {
   };
 }
 
+class FieldProperties
+{
+	public m_szName:	string = "";
+	public m_fFlags:	number = 0;
+	// ---
+	constructor(szName: string, fFlags: number)
+	{
+		this.m_szName = szName;
+		this.m_fFlags = fFlags;
+	}
+	public static JSONFieldName(rsfFieldProperties: Record<string, FieldProperties>, szFieldName: string, fFlags: number): string
+	{
+		for (const szKey in rsfFieldProperties)
+		{
+			if (szKey === szFieldName)
+			{
+				return rsfFieldProperties[szKey].m_szName;
+			}
+		}
+		return "";
+	}
+}
+
+class FieldPropertiesRecordContainer
+{
+	public m_rfp:	Record<string, FieldProperties>;
+	// ---
+	constructor(rfp: Record<string, FieldProperties>)
+	{
+		this.m_rfp = rfp;
+	}
+	public replacer(key: string, value: any): string
+	{
+		for (const key in this.m_rfp)
+		{
+			if (key === value)
+			{
+				return this.m_rfp[key].m_szName;
+			}
+		}
+		return value;
+	}
+}
+
+class TestData
+{
+	public m_nStrictlyCommercial:	number = 1.2;
+	public m_szSomeString:			string = "with a lead filled snowshoe."
+	// ---
+	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({
+			m_nStrictlyCommercial: new FieldProperties("strictly_commercial", 56)},
+			{m_szSomeString: new FieldProperties("some_string", 78)}));
+}
+
+function TestJson()
+{
+	var objTestData:	TestData = new TestData();
+	var szJSON:			string = "";
+
+	szJSON = JSON.stringify(objTestData, TestData.m_mapProperties.replacer);
+	console.log(szJSON);
+}
+
 async function main(): Promise<void> {
   try {
     // Simulate GET request parameters
@@ -32,7 +95,8 @@ async function main(): Promise<void> {
       xrdm_devicemodel: 'iXRLibForWebXR_device_model',
       xrdm_authsecret: 'authSecret'
     });
-  
+
+	TestJson();
     // Set the URL for testing
     window.history.pushState({}, '', `${window.location.pathname}?${urlParams.toString()}`);
     console.log('Set URL:', window.location.href);

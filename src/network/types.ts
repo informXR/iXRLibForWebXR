@@ -51,102 +51,80 @@ export class SUID
 		// Format the hex string into a GUID format.
 		return '${hexString.slice(0, 8)}-${hexString.slice(8, 12)}-${hexString.slice(12, 16)}-${hexString.slice(16, 20)}-${hexString.slice(20)}';
 	}
-	SUID(const wchar_t* wszHexString)
+	public Construct(szHexString: string)
 	{
-		operator=(wszHexString);
+		// operator=(wszHexString);
 	}
-#ifdef _UNIX
-	void generate_uuid_v4(unsigned char uuid[16])
-	{
-            std::random_device rd;
-            std::mt19937 gen(rd());
-            std::uniform_int_distribution<uint8_t> dis(0, 255);
-
-	    for (int i = 0; i < 16; ++i)
-	    {
-                uuid[i] = dis(gen);
-            }
-
-            // Set the version to 4 -> uuid[6] = 0b0100xxxx
-            uuid[6] = (uuid[6] & 0x0F) | 0x40;
-
-            // Set the variant to 10 -> uuid[8] = 0b10xxxxxx
-            uuid[8] = (uuid[8] & 0x3F) | 0x80;
-        }
-#endif
-	void Create()
+	public Create(): void
 	{
 		this.m_guid = Guid.create();
 	}
-	template <typename CHAR> SUID& operator=(const CHAR* szHex)
+	FromHex(szHex: string): SUID
 	{
-		ParseHex(szHex);
+		// ParseHex(szHex);
 		// ---
-		return *this;
+		return this;
 	}
 	// ---
-	bool operator==(const SUID& o) const
+	// bool operator==(const SUID& o) const
+	// {
+	// 	return (*m_pnData == *o.m_pnData && m_pnData[1] == o.m_pnData[1]);
+	// }
+	// bool operator!=(const SUID& o) const
+	// {
+	// 	return !operator==(o);
+	// }
+	public MakeNull(): void
 	{
-		return (*m_pnData == *o.m_pnData && m_pnData[1] == o.m_pnData[1]);
+		this.m_guid = Guid.createEmpty();
 	}
-	bool operator!=(const SUID& o) const
+	public IsNull(): boolean
 	{
-		return !operator==(o);
+		return this.m_guid.isEmpty();
 	}
-	void MakeNull()
-	{
-		*m_pnData = m_pnData[1] = 0ull;
-	}
-	bool IsNull() const
-	{
-		const uint64_t* pThis = reinterpret_cast<const uint64_t*>(this);
+	// template <typename CHAR> void ParseHex(const CHAR* szHex)
+	// {
+	// 	static intptr_t	pnOffsets[] = { 3, 2, 1, 0, 5, 4, 7, 6, 8, 9, 10, 11, 12, 13, 14, 15 };
+	// 	uint8_t			*pThis = reinterpret_cast<uint8_t*>(this);
+	// 	const intptr_t	*pn;
+	// 	CHAR			szFiltered[33],
+	// 					c;
+	// 	const CHAR		*p;
+	// 	CHAR			*d;
+	// 	uint8_t			n;
 
-		return (*pThis == 0ull && pThis[1] == 0ull);
-	}
-	template <typename CHAR> void ParseHex(const CHAR* szHex)
-	{
-		static intptr_t	pnOffsets[] = { 3, 2, 1, 0, 5, 4, 7, 6, 8, 9, 10, 11, 12, 13, 14, 15 };
-		uint8_t			*pThis = reinterpret_cast<uint8_t*>(this);
-		const intptr_t	*pn;
-		CHAR			szFiltered[33],
-						c;
-		const CHAR		*p;
-		CHAR			*d;
-		uint8_t			n;
+	// 	// Filter out non-hex and normalize to capital.
+	// 	for (p = szHex, d = szFiltered; *p && d < &szFiltered[32]; p++)
+	// 	{
+	// 		c = (sizeof(CHAR) == 1) ? (CHAR)toupper(*(const CHAR*)p) : (CHAR)towupper(*(const CHAR*)p);
+	// 		if ((c >= CHAR('0') && c <= CHAR('9')) || (c >= CHAR('A') && c <= CHAR('F')))
+	// 		{
+	// 			*d++ = c;
+	// 		}
+	// 	}
+	// 	*d = 0;
+	// 	for (p = szFiltered, pn = pnOffsets; *p; )
+	// 	{
+	// 		n = ToHexByte<CHAR>(p);
+	// 		pThis[*pn++] = n;
+	// 	}
+	// }
+	// private static ToHexByte(const CHAR*& p): number
+	// {
+	// 	uint8_t	n = 0;
+	// 	CHAR	c = *p++;
 
-		// Filter out non-hex and normalize to capital.
-		for (p = szHex, d = szFiltered; *p && d < &szFiltered[32]; p++)
-		{
-			c = (sizeof(CHAR) == 1) ? (CHAR)toupper(*(const CHAR*)p) : (CHAR)towupper(*(const CHAR*)p);
-			if ((c >= CHAR('0') && c <= CHAR('9')) || (c >= CHAR('A') && c <= CHAR('F')))
-			{
-				*d++ = c;
-			}
-		}
-		*d = 0;
-		for (p = szFiltered, pn = pnOffsets; *p; )
-		{
-			n = ToHexByte<CHAR>(p);
-			pThis[*pn++] = n;
-		}
-	}
-private:
-	template <typename CHAR> static constexpr uint8_t ToHexByte(const CHAR*& p)
-	{
-		uint8_t	n = 0;
-		CHAR	c = *p++;
-
-		if (c)
-		{
-			n = (c >= CHAR('A')) ? c - CHAR('A') + 10 : c - CHAR('0');
-			c = *p++;
-			if (c)
-			{
-				n = (n << 4) | ((c >= CHAR('A')) ? c - CHAR('A') + 10 : c - CHAR('0'));
-			}
-		}
-		return n;
-	}
+	// 	if (c)
+	// 	{
+	// 		n = (c >= CHAR('A')) ? c - CHAR('A') + 10 : c - CHAR('0');
+	// 		c = *p++;
+	// 		if (c)
+	// 		{
+	// 			n = (n << 4) | ((c >= CHAR('A')) ? c - CHAR('A') + 10 : c - CHAR('0'));
+	// 		}
+	// 	}
+	// 	return n;
+	// }
 	/// <summary>
 	/// Core ToString() function.  Coded it to memory layout on little-endian system.  May have to revisit later.
 	/// For now, the ParseHex() and ToString() are symmetric in that (and every other) regard... only if some
@@ -155,44 +133,45 @@ private:
 	/// <typeparam name="CHAR">char, wchar_t, TCHAR</typeparam>
 	/// <param name="bJustHex">false = canonical with squiggleys and hyphens, true means just hex digits.</param>
 	/// <returns>Hexified representation of GUID/UUID/SUID</returns>
-	template <typename CHAR> basic_mstring<CHAR> ToStringGuts(const bool bJustHex) const
-	{
-		static intptr_t		pnOffsets[] = { 3, 2, 1, 0, -1, 5, 4, -1, 7, 6, -1, 8, 9, -1, 10, 11, 12, 13, 14, 15 };
-		const uint8_t		*pThis = reinterpret_cast<const uint8_t*>(this);
-		basic_mstring<CHAR>	szRet;
-		CHAR				szHex[4];
+	// private template <typename CHAR> basic_mstring<CHAR> ToStringGuts(const bool bJustHex) const
+	// {
+	// 	static intptr_t		pnOffsets[] = { 3, 2, 1, 0, -1, 5, 4, -1, 7, 6, -1, 8, 9, -1, 10, 11, 12, 13, 14, 15 };
+	// 	const uint8_t		*pThis = reinterpret_cast<const uint8_t*>(this);
+	// 	basic_mstring<CHAR>	szRet;
+	// 	CHAR				szHex[4];
 
-		if (!bJustHex)
-		{
-			szRet = (sizeof(CHAR) == 1) ? (CHAR*)"{" : (CHAR*)L"{";
-		}
-		for (const intptr_t nOffset : pnOffsets)
-		{
-			if (nOffset >= 0)
-			{
-				(sizeof(CHAR) == 1) ? sprintf_s<cardinalityof(szHex)>((char(&)[4])szHex, "%02X", pThis[nOffset]) : swprintf_s<cardinalityof(szHex)>((wchar_t(&)[4])szHex, L"%02X", pThis[nOffset]);
-				szRet += szHex;
-			}
-			else if (!bJustHex)
-			{
-				szRet += (sizeof(CHAR) == 1) ? (CHAR*)"-" : (CHAR*)L"-";
-			}
-		}
-		if (!bJustHex)
-		{
-			szRet += (sizeof(CHAR) == 1) ? (CHAR*)"}" : (CHAR*)L"}";
-		}
-		// ---
-		return szRet;
-	}
-public:
-	template <typename CHAR> basic_mstring<CHAR> ToString() const
+	// 	if (!bJustHex)
+	// 	{
+	// 		szRet = (sizeof(CHAR) == 1) ? (CHAR*)"{" : (CHAR*)L"{";
+	// 	}
+	// 	for (const intptr_t nOffset : pnOffsets)
+	// 	{
+	// 		if (nOffset >= 0)
+	// 		{
+	// 			(sizeof(CHAR) == 1) ? sprintf_s<cardinalityof(szHex)>((char(&)[4])szHex, "%02X", pThis[nOffset]) : swprintf_s<cardinalityof(szHex)>((wchar_t(&)[4])szHex, L"%02X", pThis[nOffset]);
+	// 			szRet += szHex;
+	// 		}
+	// 		else if (!bJustHex)
+	// 		{
+	// 			szRet += (sizeof(CHAR) == 1) ? (CHAR*)"-" : (CHAR*)L"-";
+	// 		}
+	// 	}
+	// 	if (!bJustHex)
+	// 	{
+	// 		szRet += (sizeof(CHAR) == 1) ? (CHAR*)"}" : (CHAR*)L"}";
+	// 	}
+	// 	// ---
+	// 	return szRet;
+	// }
+	public ToString(): string
 	{
-		return ToStringGuts<CHAR>(false);
+		// return ToStringGuts<CHAR>(false);
+		return "";
 	}
-	template <typename CHAR> basic_mstring<CHAR> ToStringPureHex() const
+	public ToStringPureHex(): string
 	{
-		return ToStringGuts<CHAR>(true);
+		// return ToStringGuts<CHAR>(true);
+		return "";
 	}
 };
 

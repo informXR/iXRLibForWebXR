@@ -1,5 +1,9 @@
 /// <summary>
 /// Allows for several categories of object dumping each with rules for which fields to dump or filter.
+
+import { SUID } from "../types";
+import { DatabaseResult } from "./iXRLibSQLite";
+
 /// </summary>
 export enum DumpCategory
 {
@@ -78,12 +82,35 @@ export class DataObjectBase
 	}
 };
 
+// ---
+
+export class DbContext extends DataObjectBase
+{
+	// public m_db:		SqliteDbConnection = new SqliteDbConnection();
+	public m_guidId:	SUID = new SUID();	// Never actually gets dereferenced... needed so templates will instantiate as this object serves as a container for db objects.
+	// ---
+	// constexpr static auto properties = std::tuple_cat(std::make_tuple(
+	// 	property(&DbContext::m_guidId, "Id", ColumnAttributeBF(ColumnAttribute::bfPrimaryKey))
+	// ));
+	// ---
+	public SaveChanges(): DatabaseResult // virtual
+	{
+		return DatabaseResult.eOk;
+	}
+};
+
 /// <summary>
 /// Analogue of .NET DbSet<>... in here rather than DotNetishTypes.h as it is a core object needed by several functions in this header file.
 /// </summary>
 /// <typeparam name="T">Type of database object</typeparam>
 export class DbSet<T extends DataObjectBase> extends Array<T>
 {
+	// --- C++/stl-ish from port from C++.
+	public empty(): boolean
+	{
+		return (super.length === 0);
+	}
+	// --- C#ish from C# port to C++.
 	public Add(o: T): T
 	{
 		super.push(o);

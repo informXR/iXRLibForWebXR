@@ -2,9 +2,11 @@
 /// Everything (or nearly) that is in db and will POST/PUT/ETC to remote has a Guid and a timestamp.
 
 import { iXRLibClient } from "./iXRLibClient";
+import { iXRLibStorage } from "./iXRLibStorage";
 import { DATEMAXVALUE, DEFAULTNAME, SUID } from "./network/types";
-import { DataObjectBase, DbSet, DumpCategory, JsonFieldType } from "./network/utils/DataObjectBase";
+import { DataObjectBase, DbContext, DbSet, DumpCategory, JsonFieldType } from "./network/utils/DataObjectBase";
 import { ConfigurationManager, DateTime, Dictionary, iXRResult, PythonDictStrings, StringList } from "./network/utils/DotNetishTypes";
+import { DbSuccess } from "./network/utils/iXRLibSQLite";
 
 /// </summary>
 export class iXRBase extends DataObjectBase
@@ -522,10 +524,10 @@ export class iXREvent extends iXRBase
 /// <typeparam name="T">Type of object being contained.</typeparam>
 /// <typeparam name="T_CONTAINS">Type of object inside T that also has to be on its own for when Python makes it an object instead of an array in the JSON.</typeparam>
 /// <typeparam name="bWantTimeStamp">Want timestamp when dumping JSON for backend.</typeparam>
-export class iXRXXXContainer<T, T_CONTAINS, bWantTimestamp = false> extends iXRBase
+export class iXRXXXContainer<T, T_CONTAINS, bTWantTimestamp = boolean> extends iXRBase
 {
-	m_tIXRXXX:		T_CONTAINS = new T_CONTAINS();	// This is here to catch the data when Python is representing it as an object rather than array.
-	m_dspIXRXXXs:	DbSet<T> = new DbSet<T>();		// The main data.
+	public m_tIXRXXX:			T_CONTAINS = new T_CONTAINS();	// This is here to catch the data when Python is representing it as an object rather than array.
+	public m_dspIXRXXXs:		DbSet<T> = new DbSet<T>();		// The main data.
 	// ---
 	// constexpr static auto properties = std.tuple_cat(super.properties, std.make_tuple(
 	// 	property(&iXRXXXContainer<T, T_CONTAINS, bWantTimestamp>.m_tIXRXXX, "data")
@@ -534,8 +536,14 @@ export class iXRXXXContainer<T, T_CONTAINS, bWantTimestamp = false> extends iXRB
 	// 	childobjectlistproperty(&iXRXXXContainer<T, T_CONTAINS, bWantTimestamp>.m_dspIXRXXXs, "data")
 	// ));
 	// ---
+	constructor(public bWantTimestamp: bTWantTimestamp = false as bTWantTimestamp)
+	{
+		super();
+	}
 	public ShouldDump(szFieldName: string, eJsonFieldType: JsonFieldType, eDumpCategory: DumpCategory) : boolean // virtual
 	{
+		const bWantTimestamp:	bTWantTimestamp;
+
 		if (eJsonFieldType === JsonFieldType.eField && szFieldName === "data")
 		{
 			return false;
@@ -782,7 +790,7 @@ export class DbSetStorage extends DbSet<iXRStorage>
 					ixd.m_dsData[0].m_dspIXRXXXs[0].m_cdictData = new PythonDictStrings().Construct(dictData);
 				}
 				// ---
-				return this.iXRLibStorage.AddEntrySynchronous(ixd);
+				return iXRLibStorage.AddEntrySynchronous(ixd);
 			}
 		}
 		// --- MJP:  for now, coding just the synchronous case.  As these are environment variables, blocking main thread should not be a big deal.
@@ -896,7 +904,7 @@ export class iXRDbContext extends DbContext
 	m_dsIXRLogs:			DbSet<iXRLog> = new DbSet<iXRLog>();
 	m_dsIXRTelemetry:		DbSet<iXRTelemetry> = new DbSet<iXRTelemetry>();
 	m_dsIXREvents:			DbSet<iXREvent> = new DbSet<iXREvent>();		// Table name IXREvents.
-	m_dsIXRStorage:			DbSet<iXRStorage> = new DbSet<iXRStorage>();		// State info, etc.
+	m_dsIXRStorage:			DbSet<iXRStorage> = new DbSet<iXRStorage>();	// State info, etc.
 	m_szDbPath:				string = "";
 	// ---
 	// constexpr static auto childobjectlistproperties = std.tuple_cat(super.childobjectlistproperties, std.make_tuple(
