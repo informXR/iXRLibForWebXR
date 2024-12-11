@@ -27,11 +27,13 @@ class FieldProperties
 {
 	public m_szName:	string = "";
 	public m_fFlags:	number = 0;
+	public m_objChild:	any|null = null;
 	// ---
-	constructor(szName: string, fFlags: number)
+	constructor(szName: string, fFlags: number, objChild?: any|null)
 	{
 		this.m_szName = szName;
 		this.m_fFlags = fFlags;
+		this.m_objChild = objChild;
 	}
 	public static JSONFieldName(rsfFieldProperties: Record<string, FieldProperties>, szFieldName: string, fFlags: number): string
 	{
@@ -53,59 +55,87 @@ class FieldPropertiesRecordContainer
 	constructor(rfp: Record<string, FieldProperties>)
 	{
 		this.m_rfp = rfp;
-		// vvv need this for "this-binding" if replacer is function rather than lambda member-variable (other way of this-binding).
-		// this.replacer = this.replacer.bind(this);
 	}
-	dispose()
-	{
-		const x = 3;
-	}
-	public replacer = (key: string, value: any): string =>
+	public replacer = (key: string, value: any): any =>
 	{
 		if (key === '')
 		{
-			return value;
-		}
-		// if (key === "m_nStrictlyCommercial")
-		// {
-		// 	return "strictly_effin_commercial";
-		// }
-		const fpNode:	FieldProperties = this.m_rfp[key];
+			// On the root object, create a new object with transformed keys.
+			const result:	any = {};
 
-		if (fpNode)
-		{
-			return fpNode.m_szName;
-		}
-		return key;
-		// const rfp = this.m_rfp;
+			for (const [oldKey, val] of Object.entries(value))
+			{
+				const fpNode:	FieldProperties = this.m_rfp[oldKey];
+				const newKey:	string = fpNode ? fpNode.m_szName : oldKey;
 
-		// for (const szKey in rfp)
-		// {
-		// 	if (szKey === value)
-		// 	{
-		// 		return this.m_rfp[szKey].m_szName;
-		// 	}
-		// }
-		// return value;
+				if (fpNode.m_objChild)
+				{
+					// console.log("TestChild.m_mapProperties.replacer = ", {TestChild.m_mapProperties.replacer});
+					result[newKey] = JSON.stringify(val, fpNode.m_objChild.replacer);
+				}
+				else
+				{
+					result[newKey] = val;
+				}
+			}
+			return result;
+		}
+		return value;
 	}
+}
+
+const replacomizer = (key: string, value: any): string =>
+{
+	if (key === "m_nStrictlyCommercial")
+	{
+		return "strictly_commercial";
+	}
+	else if (key === "m_szSomeString")
+	{
+		return "some_string";
+	}
+	return key;
+}
+
+class TestChild
+{
+	public m_nGardenWall:	number = 3.4;
+	public m_szDingALing:	string = "My ding a ling.";
+	// ---
+	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({
+		m_nGardenWall: new FieldProperties("garden_wall", 22)},
+		{m_szDingALing: new FieldProperties("ding_a_ling", 34)}));
 }
 
 class TestData
 {
 	public m_nStrictlyCommercial:	number = 1.2;
 	public m_szSomeString:			string = "with a lead filled snowshoe."
+	public m_objTestChild:			TestChild = new TestChild();
 	// ---
+	public static m_mapChildProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({
+		m_objTestChild: new FieldProperties("test_child", 56)}));
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({
-			m_nStrictlyCommercial: new FieldProperties("strictly_commercial", 56)},
-			{m_szSomeString: new FieldProperties("some_string", 78)}));
+		m_nStrictlyCommercial: new FieldProperties("strictly_commercial", 56)},
+		{m_szSomeString: new FieldProperties("some_string", 78)},
+		{m_objTestChild: new FieldProperties("test_child", 92, TestData.m_mapChildProperties)}));
+}
+
+class TestDataBe3Map
+{
+	public m_nStrictlyCommercial:	number = 1.2;
+	public m_szSomeString:			string = "with a lead filled snowshoe."
 }
 
 function TestJson()
 {
-	var objTestData:	TestData = new TestData();
-	var szJSON:			string = "";
+	var objTestData:		TestData = new TestData();
+	var ObjTestDataBe3Map:	TestDataBe3Map = new TestDataBe3Map();
+	var szJSON:				string = "";
 
 	szJSON = JSON.stringify(objTestData, TestData.m_mapProperties.replacer);
+	console.log(szJSON);
+	szJSON = JSON.stringify(ObjTestDataBe3Map, replacomizer);
 	console.log(szJSON);
 }
 
