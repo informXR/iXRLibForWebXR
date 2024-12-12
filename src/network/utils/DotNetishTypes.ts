@@ -341,87 +341,86 @@ export class ConfigurationManager
 /// </summary>
 export class TimeSpan
 {
-	TimeSpan() :
-		std::chrono::duration<double>(0.0)
-	{
-	}
-	TimeSpan(size_t nHours, size_t nMinutes, size_t nSeconds) :
-		super(std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::hours(nHours)) +
-			std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::minutes(nMinutes)) +
-			std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::seconds(nSeconds)))
-	{
-	}
-	TimeSpan(size_t nDays, size_t nHours, size_t nMinutes, size_t nSeconds) :
-#ifndef _UNIX
-		super(std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::days(nDays)) +
-#else
-		super(std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::hours(nDays * 24)) +
-#endif // _UNIX
-			std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::hours(nHours)) +
-			std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::minutes(nMinutes)) +
-			std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::seconds(nSeconds)))
-	{
-	}
-	TimeSpan(const double& d) :
-		super(dseconds(d))
-	{
-	}
-	// Handles results of DateTime arithmetic.
-	TimeSpan(const std::chrono::system_clock::duration& dtDuration)
-	{
-		super::operator=(std::chrono::duration_cast<std::chrono::system_clock::duration, double, std::ratio<1, 1>>(dtDuration));
-	}
-	operator double()
-	{
-		return *reinterpret_cast<double*>(this);
-	}
-	operator const double() const
-	{
-		return *reinterpret_cast<const double*>(this);
-	}
-	static TimeSpan Zero()
-	{
-		std::chrono::duration<double>	ret = std::chrono::duration<double>::zero();
+// 	constructor()
+// 	{
+// 	}
+// 	TimeSpan(size_t nHours, size_t nMinutes, size_t nSeconds) :
+// 		super(std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::hours(nHours)) +
+// 			std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::minutes(nMinutes)) +
+// 			std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::seconds(nSeconds)))
+// 	{
+// 	}
+// 	TimeSpan(size_t nDays, size_t nHours, size_t nMinutes, size_t nSeconds) :
+// #ifndef _UNIX
+// 		super(std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::days(nDays)) +
+// #else
+// 		super(std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::hours(nDays * 24)) +
+// #endif // _UNIX
+// 			std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::hours(nHours)) +
+// 			std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::minutes(nMinutes)) +
+// 			std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::seconds(nSeconds)))
+// 	{
+// 	}
+// 	TimeSpan(const double& d) :
+// 		super(dseconds(d))
+// 	{
+// 	}
+// 	// Handles results of DateTime arithmetic.
+// 	TimeSpan(const std::chrono::system_clock::duration& dtDuration)
+// 	{
+// 		super::operator=(std::chrono::duration_cast<std::chrono::system_clock::duration, double, std::ratio<1, 1>>(dtDuration));
+// 	}
+// 	operator double()
+// 	{
+// 		return *reinterpret_cast<double*>(this);
+// 	}
+// 	operator const double() const
+// 	{
+// 		return *reinterpret_cast<const double*>(this);
+// 	}
+// 	static TimeSpan Zero()
+// 	{
+// 		std::chrono::duration<double>	ret = std::chrono::duration<double>::zero();
 
-		return *reinterpret_cast<TimeSpan*>(&ret);
-	}
-	template <typename CHAR> static TimeSpan Parse(const basic_mstring<CHAR>& sz)
-	{
-		TimeSpan				tsRet;
-		std::vector<mstringb>	vszMatches;
+// 		return *reinterpret_cast<TimeSpan*>(&ret);
+// 	}
+// 	template <typename CHAR> static TimeSpan Parse(const basic_mstring<CHAR>& sz)
+// 	{
+// 		TimeSpan				tsRet;
+// 		std::vector<mstringb>	vszMatches;
 
-		if (CIREGEXB::ProgressiveMatch(sz, {}, {
-			{true, R"([\d])"}, {false, R"(\.)"},
-			{true, R"([\d]{2})"}, {false, R"(:)"},
-			{true, R"([\d]{2})"}, {false, R"(:)"},
-			{true, R"([\d]{2})"} }, vszMatches) && vszMatches.size() == 4)
-		{
-			// D.HH:MM:SS.
-			tsRet = TimeSpan(atol(vszMatches[0]), atol(vszMatches[1]), atol(vszMatches[2]), atol(vszMatches[3]));
-		}
-		else if (CIREGEXB::ProgressiveMatch(sz, {}, {
-			{true, R"([\d]{2})"}, {false, R"(:)"},
-			{true, R"([\d]{2})"}, {false, R"(:)"},
-			{true, R"([\d]{2})"} }, vszMatches) && vszMatches.size() == 3)
-		{
-			// HH:MM:SS.
-			tsRet = TimeSpan(atol(vszMatches[0]), atol(vszMatches[1]), atol(vszMatches[2]));
-		}
-		else
-		{
-			tsRet = TimeSpan::Zero();
-		}
-		// ---
-		return tsRet;
-	}
-	mstringb ToString() const
-	{
-		mstringb	szRet;
+// 		if (CIREGEXB::ProgressiveMatch(sz, {}, {
+// 			{true, R"([\d])"}, {false, R"(\.)"},
+// 			{true, R"([\d]{2})"}, {false, R"(:)"},
+// 			{true, R"([\d]{2})"}, {false, R"(:)"},
+// 			{true, R"([\d]{2})"} }, vszMatches) && vszMatches.size() == 4)
+// 		{
+// 			// D.HH:MM:SS.
+// 			tsRet = TimeSpan(atol(vszMatches[0]), atol(vszMatches[1]), atol(vszMatches[2]), atol(vszMatches[3]));
+// 		}
+// 		else if (CIREGEXB::ProgressiveMatch(sz, {}, {
+// 			{true, R"([\d]{2})"}, {false, R"(:)"},
+// 			{true, R"([\d]{2})"}, {false, R"(:)"},
+// 			{true, R"([\d]{2})"} }, vszMatches) && vszMatches.size() == 3)
+// 		{
+// 			// HH:MM:SS.
+// 			tsRet = TimeSpan(atol(vszMatches[0]), atol(vszMatches[1]), atol(vszMatches[2]));
+// 		}
+// 		else
+// 		{
+// 			tsRet = TimeSpan::Zero();
+// 		}
+// 		// ---
+// 		return tsRet;
+// 	}
+// 	public ToString(): string
+// 	{
+// 		mstringb	szRet;
 
-		szRet.Format("%f", (double)*this);
-		// ---
-		return szRet;
-	}
+// 		szRet.Format("%f", (double)*this);
+// 		// ---
+// 		return szRet;
+// 	}
 };
 
 /// <summary>
@@ -590,6 +589,12 @@ export class Dictionary<KEY, VALUE> extends Map<KEY, VALUE>
 		// ---
 		return eRet;
 	}
+	public JSONstringify(): string
+	{
+		const objThis:	object = Object.fromEntries(this);
+
+		return JSON.stringify(objThis);
+	}
 // private:
 // 	JsonResult LoadFromJsonGuts(const json& jsontree)
 // 	{
@@ -626,9 +631,9 @@ export class PythonDictStrings extends Dictionary<string, string>
 	// ---
 	private CommaSeparatedStringToDictionary(szDict: string): void
 	{
-		var	vsz: Array<string> = new Array<string>;
-		var	szKey: string,
-			szValue: string;
+		var	vsz:		Array<string> = new Array<string>;
+		var	szKey:		string = "",
+			szValue:	string = "";
 
 		this.clear();
 		vsz = szDict.split(',');
@@ -774,21 +779,49 @@ export class Task
 /// Analogous to .NET Queue<> with enough functionality for our purposes (Queue of Task).
 /// </summary>
 /// <typeparam name="T">Type of object being queued</typeparam>
-export class Queue<T> extends Array<T>
+//export class Queue<T> extends Array<T>
+//{
+//	public Enqueue(t: T): T
+//	{
+//		// Probably more efficient way to implement this.
+//		return this[super.push(t) - 1];
+//	}
+//	Dequeue(): T
+//	{
+//		if (super.length > 0)
+//		{
+//			var	t: T|undefined = this.shift();
+//			// ---
+//			return (t) ? t : new T();
+//		}
+//		return new T();
+//	}
+//};
+
+export class Queue<T>
 {
-	public Enqueue(t: T): T
+	private items: T[] = [];
+	// ---
+	Enqueue(item: T): T
 	{
-		// Probably more efficient way to implement this.
-		return this[super.push(t) - 1];
+		this.items.push(item);
+		// ---
+		return item;
 	}
-	Dequeue(): T
+	Dequeue(): T | undefined
 	{
-		if (super.length > 0)
-		{
-			var	t?: T = this.shift();
-			// ---
-			return (t != undefined) ? t : new T();
-		}
-		return new T();
+		return this.items.shift();
 	}
-};
+	Peek(): T | undefined
+	{
+		return this.items[0];
+	}
+	get length(): number
+	{
+		return this.items.length;
+	}
+	IsEmpty(): boolean
+	{
+		return this.items.length === 0;
+	}
+}
