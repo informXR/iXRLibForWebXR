@@ -2,6 +2,7 @@
 /// Allows for several categories of object dumping each with rules for which fields to dump or filter.
 
 import { SUID } from "../types";
+import { PythonDictStrings } from "./DotNetishTypes";
 import { DatabaseResult } from "./iXRLibSQLite";
 
 /// </summary>
@@ -23,6 +24,124 @@ export enum JsonFieldType
 	eScalarList
 };
 
+export enum FieldPropertyFlags
+{
+	bfNull		= 0x00000000,
+	bfExclude	= 0x00000001,
+	bfChild		= 0x00000002,
+	bfChildList	= 0x00000004
+}
+
+export class FieldProperties
+{
+	public m_szName:	string = "";
+	public m_fFlags:	FieldPropertyFlags|null = FieldPropertyFlags.bfNull;
+	public m_objChild:	any|null = null;
+	// ---
+	constructor(szName: string, fFlags?: FieldPropertyFlags|null, objChild?: any|null)
+	{
+		this.m_szName = szName;
+		this.m_fFlags = (fFlags) ? fFlags : FieldPropertyFlags.bfNull;
+		this.m_objChild = objChild;
+	}
+	public static JSONFieldName(rsfFieldProperties: Record<string, FieldProperties>, szFieldName: string, fFlags: number): string
+	{
+		for (const szKey in rsfFieldProperties)
+		{
+			if (szKey === szFieldName)
+			{
+				return rsfFieldProperties[szKey].m_szName;
+			}
+		}
+		return "";
+	}
+}
+
+export class FieldPropertiesRecordContainer
+{
+	public m_rfp:	Record<string, FieldProperties>;
+	// ---
+	constructor(rfp: Record<string, FieldProperties>)
+	{
+		this.m_rfp = rfp;
+	}
+	public replacer = (key: string, value: any): any =>
+	{
+		if (key === '')
+		{
+			// On the root object, create a new object with transformed keys.
+			const result:	any = {};
+
+			for (const [oldKey, val] of Object.entries(value))
+			{
+				const fpNode:	FieldProperties = this.m_rfp[oldKey];
+				const newKey:	string = fpNode ? fpNode.m_szName : oldKey;
+
+				if (fpNode && fpNode.m_objChild && fpNode.m_objChild instanceof FieldPropertiesRecordContainer)
+				{
+					// console.log("TestChild.m_mapProperties.replacer = ", {TestChild.m_mapProperties.replacer});
+					if (fpNode.m_fFlags && (fpNode.m_fFlags & FieldPropertyFlags.bfChildList))
+					{
+						var szInnerJson:	string = "[";
+console.log("In the fpNode.m_objChild childlist clause on ", {newKey});
+						for (let o in val as DbSet<DataObjectBase>)
+						{
+							const szInnerInnerJson:  string = JSON.stringify(o, fpNode.m_objChild.replacer);
+
+							szInnerJson += szInnerInnerJson;
+						}
+						szInnerJson += "]";
+					}
+					else
+					{
+						const szInnerJson:  string = JSON.stringify(val, fpNode.m_objChild.replacer);
+console.log("In the fpNode.m_objChild child clause on ", {newKey});
+						result[newKey] = JSON.parse(szInnerJson);
+					}
+				}
+				else if (val instanceof PythonDictStrings)
+				{
+					const szInnerJson:	string = (val as PythonDictStrings).JSONstringify();
+console.log("In the PythonDictStrings clause on ", {newKey});
+					result[newKey] = JSON.parse(szInnerJson);
+				}
+				// else if (fpNode && fpNode.m_fFlags && (fpNode.m_fFlags & FieldPropertyFlags.bfExclude))
+				// {
+				// 	console.log("Returning undefined on ", {oldKey});
+				// 	return undefined;
+				// }
+				else
+				{
+console.log("In the ordinary clause of ", {newKey});
+					result[newKey] = val;
+					// result[newKey] = 'bvgger vnd schtvff yov catvllvs';
+				}
+			}
+			return result;
+		}
+		else
+		{
+			var fpNode:	FieldProperties|null = null;
+
+			Object.entries(this.m_rfp).forEach(([fKey, fValue]) =>
+				{
+					if (fValue.m_szName === key || fKey === key)
+					{
+						fpNode = this.m_rfp[fKey];
+						return;
+					}
+				});
+console.log("In the else clause due to key not empty and equalling ", {key});
+			if (fpNode && fpNode.m_fFlags && (fpNode.m_fFlags & FieldPropertyFlags.bfExclude))
+			{
+console.log("Returning undefined on ", {key});
+				return undefined;
+			}
+		}
+		return value;
+	}
+}
+
 /// <summary>
 /// Baseclass for anything that wants to load/save itself to SQLite db and/or JSON using the mechanisms in this header file.
 /// </summary>
@@ -38,6 +157,10 @@ export class DataObjectBase
 	// into here, and GenerateJson() will render the extra fields.
 	// PythonDictStrings	m_dictOutOfBandData;
 	// // ---
+	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
+		{m_nLastLoadedSignature: new FieldProperties("last_loaded_signature", FieldPropertyFlags.bfExclude)},
+		{m_bFlaggedForDelete: new FieldProperties("flagged_for_delete", FieldPropertyFlags.bfExclude)},
+		{m_bAlreadyTaken: new FieldProperties("already_taken", FieldPropertyFlags.bfExclude)}));
 	// constexpr static auto properties = std::make_tuple();
 	// constexpr static auto childobjectproperties = std::make_tuple();
 	// constexpr static auto childobjectlistproperties = std::make_tuple();
@@ -60,10 +183,10 @@ export class DataObjectBase
 	/// <param name="eJsonFieldType">Field, object, object-list, scalar-list.</param>
 	/// <param name="eDumpCategory">Everything or Backend as I write this... basically for what is this JSON intended.</param>
 	/// <returns>Should this field be dumped, true/false.</returns>
-	// public ShouldDump(szFieldName: string, eJsonFieldType: JsonFieldType, eDumpCategory: DumpCategory): boolean // virtual
-	// {
-	// 	return true;
-	// }
+	public ShouldDump(szFieldName: string, eJsonFieldType: JsonFieldType, eDumpCategory: DumpCategory): boolean // virtual
+	{
+		return true;
+	}
 	/// <summary>
 	/// Used by JsonScalarArrayElement to return pointer to contained data for the clause in
 	///		LoadFromJson() that loads those.

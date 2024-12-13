@@ -1,6 +1,6 @@
 import { iXRInit, iXRInstance, ResultOptions, InteractionType } from './iXR';
 import { AuthenticationRequestSchema } from './network/types';
-import { DataObjectBase, DbSet } from './network/utils/DataObjectBase';
+import { DataObjectBase, DbSet, FieldProperties, FieldPropertiesRecordContainer, FieldPropertyFlags } from './network/utils/DataObjectBase';
 import { PythonDictStrings } from './network/utils/DotNetishTypes';
 import { logError, logInfo } from './network/utils/logger';
 
@@ -27,93 +27,13 @@ if (typeof window === 'undefined') {
 
 // ---
 
-enum FieldPropertyFlags
-{
-	bfNull		= 0x00000000,
-	bfExclude	= 0x00000001,
-	bfChild		= 0x00000002,
-	bfChildList	= 0x00000004
-}
-
-class FieldProperties
-{
-	public m_szName:	string = "";
-	public m_fFlags:	FieldPropertyFlags|null = FieldPropertyFlags.bfNull;
-	public m_objChild:	any|null = null;
-	// ---
-	constructor(szName: string, fFlags?: FieldPropertyFlags|null, objChild?: any|null)
-	{
-		this.m_szName = szName;
-		this.m_fFlags = (fFlags) ? fFlags : FieldPropertyFlags.bfNull;
-		this.m_objChild = objChild;
-	}
-	public static JSONFieldName(rsfFieldProperties: Record<string, FieldProperties>, szFieldName: string, fFlags: number): string
-	{
-		for (const szKey in rsfFieldProperties)
-		{
-			if (szKey === szFieldName)
-			{
-				return rsfFieldProperties[szKey].m_szName;
-			}
-		}
-		return "";
-	}
-}
-
-class FieldPropertiesRecordContainer
-{
-	public m_rfp:	Record<string, FieldProperties>;
-	// ---
-	constructor(rfp: Record<string, FieldProperties>)
-	{
-		this.m_rfp = rfp;
-	}
-	public replacer = (key: string, value: any): any =>
-	{
-		if (key === '')
-		{
-			// On the root object, create a new object with transformed keys.
-			const result:	any = {};
-
-			for (const [oldKey, val] of Object.entries(value))
-			{
-				const fpNode:	FieldProperties = this.m_rfp[oldKey];
-				const newKey:	string = fpNode ? fpNode.m_szName : oldKey;
-
-if (val instanceof TestListChild)
-{
-	const f = 3;
-}
-				if (fpNode && fpNode.m_objChild && fpNode.m_objChild instanceof FieldPropertiesRecordContainer)
-				{
-					// console.log("TestChild.m_mapProperties.replacer = ", {TestChild.m_mapProperties.replacer});
-					const szInnerJson:  string = JSON.stringify(val, fpNode.m_objChild.replacer);
-
-					result[newKey] = JSON.parse(szInnerJson);
-				}
-				else if (val instanceof PythonDictStrings)
-				{
-					const szInnerJson:	string = (val as PythonDictStrings).JSONstringify();
-
-					result[newKey] = JSON.parse(szInnerJson);
-				}
-				else
-				{
-					result[newKey] = val;
-				}
-			}
-			return result;
-		}
-		return value;
-	}
-}
-
 class TestChild extends DataObjectBase
 {
 	public m_nGardenWall:	number = 3.4;
 	public m_szDingALing:	string = "My ding a ling.";
 	// ---
-	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign(
+	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
+		super.m_mapProperties.m_rfp,
 		{m_nGardenWall: new FieldProperties("garden_wall", FieldPropertyFlags.bfExclude | FieldPropertyFlags.bfNull)},
 		{m_szDingALing: new FieldProperties("ding_a_ling")}));
 }
@@ -123,7 +43,8 @@ class TestListChild extends DataObjectBase
 	public m_szDemented:	string = "Ghastly Gary";
 	public m_nBartSimpson:	number = 3.1415926535897932384626433;
 	// ---
-	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign(
+	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
+		super.m_mapProperties.m_rfp,
 		{m_szDemented: new FieldProperties("demented", FieldPropertyFlags.bfExclude)},
 		{m_nBartSimpson: new FieldProperties("bart_simpson")}));
 }
@@ -145,9 +66,8 @@ class TestData extends DataObjectBase
 		this.m_listTestListChild.Add(new TestListChild());
 		this.m_listTestListChild.Add(new TestListChild());
 	}
-	// public static m_mapChildProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign(
-	// 	{m_objTestChild: new FieldProperties("test_child", 56)}));
-	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign(
+	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
+		super.m_mapProperties.m_rfp,
 		{m_nStrictlyCommercial: new FieldProperties("strictly_commercial")},
 		{m_szSomeString: new FieldProperties("some_string")},
 		{m_objTestChild: new FieldProperties("test_child", FieldPropertyFlags.bfChild, TestChild.m_mapProperties)},
@@ -157,6 +77,10 @@ class TestData extends DataObjectBase
 
 function TestJson()
 {
+	var DataObjectBaseMapProps:	FieldPropertiesRecordContainer = DataObjectBase.m_mapProperties,
+		TestChildMapProps:	FieldPropertiesRecordContainer = TestChild.m_mapProperties,
+		TestListChildMapProps:	FieldPropertiesRecordContainer = TestListChild.m_mapProperties,
+		TestDataMapProps:	FieldPropertiesRecordContainer = TestData.m_mapProperties;
 	var objTestData:	TestData = new TestData();
 	var szJSON:			string = "";
 
