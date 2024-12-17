@@ -59,7 +59,8 @@ export class FieldProperties
 
 export class FieldPropertiesRecordContainer
 {
-	public m_rfp:	Record<string, FieldProperties>;
+	public m_rfp:		Record<string, FieldProperties>;
+	public m_nState:	number = 0;
 	// ---
 	constructor(rfp: Record<string, FieldProperties>)
 	{
@@ -132,10 +133,21 @@ console.log("In the ordinary clause of ", {newKey});
 					}
 				});
 console.log("In the else clause due to key not empty and equalling ", {key});
-			if (fpNode && fpNode.m_fFlags && (fpNode.m_fFlags & FieldPropertyFlags.bfExclude))
+			if (fpNode && fpNode.m_fFlags && (fpNode.m_fFlags & (FieldPropertyFlags.bfExclude | FieldPropertyFlags.bfChild | FieldPropertyFlags.bfChildList)))
 			{
-console.log("Returning undefined on ", {key});
-				return undefined;
+				if (fpNode.m_fFlags & FieldPropertyFlags.bfExclude)
+				{
+					console.log("Returning undefined on ", {key});
+					return undefined;
+				}
+				else if (fpNode.m_fFlags & FieldPropertyFlags.bfChild)
+				{
+					return key;
+				}
+				else if (fpNode.m_fFlags & FieldPropertyFlags.bfChildList)
+				{
+					return key;
+				}
 			}
 		}
 		return value;
@@ -165,6 +177,11 @@ export class DataObjectBase
 	// constexpr static auto childobjectproperties = std::make_tuple();
 	// constexpr static auto childobjectlistproperties = std::make_tuple();
 	// constexpr static auto childscalarlistproperties = std::make_tuple();
+	// ---
+	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
+	{
+		return DataObjectBase.m_mapProperties;
+	}
 	// ---
 	/// <summary>
 	/// DB model is like Entity Framework:  objects are operated on in memory then reflected in DB in large collective operation (SaveChanges()).
@@ -213,7 +230,7 @@ export class DbContext extends DataObjectBase
 	public m_guidId:	SUID = new SUID();	// Never actually gets dereferenced... needed so templates will instantiate as this object serves as a container for db objects.
 	// ---
 	// constexpr static auto properties = std::tuple_cat(std::make_tuple(
-	// 	property(&DbContext::m_guidId, "Id", ColumnAttributeBF(ColumnAttribute::bfPrimaryKey))
+		// 	property(&DbContext::m_guidId, "Id", ColumnAttributeBF(ColumnAttribute::bfPrimaryKey))
 	// ));
 	// ---
 	public SaveChanges(): DatabaseResult // virtual
@@ -308,3 +325,35 @@ export class DbSet<T extends DataObjectBase> extends Array<T>
 		return lRet;
 	}
 };
+
+export function GenerateJson(o: DataObjectBase): string
+{
+	var szJSON:	string = "";
+
+	// Dump just this object's fields (replacer will filter the children).
+	szJSON = JSON.stringify(o, o.GetMapProperties().replacer);
+	// Now "manually" dump the children by recursively calling this and incorporating into szJSON.
+	for (const [mKey, mValue] of Object.entries(o.GetMapProperties().m_rfp))
+	{
+		if (mValue.m_fFlags)
+		{
+			if (mValue.m_fFlags & FieldPropertyFlags.bfChild)
+			{
+				console.log("Motherfurrier:  Child object:  " + mValue.m_szName);
+				for (const [oKey, oValue] of Object.entries(o))
+				{
+					if (mKey === oKey)
+					{
+						szJSON += GenerateJson(oValue);
+					}
+				}
+			}
+			if (mValue.m_fFlags & FieldPropertyFlags.bfChildList)
+			{
+				console.log("Motherfurrier:  Child list:  " + mValue.m_szName);
+			}
+		}
+	}
+	// ---
+	return szJSON;
+}

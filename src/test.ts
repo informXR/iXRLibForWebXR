@@ -1,6 +1,6 @@
 import { iXRInit, iXRInstance, ResultOptions, InteractionType } from './iXR';
 import { AuthenticationRequestSchema } from './network/types';
-import { DataObjectBase, DbSet, FieldProperties, FieldPropertiesRecordContainer, FieldPropertyFlags } from './network/utils/DataObjectBase';
+import { DataObjectBase, DbSet, FieldProperties, FieldPropertiesRecordContainer, FieldPropertyFlags, GenerateJson } from './network/utils/DataObjectBase';
 import { PythonDictStrings } from './network/utils/DotNetishTypes';
 import { logError, logInfo } from './network/utils/logger';
 
@@ -34,8 +34,13 @@ class TestChild extends DataObjectBase
 	// ---
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
 		super.m_mapProperties.m_rfp,
-		{m_nGardenWall: new FieldProperties("garden_wall", FieldPropertyFlags.bfExclude | FieldPropertyFlags.bfNull)},
+		{m_nGardenWall: new FieldProperties("garden_wall")},
 		{m_szDingALing: new FieldProperties("ding_a_ling")}));
+	// ---
+	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
+	{
+		return TestChild.m_mapProperties;
+	}
 }
 
 class TestListChild extends DataObjectBase
@@ -47,6 +52,11 @@ class TestListChild extends DataObjectBase
 		super.m_mapProperties.m_rfp,
 		{m_szDemented: new FieldProperties("demented", FieldPropertyFlags.bfExclude)},
 		{m_nBartSimpson: new FieldProperties("bart_simpson")}));
+	// ---
+	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
+	{
+		return TestListChild.m_mapProperties;
+	}
 }
 
 class TestData extends DataObjectBase
@@ -66,6 +76,7 @@ class TestData extends DataObjectBase
 		this.m_listTestListChild.Add(new TestListChild());
 		this.m_listTestListChild.Add(new TestListChild());
 	}
+	// ---
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
 		super.m_mapProperties.m_rfp,
 		{m_nStrictlyCommercial: new FieldProperties("strictly_commercial")},
@@ -73,6 +84,11 @@ class TestData extends DataObjectBase
 		{m_objTestChild: new FieldProperties("test_child", FieldPropertyFlags.bfChild, TestChild.m_mapProperties)},
 		{m_dictTest: new FieldProperties("dict_test")},
 		{m_listTestListChild: new FieldProperties("test_list_child", FieldPropertyFlags.bfChildList, TestListChild.m_mapProperties)}));
+	// ---
+	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
+	{
+		return TestData.m_mapProperties;
+	}
 }
 
 function TestJson()
@@ -83,7 +99,23 @@ function TestJson()
 		TestDataMapProps:	FieldPropertiesRecordContainer = TestData.m_mapProperties;
 	var objTestData:	TestData = new TestData();
 	var szJSON:			string = "";
+	var bLooped:		boolean = false;
 
+	szJSON = "[";
+	bLooped = false;
+	for (let tlc of objTestData.m_listTestListChild)
+	{
+		if (bLooped)
+		{
+			szJSON += ',';
+		}
+		bLooped = true;
+		szJSON += JSON.stringify(tlc, TestListChild.m_mapProperties.replacer);
+	}
+	szJSON += "]";
+	// szJSON = JSON.stringify(objTestData.m_listTestListChild, TestListChild.m_mapProperties.replacer);
+	szJSON = GenerateJson(objTestData);
+	console.log(szJSON);
 	szJSON = JSON.stringify(objTestData, TestData.m_mapProperties.replacer);
 	console.log(szJSON);
 }
