@@ -524,9 +524,10 @@ export class iXREvent extends iXRBase
 /// <typeparam name="T">Type of object being contained.</typeparam>
 /// <typeparam name="T_CONTAINS">Type of object inside T that also has to be on its own for when Python makes it an object instead of an array in the JSON.</typeparam>
 /// <typeparam name="bWantTimeStamp">Want timestamp when dumping JSON for backend.</typeparam>
-export class iXRXXXContainer<T, T_CONTAINS, bTWantTimestamp = boolean> extends iXRBase
+export class iXRXXXContainer<T extends DataObjectBase, T_CONTAINS, bTWantTimestamp extends boolean> extends iXRBase
 {
-	public m_tIXRXXX:			T_CONTAINS = new T_CONTAINS();	// This is here to catch the data when Python is representing it as an object rather than array.
+	// public m_tIXRXXX:			T_CONTAINS = new T_CONTAINS();	// This is here to catch the data when Python is representing it as an object rather than array.
+	public m_tIXRXXX:			T_CONTAINS = {} as T_CONTAINS;	// This is here to catch the data when Python is representing it as an object rather than array.
 	public m_dspIXRXXXs:		DbSet<T> = new DbSet<T>();		// The main data.
 	// ---
 	// constexpr static auto properties = std.tuple_cat(super.properties, std.make_tuple(

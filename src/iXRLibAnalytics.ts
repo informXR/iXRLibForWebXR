@@ -14,13 +14,13 @@ import { TimeSpan } from './network/utils/timeSpan';
 /// </summary>
 class Authentication
 {
-	public m_szApiToken: string = "";	    // JWT token obtained by authentication phase.  Goes into "Authentication:  Bearer" header.
-	public m_szApiSecret: string = "";	    // Secret obtained by authentication phase.  Gets incorporated into SHA256 hash in X-iXRLib-Hash.
-	public m_szSessionId: string = "";	    // Current session-id to be re-used on re-login.
-	public m_dtTokenExpiration: DateTime = new DateTime();
-	public m_szAppID: string = "";
-	public m_szOrgID: string = "";
-	public m_ePartner: Partner = Partner.eNone;
+	public m_szApiToken:		string = "";	    // JWT token obtained by authentication phase.  Goes into "Authentication:  Bearer" header.
+	public m_szApiSecret:		string = "";	    // Secret obtained by authentication phase.  Gets incorporated into SHA256 hash in X-iXRLib-Hash.
+	public m_szSessionId:		string = "";	    // Current session-id to be re-used on re-login.
+	public m_dtTokenExpiration:	DateTime = new DateTime();
+	public m_szAppID:			string = "";
+	public m_szOrgID:			string = "";
+	public m_ePartner:			Partner = Partner.eNone;
 	// ---
 	public constructor()
 	{

@@ -4,6 +4,8 @@
 
 import { iXRLibAnalytics, iXRLibInit } from "./iXRLibAnalytics";
 import { iXRLibConfiguration, iXRXXXContainer } from "./iXRLibCoreModel";
+import { SUID } from "./network/types";
+import { DataObjectBase, DbSet } from "./network/utils/DataObjectBase";
 import { iXRResult, JsonResult, PythonDictStrings, StringList } from "./network/utils/DotNetishTypes";
 
 /// </summary>
@@ -82,13 +84,14 @@ export class AuthTokenRequest extends DataObjectBase
 	// ---
 	constructor()
 	{
-		RefreshSessionId();
+		super();
+		this.RefreshSessionId();
 	}
 	public RefreshSessionId(): void
 	{
-		var	suid: SUID;
+		var	suid:	SUID;
 
-		m_szSessionId = suid.ToStringPureHex();
+		this.m_szSessionId = suid.ToStringPureHex();
 	}
 	// ---
 // #ifdef _DEBUG
@@ -202,20 +205,21 @@ export class ApiTokenJWT extends DataObjectBase
 	// ApiTokenJWT() = default;
 	constructor(szDeviceId: string, szUserId: string)
 	{
-		SetupAccessJWT(szDeviceId, szUserId);
+		super();
+		this.SetupAccessJWT(szDeviceId, szUserId);
 	}
-	void SetupAccessJWT(szDeviceId: string, szUserId: string): void
+	public SetupAccessJWT(szDeviceId: string, szUserId: string): void
 	{
-		m_szType = "access";
-		m_szDeviceId = szDeviceId;
-		m_szUserId = szUserId;
+		this.m_szType = "access";
+		this.m_szDeviceId = szDeviceId;
+		this.m_szUserId = szUserId;
 	}
-	ToJWTString(szKey: string): string
-	{
-		var	mapPayload = { ["type", m_szType], ["device_id", m_szDeviceId], ["user_id", m_szUserId] };
+	// ToJWTString(szKey: string): string
+	// {
+	// 	var	mapPayload = { ["type", m_szType], ["device_id", m_szDeviceId], ["user_id", m_szUserId] };
 
-		return JWTEncode(szKey, mapPayload);
-	}
+	// 	return JWTEncode(szKey, mapPayload);
+	// }
 	// ---
 	// constexpr static auto properties = std.tuple_cat(std.make_tuple(
 	// 	property(&ApiTokenJWT.m_szType, "type"),

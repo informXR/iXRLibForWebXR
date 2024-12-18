@@ -101,18 +101,18 @@ function TestJson()
 	var szJSON:			string = "";
 	var bLooped:		boolean = false;
 
-	szJSON = "[";
-	bLooped = false;
-	for (let tlc of objTestData.m_listTestListChild)
-	{
-		if (bLooped)
-		{
-			szJSON += ',';
-		}
-		bLooped = true;
-		szJSON += JSON.stringify(tlc, TestListChild.m_mapProperties.replacer);
-	}
-	szJSON += "]";
+	// szJSON = "[";
+	// bLooped = false;
+	// for (let tlc of objTestData.m_listTestListChild)
+	// {
+	// 	if (bLooped)
+	// 	{
+	// 		szJSON += ',';
+	// 	}
+	// 	bLooped = true;
+	// 	szJSON += JSON.stringify(tlc, TestListChild.m_mapProperties.replacer);
+	// }
+	// szJSON += "]";
 	// szJSON = JSON.stringify(objTestData.m_listTestListChild, TestListChild.m_mapProperties.replacer);
 	szJSON = GenerateJson(objTestData);
 	console.log(szJSON);

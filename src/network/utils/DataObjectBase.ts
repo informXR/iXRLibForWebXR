@@ -59,12 +59,22 @@ export class FieldProperties
 
 export class FieldPropertiesRecordContainer
 {
-	public m_rfp:		Record<string, FieldProperties>;
-	public m_nState:	number = 0;
+	public m_rfp:				Record<string, FieldProperties>;
+	public m_nState:			number = 0;
+	public m_aszAlreadySeen:	Array<string> = new Array<string>();	// Prevents re-entrancy stackfault.
+	public m_atpChildren:		Array<[string, object]> = new Array<[string, object]>()
+	public m_atpListChildren:	Array<[string, object]> = new Array<[string, object]>()
 	// ---
 	constructor(rfp: Record<string, FieldProperties>)
 	{
 		this.m_rfp = rfp;
+	}
+	public Reset(): void
+	{
+		this.m_nState = 0;
+		this.m_aszAlreadySeen = new Array<string>();
+		this.m_atpChildren = new Array<[string, object]>();
+		this.m_atpListChildren = new Array<[string, object]>();
 	}
 	public replacer = (key: string, value: any): any =>
 	{
@@ -78,26 +88,33 @@ export class FieldPropertiesRecordContainer
 				const fpNode:	FieldProperties = this.m_rfp[oldKey];
 				const newKey:	string = fpNode ? fpNode.m_szName : oldKey;
 
-				if (fpNode && fpNode.m_objChild && fpNode.m_objChild instanceof FieldPropertiesRecordContainer)
+				// if (fpNode && fpNode.m_objChild && fpNode.m_objChild instanceof FieldPropertiesRecordContainer)
+				if (false && fpNode && fpNode.m_fFlags && (fpNode.m_fFlags & (FieldPropertyFlags.bfChildList | FieldPropertyFlags.bfChild)))
 				{
 					// console.log("TestChild.m_mapProperties.replacer = ", {TestChild.m_mapProperties.replacer});
-					if (fpNode.m_fFlags && (fpNode.m_fFlags & FieldPropertyFlags.bfChildList))
+					if (fpNode.m_fFlags & FieldPropertyFlags.bfChildList)
 					{
-						var szInnerJson:	string = "[";
-console.log("In the fpNode.m_objChild childlist clause on ", {newKey});
-						for (let o in val as DbSet<DataObjectBase>)
-						{
-							const szInnerInnerJson:  string = JSON.stringify(o, fpNode.m_objChild.replacer);
+// 						var szInnerJson:	string = "[";
+// console.log("In the fpNode.m_objChild childlist clause on ", {newKey});
+// 						for (let o in val as DbSet<DataObjectBase>)
+// 						{
+// 							const szInnerInnerJson:  string = JSON.stringify(o, fpNode.m_objChild.replacer);
 
-							szInnerJson += szInnerInnerJson;
-						}
-						szInnerJson += "]";
+// 							szInnerJson += szInnerInnerJson;
+// 						}
+// 						szInnerJson += "]";
+						result[newKey] = "ГосударственныйОбъект0";//JSON.parse('{"ГосударственныйОбъект":0}');
+						// ---
+						return result;
 					}
-					else
+					else if (fpNode.m_fFlags & FieldPropertyFlags.bfChild)
 					{
-						const szInnerJson:  string = JSON.stringify(val, fpNode.m_objChild.replacer);
-console.log("In the fpNode.m_objChild child clause on ", {newKey});
-						result[newKey] = JSON.parse(szInnerJson);
+// 						const szInnerJson:  string = JSON.stringify(val, fpNode.m_objChild.replacer);
+// console.log("In the fpNode.m_objChild child clause on ", {newKey});
+// 						result[newKey] = JSON.parse(szInnerJson);
+						result[newKey] = "ГосударственныйОбъект1";//JSON.parse('{"ГосударственныйОбъект":1}');
+						// ---
+						return result;
 					}
 				}
 				else if (val instanceof PythonDictStrings)
@@ -137,16 +154,35 @@ console.log("In the else clause due to key not empty and equalling ", {key});
 			{
 				if (fpNode.m_fFlags & FieldPropertyFlags.bfExclude)
 				{
-					console.log("Returning undefined on ", {key});
+console.log("Returning undefined on ", {key});
+					// ---
 					return undefined;
 				}
 				else if (fpNode.m_fFlags & FieldPropertyFlags.bfChild)
 				{
-					return key;
+					if (!this.m_aszAlreadySeen.find(sz => sz === key))
+					{
+						const result:	any = {};
+						const szState:	string = "ГосударственныйОбъект" + this.m_nState++;
+
+						this.m_aszAlreadySeen.push(key);
+						this.m_atpChildren.push([szState, value]);
+						// ---
+						return szState;
+					}
 				}
 				else if (fpNode.m_fFlags & FieldPropertyFlags.bfChildList)
 				{
-					return key;
+					if (!this.m_aszAlreadySeen.find(sz => sz === key))
+					{
+						const result:	any = {};
+						const szState:	string = "[ГосударственныйОбъект" + this.m_nState++ + "]";
+
+						this.m_aszAlreadySeen.push(key);
+						this.m_atpListChildren.push([szState, value]);
+						// ---
+						return szState;
+					}
 				}
 			}
 		}
@@ -330,29 +366,34 @@ export function GenerateJson(o: DataObjectBase): string
 {
 	var szJSON:	string = "";
 
+	o.GetMapProperties().Reset();
 	// Dump just this object's fields (replacer will filter the children).
 	szJSON = JSON.stringify(o, o.GetMapProperties().replacer);
-	// Now "manually" dump the children by recursively calling this and incorporating into szJSON.
-	for (const [mKey, mValue] of Object.entries(o.GetMapProperties().m_rfp))
+	// Replace the placeholders.
+	for (const [szName, oChildObject] of o.GetMapProperties().m_atpChildren)
 	{
-		if (mValue.m_fFlags)
+		const szObjectJSON:	string = GenerateJson(oChildObject as DataObjectBase);
+
+		szJSON = szJSON.replace(szName, szObjectJSON);
+	}
+	for (const [szName, oChildObjectList] of o.GetMapProperties().m_atpListChildren)
+	{
+		var szObjectListJSON:	string = "[";
+		var bDidOne:			boolean = false;
+
+		for (const o of oChildObjectList as DbSet<DataObjectBase>)
 		{
-			if (mValue.m_fFlags & FieldPropertyFlags.bfChild)
+			const szInnerJson:  string = GenerateJson(o);
+
+			if (bDidOne)
 			{
-				console.log("Motherfurrier:  Child object:  " + mValue.m_szName);
-				for (const [oKey, oValue] of Object.entries(o))
-				{
-					if (mKey === oKey)
-					{
-						szJSON += GenerateJson(oValue);
-					}
-				}
+				szObjectListJSON += ",";
 			}
-			if (mValue.m_fFlags & FieldPropertyFlags.bfChildList)
-			{
-				console.log("Motherfurrier:  Child list:  " + mValue.m_szName);
-			}
+			bDidOne = true;
+			szObjectListJSON += szInnerJson;
 		}
+		szObjectListJSON += "]";
+		szJSON = szJSON.replace(szName, szObjectListJSON);
 	}
 	// ---
 	return szJSON;
