@@ -26,10 +26,11 @@ export enum JsonFieldType
 
 export enum FieldPropertyFlags
 {
-	bfNull		= 0x00000000,
-	bfExclude	= 0x00000001,
-	bfChild		= 0x00000002,
-	bfChildList	= 0x00000004
+	bfNull			= 0x00000000,
+	bfExclude		= 0x00000001,
+	bfStringOnly	= 0x00000002,
+	bfChild			= 0x00000004,
+	bfChildList		= 0x00000008
 }
 
 export class FieldProperties
@@ -88,51 +89,15 @@ export class FieldPropertiesRecordContainer
 				const fpNode:	FieldProperties = this.m_rfp[oldKey];
 				const newKey:	string = fpNode ? fpNode.m_szName : oldKey;
 
-				// if (fpNode && fpNode.m_objChild && fpNode.m_objChild instanceof FieldPropertiesRecordContainer)
-				if (false && fpNode && fpNode.m_fFlags && (fpNode.m_fFlags & (FieldPropertyFlags.bfChildList | FieldPropertyFlags.bfChild)))
-				{
-					// console.log("TestChild.m_mapProperties.replacer = ", {TestChild.m_mapProperties.replacer});
-					if (fpNode.m_fFlags & FieldPropertyFlags.bfChildList)
-					{
-// 						var szInnerJson:	string = "[";
-// console.log("In the fpNode.m_objChild childlist clause on ", {newKey});
-// 						for (let o in val as DbSet<DataObjectBase>)
-// 						{
-// 							const szInnerInnerJson:  string = JSON.stringify(o, fpNode.m_objChild.replacer);
-
-// 							szInnerJson += szInnerInnerJson;
-// 						}
-// 						szInnerJson += "]";
-						result[newKey] = "ГосударственныйОбъект0";//JSON.parse('{"ГосударственныйОбъект":0}');
-						// ---
-						return result;
-					}
-					else if (fpNode.m_fFlags & FieldPropertyFlags.bfChild)
-					{
-// 						const szInnerJson:  string = JSON.stringify(val, fpNode.m_objChild.replacer);
-// console.log("In the fpNode.m_objChild child clause on ", {newKey});
-// 						result[newKey] = JSON.parse(szInnerJson);
-						result[newKey] = "ГосударственныйОбъект1";//JSON.parse('{"ГосударственныйОбъект":1}');
-						// ---
-						return result;
-					}
-				}
-				else if (val instanceof PythonDictStrings)
+				 if (val instanceof PythonDictStrings)
 				{
 					const szInnerJson:	string = (val as PythonDictStrings).JSONstringify();
-console.log("In the PythonDictStrings clause on ", {newKey});
+
 					result[newKey] = JSON.parse(szInnerJson);
 				}
-				// else if (fpNode && fpNode.m_fFlags && (fpNode.m_fFlags & FieldPropertyFlags.bfExclude))
-				// {
-				// 	console.log("Returning undefined on ", {oldKey});
-				// 	return undefined;
-				// }
 				else
 				{
-console.log("In the ordinary clause of ", {newKey});
 					result[newKey] = val;
-					// result[newKey] = 'bvgger vnd schtvff yov catvllvs';
 				}
 			}
 			return result;
@@ -149,13 +114,10 @@ console.log("In the ordinary clause of ", {newKey});
 						return;
 					}
 				});
-console.log("In the else clause due to key not empty and equalling ", {key});
 			if (fpNode && fpNode.m_fFlags && (fpNode.m_fFlags & (FieldPropertyFlags.bfExclude | FieldPropertyFlags.bfChild | FieldPropertyFlags.bfChildList)))
 			{
 				if (fpNode.m_fFlags & FieldPropertyFlags.bfExclude)
 				{
-console.log("Returning undefined on ", {key});
-					// ---
 					return undefined;
 				}
 				else if (fpNode.m_fFlags & FieldPropertyFlags.bfChild)
@@ -176,7 +138,7 @@ console.log("Returning undefined on ", {key});
 					if (!this.m_aszAlreadySeen.find(sz => sz === key))
 					{
 						const result:	any = {};
-						const szState:	string = "[ГосударственныйОбъект" + this.m_nState++ + "]";
+						const szState:	string = "ГосударственныйОбъект" + this.m_nState++;
 
 						this.m_aszAlreadySeen.push(key);
 						this.m_atpListChildren.push([szState, value]);
@@ -362,7 +324,7 @@ export class DbSet<T extends DataObjectBase> extends Array<T>
 	}
 };
 
-export function GenerateJson(o: DataObjectBase): string
+export function GenerateJson(o: DataObjectBase, eDumpCategory: DumpCategory): string
 {
 	var szJSON:	string = "";
 
@@ -372,7 +334,7 @@ export function GenerateJson(o: DataObjectBase): string
 	// Replace the placeholders.
 	for (const [szName, oChildObject] of o.GetMapProperties().m_atpChildren)
 	{
-		const szObjectJSON:	string = GenerateJson(oChildObject as DataObjectBase);
+		const szObjectJSON:	string = GenerateJson(oChildObject as DataObjectBase, eDumpCategory);
 
 		szJSON = szJSON.replace(szName, szObjectJSON);
 	}
@@ -383,7 +345,7 @@ export function GenerateJson(o: DataObjectBase): string
 
 		for (const o of oChildObjectList as DbSet<DataObjectBase>)
 		{
-			const szInnerJson:  string = GenerateJson(o);
+			const szInnerJson:  string = GenerateJson(o, eDumpCategory);
 
 			if (bDidOne)
 			{
@@ -395,6 +357,7 @@ export function GenerateJson(o: DataObjectBase): string
 		szObjectListJSON += "]";
 		szJSON = szJSON.replace(szName, szObjectListJSON);
 	}
+	o.FinalizeParse();
 	// ---
 	return szJSON;
 }

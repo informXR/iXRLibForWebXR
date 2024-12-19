@@ -5,7 +5,7 @@
 import { iXRLibAnalytics, iXRLibInit } from "./iXRLibAnalytics";
 import { iXRLibConfiguration, iXRXXXContainer } from "./iXRLibCoreModel";
 import { SUID } from "./network/types";
-import { DataObjectBase, DbSet } from "./network/utils/DataObjectBase";
+import { DataObjectBase, DbSet, FieldProperties, FieldPropertiesRecordContainer, FieldPropertyFlags } from "./network/utils/DataObjectBase";
 import { iXRResult, JsonResult, PythonDictStrings, StringList } from "./network/utils/DotNetishTypes";
 
 /// </summary>
@@ -62,25 +62,30 @@ export class AuthTokenRequest extends DataObjectBase
 	m_dictGeoLocation:		PythonDictStrings = new PythonDictStrings();
 	m_dictAuthMechanism:	PythonDictStrings = new PythonDictStrings();
 	// ---
-	// constexpr static auto properties = std.tuple_cat(std.make_tuple(
-	// 	property(&AuthTokenRequest.m_szAppId, "app_id"),
-	// 	property(&AuthTokenRequest.m_szOrgId, "org_id"),
-	// 	property(&AuthTokenRequest.m_szAuthSecret, "auth_secret"),
-	// 	property(&AuthTokenRequest.m_szDeviceId, "device_id"),
-	// 	property(&AuthTokenRequest.m_szSessionId, "session_id"),
-	// 	property(&AuthTokenRequest.m_szPartner, "partner"),
-	// 	// ---
-	// 	property(&AuthTokenRequest.m_szOsVersion, "os_version", ColumnAttributeBF(ColumnAttribute.bfStringOnly)),
-	// 	property(&AuthTokenRequest.m_szIpAddress, "ip_address"),
-	// 	property(&AuthTokenRequest.m_szXrdmVersion, "xrdm_version", ColumnAttributeBF(ColumnAttribute.bfStringOnly)),
-	// 	property(&AuthTokenRequest.m_szAppVersion, "app_version", ColumnAttributeBF(ColumnAttribute.bfStringOnly)),
-	// 	property(&AuthTokenRequest.m_szUnityVersion, "unity_version", ColumnAttributeBF(ColumnAttribute.bfStringOnly)),
-	// 	property(&AuthTokenRequest.m_szDeviceModel, "device_model"),
-	// 	property(&AuthTokenRequest.m_szUserId, "user_id"),
-	// 	property(&AuthTokenRequest.m_lszTags, "tags"),
-	// 	property(&AuthTokenRequest.m_dictGeoLocation, "geolocation"),
-	// 	property(&AuthTokenRequest.m_dictAuthMechanism, "auth_mechanism")
-	// ));
+	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
+		super.m_mapProperties.m_rfp,
+	 	{m_szAppId: new FieldProperties("app_id")},
+	 	{m_szOrgId: new FieldProperties("org_id")},
+	 	{m_szAuthSecret: new FieldProperties("auth_secret")},
+	 	{m_szDeviceId: new FieldProperties("device_id")},
+	 	{m_szSessionId: new FieldProperties("session_id")},
+	 	{m_szPartner: new FieldProperties("partner")},
+	 	// ---
+	 	{m_szOsVersion: new FieldProperties("os_version", FieldPropertyFlags.bfStringOnly)},
+	 	{m_szIpAddress: new FieldProperties("ip_address")},
+	 	{m_szXrdmVersion: new FieldProperties("xrdm_version", FieldPropertyFlags.bfStringOnly)},
+	 	{m_szAppVersion: new FieldProperties("app_version", FieldPropertyFlags.bfStringOnly)},
+	 	{m_szUnityVersion: new FieldProperties("unity_version", FieldPropertyFlags.bfStringOnly)},
+	 	{m_szDeviceModel: new FieldProperties("device_model")},
+	 	{m_szUserId: new FieldProperties("user_id")},
+	 	{m_lszTags: new FieldProperties("tags")},
+	 	{m_dictGeoLocation: new FieldProperties("geolocation")},
+	 	{m_dictAuthMechanism: new FieldProperties("auth_mechanism")}));
+	// ---
+	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
+	{
+		return AuthTokenRequest.m_mapProperties;
+	}
 	// ---
 	constructor()
 	{
@@ -108,11 +113,16 @@ export class AuthTokenDecodedJWT extends DataObjectBase
 	m_szType:				string = "";
 	m_szJti:				string = "";
 	// ---
-	// constexpr static auto properties = std.tuple_cat(std.make_tuple(
-	// 	property(&AuthTokenDecodedJWT.m_utTokenExpiration, "exp"),
-	// 	property(&AuthTokenDecodedJWT.m_szType, "type"),
-	// 	property(&AuthTokenDecodedJWT.m_szJti, "jti")
-	// ));
+	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
+		super.m_mapProperties.m_rfp,
+	 	{m_utTokenExpiration: new FieldProperties("exp")},
+	 	{m_szType: new FieldProperties("type")},
+	 	{m_szJti: new FieldProperties("jti")}));
+	// ---
+	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
+	{
+		return AuthTokenDecodedJWT.m_mapProperties;
+	}
 };
 
 /// <summary>
@@ -123,10 +133,15 @@ export class AuthTokenResponseSuccess extends DataObjectBase
 	m_szToken:		string = "";		// Bearer token to use in future POSTs/etc (JWT).
 	m_szApiSecret:	string = "";	// Key to use for SHA256 hashing in the header.
 	// ---
-	// constexpr static auto properties = std.tuple_cat(std.make_tuple(
-	// 	property(&AuthTokenResponseSuccess.m_szToken, "token"),
-	// 	property(&AuthTokenResponseSuccess.m_szApiSecret, "secret")
-	// ));
+	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
+		super.m_mapProperties.m_rfp,
+	 	{m_szToken: new FieldProperties("token")},
+	 	{m_szApiSecret: new FieldProperties("secret")}));
+	// ---
+	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
+	{
+		return AuthTokenResponseSuccess.m_mapProperties;
+	}
 };
 
 /// <summary>
@@ -136,9 +151,14 @@ export class PostObjectsResponseSuccess extends DataObjectBase
 {
 	m_szStatus:	string = "";
 	// ---
-	// constexpr static auto properties = std.tuple_cat(std.make_tuple(
-	// 	property(&PostObjectsResponseSuccess.m_szStatus, "status")
-	// ));
+	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
+		super.m_mapProperties.m_rfp,
+	 	{m_szStatus: new FieldProperties("status")}));
+	// ---
+	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
+	{
+		return PostObjectsResponseSuccess.m_mapProperties;
+	}
 };
 
 /// <summary>
@@ -148,9 +168,14 @@ export class PostObjectsResponseFailure extends DataObjectBase
 {
 	m_szDetail:	string = "";
 	// ---
-	// constexpr static auto properties = std.tuple_cat(std.make_tuple(
-	// 	property(&PostObjectsResponseFailure.m_szDetail, "detail")
-	// ));
+	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
+		super.m_mapProperties.m_rfp,
+	 	{m_szDetail: new FieldProperties("detail")}));
+	// ---
+	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
+	{
+		return PostObjectsResponseFailure.m_mapProperties;
+	}
 };
 
 /// <summary>
@@ -164,15 +189,19 @@ export class AuthTokenResponseFailureDetail extends DataObjectBase
 	m_szInput:	string = "";
 	m_szUrl:	string = "";
 	// ---
-	// constexpr static auto properties = std.tuple_cat(std.make_tuple(
-	// 	property(&AuthTokenResponseFailureDetail.m_szMsg, "msg"),
-	// 	property(&AuthTokenResponseFailureDetail.m_szType, "type"),
-	// 	property(&AuthTokenResponseFailureDetail.m_szInput, "input"),
-	// 	property(&AuthTokenResponseFailureDetail.m_szUrl, "url")
-	// ));
-	// constexpr static auto childobjectlistproperties = std.tuple_cat(std.make_tuple(
-	// 	childobjectlistproperty(&AuthTokenResponseFailureDetail.m_lszLoc, "loc")
-	// ));
+	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
+		super.m_mapProperties.m_rfp,
+	 	{m_szMsg: new FieldProperties("msg")},
+	 	{m_szType: new FieldProperties("type")},
+	 	{m_szInput: new FieldProperties("input")},
+	 	{m_szUrl: new FieldProperties("url")},
+		// ---
+	 	{m_lszLoc: new FieldProperties("loc", FieldPropertyFlags.bfChildList)}));
+	// ---
+	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
+	{
+		return AuthTokenResponseFailureDetail.m_mapProperties;
+	}
 };
 
 /// <summary>
@@ -184,12 +213,16 @@ export class AuthTokenResponseFailure extends DataObjectBase
 	m_listDetail:	DbSet<AuthTokenResponseFailureDetail> = new DbSet<AuthTokenResponseFailureDetail>();	// This is for more general case when we get one of those "detail": "<list of details dump>" error structures.
 	// ^^^ Both of these are simply unioned and it will find and parse whichever is present.
 	// ---
-	// constexpr static auto properties = std.tuple_cat(std.make_tuple(
-	// 	property(&AuthTokenResponseFailure.m_szMessage, "message")
-	// ));
-	// constexpr static auto childobjectlistproperties = std.tuple_cat(std.make_tuple(
-	// 	childobjectlistproperty(&AuthTokenResponseFailure.m_listDetail, "detail")
-	// ));
+	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
+		super.m_mapProperties.m_rfp,
+	 	{m_szMessage: new FieldProperties("message")},
+		// ---
+	 	{m_listDetail: new FieldProperties("detail", FieldPropertyFlags.bfChildList)}));
+	// ---
+	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
+	{
+		return AuthTokenResponseFailure.m_mapProperties;
+	}
 };
 
 /// <summary>
@@ -221,11 +254,16 @@ export class ApiTokenJWT extends DataObjectBase
 	// 	return JWTEncode(szKey, mapPayload);
 	// }
 	// ---
-	// constexpr static auto properties = std.tuple_cat(std.make_tuple(
-	// 	property(&ApiTokenJWT.m_szType, "type"),
-	// 	property(&ApiTokenJWT.m_szDeviceId, "device_id"),
-	// 	property(&ApiTokenJWT.m_szUserId, "user_id")
-	// ));
+	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
+		super.m_mapProperties.m_rfp,
+	 	{m_szType: new FieldProperties("type")},
+	 	{m_szDeviceId: new FieldProperties("device_id")},
+	 	{m_szUserId: new FieldProperties("user_id")}));
+	// ---
+	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
+	{
+		return ApiTokenJWT.m_mapProperties;
+	}
 };
 
 // ---

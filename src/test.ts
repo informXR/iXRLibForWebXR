@@ -1,7 +1,7 @@
 import { iXRInit, iXRInstance, ResultOptions, InteractionType } from './iXR';
 import { AuthenticationRequestSchema } from './network/types';
 import { DataObjectBase, DbSet, FieldProperties, FieldPropertiesRecordContainer, FieldPropertyFlags, GenerateJson } from './network/utils/DataObjectBase';
-import { PythonDictStrings } from './network/utils/DotNetishTypes';
+import { PythonDictStrings, StringList } from './network/utils/DotNetishTypes';
 import { logError, logInfo } from './network/utils/logger';
 
 export { iXRInit, iXRInstance, AuthenticationRequestSchema };
@@ -66,6 +66,7 @@ class TestData extends DataObjectBase
 	public m_objTestChild:			TestChild = new TestChild();
 	public m_dictTest:				PythonDictStrings = new PythonDictStrings();
 	public m_listTestListChild:		DbSet<TestListChild> = new DbSet<TestListChild>();
+	public m_listTestStringList:	StringList = new StringList();
 	// ---
 	constructor()
 	{
@@ -75,6 +76,12 @@ class TestData extends DataObjectBase
 		this.m_listTestListChild.Add(new TestListChild());
 		this.m_listTestListChild.Add(new TestListChild());
 		this.m_listTestListChild.Add(new TestListChild());
+		this.m_listTestStringList.push("warm");
+		this.m_listTestStringList.push("leatherette");
+		this.m_listTestStringList.push("feel");
+		this.m_listTestStringList.push("the");
+		this.m_listTestStringList.push("steering");
+		this.m_listTestStringList.push("wheel");
 	}
 	// ---
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
@@ -83,7 +90,8 @@ class TestData extends DataObjectBase
 		{m_szSomeString: new FieldProperties("some_string")},
 		{m_objTestChild: new FieldProperties("test_child", FieldPropertyFlags.bfChild, TestChild.m_mapProperties)},
 		{m_dictTest: new FieldProperties("dict_test")},
-		{m_listTestListChild: new FieldProperties("test_list_child", FieldPropertyFlags.bfChildList, TestListChild.m_mapProperties)}));
+		{m_listTestListChild: new FieldProperties("test_list_child", FieldPropertyFlags.bfChildList, TestListChild.m_mapProperties)},
+		{m_listTestStringList: new FieldProperties("test_string_list")}));
 	// ---
 	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
 	{
@@ -93,27 +101,10 @@ class TestData extends DataObjectBase
 
 function TestJson()
 {
-	var DataObjectBaseMapProps:	FieldPropertiesRecordContainer = DataObjectBase.m_mapProperties,
-		TestChildMapProps:	FieldPropertiesRecordContainer = TestChild.m_mapProperties,
-		TestListChildMapProps:	FieldPropertiesRecordContainer = TestListChild.m_mapProperties,
-		TestDataMapProps:	FieldPropertiesRecordContainer = TestData.m_mapProperties;
 	var objTestData:	TestData = new TestData();
 	var szJSON:			string = "";
 	var bLooped:		boolean = false;
 
-	// szJSON = "[";
-	// bLooped = false;
-	// for (let tlc of objTestData.m_listTestListChild)
-	// {
-	// 	if (bLooped)
-	// 	{
-	// 		szJSON += ',';
-	// 	}
-	// 	bLooped = true;
-	// 	szJSON += JSON.stringify(tlc, TestListChild.m_mapProperties.replacer);
-	// }
-	// szJSON += "]";
-	// szJSON = JSON.stringify(objTestData.m_listTestListChild, TestListChild.m_mapProperties.replacer);
 	szJSON = GenerateJson(objTestData);
 	console.log(szJSON);
 	szJSON = JSON.stringify(objTestData, TestData.m_mapProperties.replacer);

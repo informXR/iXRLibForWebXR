@@ -4,9 +4,9 @@
 import { iXRLibClient } from "./iXRLibClient";
 import { iXRLibStorage } from "./iXRLibStorage";
 import { DATEMAXVALUE, DEFAULTNAME, SUID } from "./network/types";
-import { DataObjectBase, DbContext, DbSet, DumpCategory, JsonFieldType } from "./network/utils/DataObjectBase";
-import { ConfigurationManager, DateTime, Dictionary, iXRResult, PythonDictStrings, StringList } from "./network/utils/DotNetishTypes";
-import { DbSuccess } from "./network/utils/iXRLibSQLite";
+import { DataObjectBase, DbContext, DbSet, DumpCategory, FieldProperties, FieldPropertiesRecordContainer, FieldPropertyFlags, JsonFieldType } from "./network/utils/DataObjectBase";
+import { ConfigurationManager, DateTime, Dictionary, iXRResult, PythonDictStrings, StringList, TimeSpan } from "./network/utils/DotNetishTypes";
+import { DatabaseResult, DbSuccess } from "./network/utils/iXRLibSQLite";
 
 /// </summary>
 export class iXRBase extends DataObjectBase
@@ -25,16 +25,22 @@ export class iXRBase extends DataObjectBase
 	public m_nTimeStamp:		number = DATEMAXVALUE;
 	public m_bSyncedWithCloud:	boolean = false;	// On the cloud db, this is always true.  On the device, false indicates exists only in device-local SQLite db... needs update or create in cloud db to sync.
 	// ---
-	// constexpr static auto properties = std.tuple_cat(std.make_tuple(
-	// 	property(&iXRBase.m_guidId, "Id", ColumnAttributeBF(ColumnAttribute.bfPrimaryKey)),
-	// 	property(&iXRBase.m_guidParentId, "parentId", ColumnAttributeBF(ColumnAttribute.bfParentKey)),
-	// 	property(&iXRBase.m_dtTimeStamp, "timestamp"),
-	// 	property(&iXRBase.m_nTimeStamp, "preciseTimestamp"),
-	// 	property(&iXRBase.m_bSyncedWithCloud, "syncedWithCloud")
-	// ));
+	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
+		super.m_mapProperties.m_rfp,
+		{m_guidId: new FieldProperties("Id", FieldPropertyFlags.bfExclude)},
+		{m_guidParentId: new FieldProperties("parentId", FieldPropertyFlags.bfExclude)},
+		{m_dtTimeStamp: new FieldProperties("timestamp")},
+		{m_dtTimeStamp: new FieldProperties("preciseTimestamp")},
+		{m_bSyncedWithCloud: new FieldProperties("syncedWithCloud")}));
 	// ---
-	iXRBase()
+	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
 	{
+		return iXRBase.m_mapProperties;
+	}
+	// ---
+	constructor()
+	{
+		super();
 		if (iXRBase.m_bUseCapturedTimeStamp)
 		{
 			this.m_dtTimeStamp.FromInt64(iXRBase.m_nCapturedTimeStamp);
@@ -143,52 +149,28 @@ export class iXRLibConfiguration extends DataObjectBase
 		return this.m_urlRestUrl;
 	}
 	// ---
-	// constexpr static auto properties = std.tuple_cat(super.properties, std.make_tuple(
-	// 	property(&iXRLibConfiguration.m_szRestUrl, "rest_url"),
-	// 	property(&iXRLibConfiguration.m_szRestUrl, "restUrl", ColumnAttributeBF(ColumnAttribute.bfBackendAccommodation)),
-	// 	// ---
-	// 	property(&iXRLibConfiguration.m_nSendRetriesOnFailure, "send_retries_on_failure"),
-	// 	property(&iXRLibConfiguration.m_nSendRetriesOnFailure, "sendRetriesOnFailure", ColumnAttributeBF(ColumnAttribute.bfBackendAccommodation)),
-	// 	// ---
-	// 	property(&iXRLibConfiguration.m_tsSendRetryInterval, "send_retry_interval"),
-	// 	property(&iXRLibConfiguration.m_tsSendRetryInterval, "sendRetryInterval", ColumnAttributeBF(ColumnAttribute.bfBackendAccommodation)),
-	// 	// ---
-	// 	property(&iXRLibConfiguration.m_tsSendNextBatchWait, "send_next_batch_wait"),
-	// 	property(&iXRLibConfiguration.m_tsSendNextBatchWait, "sendNextBatchWait", ColumnAttributeBF(ColumnAttribute.bfBackendAccommodation)),
-	// 	// ---
-	// 	property(&iXRLibConfiguration.m_tsStragglerTimeout, "straggler_timeout"),
-	// 	property(&iXRLibConfiguration.m_tsStragglerTimeout, "stragglerTimeout", ColumnAttributeBF(ColumnAttribute.bfBackendAccommodation)),
-	// 	// ---
-	// 	property(&iXRLibConfiguration.m_nEventsPerSendAttempt, "events_per_send_attempt"),
-	// 	property(&iXRLibConfiguration.m_nEventsPerSendAttempt, "eventsPerSendAttempt", ColumnAttributeBF(ColumnAttribute.bfBackendAccommodation)),
-	// 	// ---
-	// 	property(&iXRLibConfiguration.m_nLogsPerSendAttempt, "logs_per_send_attempt"),
-	// 	property(&iXRLibConfiguration.m_nLogsPerSendAttempt, "logsPerSendAttempt", ColumnAttributeBF(ColumnAttribute.bfBackendAccommodation)),
-	// 	// ---
-	// 	property(&iXRLibConfiguration.m_nTelemetryEntriesPerSendAttempt, "telemetry_entries_per_send_attempt"),
-	// 	property(&iXRLibConfiguration.m_nTelemetryEntriesPerSendAttempt, "telemetryEntriesPerSendAttempt", ColumnAttributeBF(ColumnAttribute.bfBackendAccommodation)),
-	// 	// ---
-	// 	property(&iXRLibConfiguration.m_nStorageEntriesPerSendAttempt, "storage_entries_per_send_attempt"),
-	// 	property(&iXRLibConfiguration.m_nStorageEntriesPerSendAttempt, "storageEntriesPerSendAttempt", ColumnAttributeBF(ColumnAttribute.bfBackendAccommodation)),
-	// 	// ---
-	// 	property(&iXRLibConfiguration.m_tsPruneSentItemsOlderThan, "prune_sent_items_older_than"),
-	// 	property(&iXRLibConfiguration.m_tsPruneSentItemsOlderThan, "pruneSentItemsOlderThan", ColumnAttributeBF(ColumnAttribute.bfBackendAccommodation)),
-	// 	// ---
-	// 	property(&iXRLibConfiguration.m_nMaximumCachedItems, "maximum_cached_items"),
-	// 	property(&iXRLibConfiguration.m_nMaximumCachedItems, "maximumCachedItems", ColumnAttributeBF(ColumnAttribute.bfBackendAccommodation)),
-	// 	// ---
-	// 	property(&iXRLibConfiguration.m_bRetainLocalAfterSent, "retain_local_after_sent"),
-	// 	property(&iXRLibConfiguration.m_bRetainLocalAfterSent, "retainLocalAfterSent", ColumnAttributeBF(ColumnAttribute.bfBackendAccommodation)),
-	// 	// ---
-	// 	property(&iXRLibConfiguration.m_bReAuthenticateBeforeTokenExpires, "reauthenticate_before_token_expires"),
-	// 	property(&iXRLibConfiguration.m_bReAuthenticateBeforeTokenExpires, "reauthenticateBeforeTokenExpires", ColumnAttributeBF(ColumnAttribute.bfBackendAccommodation)),
-	// 	// ---
-	// 	property(&iXRLibConfiguration.m_bUseDatabase, "use_database"),
-	// 	property(&iXRLibConfiguration.m_bUseDatabase, "useDatabase", ColumnAttributeBF(ColumnAttribute.bfBackendAccommodation)),
-	// 	// ---
-	// 	property(&iXRLibConfiguration.m_dictAuthMechanism, "auth_mechanism"),
-	// 	property(&iXRLibConfiguration.m_dictAuthMechanism, "authMechanism", ColumnAttributeBF(ColumnAttribute.bfBackendAccommodation))
-	// ));
+	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
+		super.m_mapProperties.m_rfp,
+		{m_szRestUrl: new FieldProperties("rest_url")},
+		{m_nSendRetriesOnFailure: new FieldProperties("send_retries_on_failure")},
+	 	{m_tsSendRetryInterval: new FieldProperties("send_retry_interval")},
+	 	{m_tsSendNextBatchWait: new FieldProperties("send_next_batch_wait")},
+	 	{m_tsStragglerTimeout: new FieldProperties("straggler_timeout")},
+	 	{m_nEventsPerSendAttempt: new FieldProperties("events_per_send_attempt")},
+	 	{m_nLogsPerSendAttempt: new FieldProperties("logs_per_send_attempt")},
+	 	{m_nTelemetryEntriesPerSendAttempt: new FieldProperties("telemetry_entries_per_send_attempt")},
+	 	{m_nStorageEntriesPerSendAttempt: new FieldProperties("storage_entries_per_send_attempt")},
+	 	{m_tsPruneSentItemsOlderThan: new FieldProperties("prune_sent_items_older_than")},
+	 	{m_nMaximumCachedItems: new FieldProperties("maximum_cached_items")},
+	 	{m_bRetainLocalAfterSent: new FieldProperties("retain_local_after_sent")},
+	 	{m_bReAuthenticateBeforeTokenExpires: new FieldProperties("reauthenticate_before_token_expires")},
+	 	{m_bUseDatabase: new FieldProperties("use_database")},
+	 	{m_dictAuthMechanism: new FieldProperties("auth_mechanism")}));
+	// ---
+	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
+	{
+		return iXRBase.m_mapProperties;
+	}
 	// ---
 	/// <summary>
 	/// Read App.config which is a standard C# App.config.
@@ -219,7 +201,7 @@ export class iXRLibConfiguration extends DataObjectBase
 			this.m_bUseDatabase = atob(ConfigurationManager.AppSettings("UseDatabase", "false"));
 			// Note the absence here of getting "AuthMechanism".  Unless something changes, that should be exclusively supplied by backend GET config.
 		}
-		catch error)
+		catch (error)
 		{
 			// iXRLibClient.WriteLine($"Error: {ex.Message}\nStackTrace: {ex.StackTrace}");
 			// ---
@@ -245,13 +227,18 @@ export class iXRApplication extends iXRBase
 	public m_szLogLevel:		string = "";
 	public m_szData:			string = "";
 	// ---
-	// constexpr static auto properties = std.tuple_cat(super.properties, std.make_tuple(
-	// 	property(&iXRApplication.m_szAppId, "appId"),
-	// 	property(&iXRApplication.m_szDeviceUserId, "deviceUserId"),
-	// 	property(&iXRApplication.m_szDeviceId, "deviceId"),
-	// 	property(&iXRApplication.m_szLogLevel, "logLevel"),
-	// 	property(&iXRApplication.m_szData, "data")
-	// ));
+	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
+		super.m_mapProperties.m_rfp,
+		{m_szAppId: new FieldProperties("appId")},
+		{m_szDeviceUserId: new FieldProperties("deviceUserId")},
+		{m_szDeviceId: new FieldProperties("deviceId")},
+		{m_szLogLevel: new FieldProperties("logLevel")},
+		{m_szData: new FieldProperties("data")}));
+	// ---
+	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
+	{
+		return iXRBase.m_mapProperties;
+	}
 	// --- TESTS.
 // #ifdef _DEBUG
 // 	void FakeUpSomeRandomCrap();
@@ -278,11 +265,16 @@ export class iXRLocationData extends iXRBase
 		return this;
 	}
 	// ---
-	// constexpr static auto properties = std.tuple_cat(super.properties, std.make_tuple(
-	// 	property(&iXRLocationData.m_dX, "x"),
-	// 	property(&iXRLocationData.m_dY, "y"),
-	// 	property(&iXRLocationData.m_dZ, "z")
-	// ));
+	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
+		super.m_mapProperties.m_rfp,
+	 	{m_dX: new FieldProperties("x")},
+	 	{m_dY: new FieldProperties("y")},
+	 	{m_dZ: new FieldProperties("z")}));
+	// ---
+	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
+	{
+		return iXRLocationData.m_mapProperties;
+	}
 	// ---
 	public ShouldDump(szFieldName: string, eJsonFieldType: JsonFieldType, eDumpCategory: DumpCategory): boolean // virtual
 	{
@@ -363,10 +355,15 @@ export class iXRLog extends iXRBase
 	public m_szLogLevel:	string = "";
 	public m_szText:		string = "";
 	// ---
-	// constexpr static auto properties = std.tuple_cat(super.properties, std.make_tuple(
-	// 	property(&iXRLog.m_szLogLevel, "logLevel"),
-	// 	property(&iXRLog.m_szText, "text")
-	// ));
+	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
+		super.m_mapProperties.m_rfp,
+	 	{m_szLogLevel: new FieldProperties("logLevel")},
+	 	{m_szText: new FieldProperties("text")}));
+	// ---
+	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
+	{
+		return iXRLog.m_mapProperties;
+	}
 	// ---
 	public Construct(eLogLevel: LogLevel, szText: string): iXRLog
 	{
@@ -375,11 +372,6 @@ export class iXRLog extends iXRBase
 		// ---
 		return this;
 	}
-	// iXRLog(uint32_t nLogLevel, const mstringb& szText) :
-	// 	m_szLogLevel(LogLevelToString((LogLevel)nLogLevel)),
-	// 	m_szText(szText)
-	// {
-	// }
 	// --- TESTS.
 // #ifdef _DEBUG
 // 	void FakeUpSomeRandomCrap();
@@ -406,13 +398,17 @@ export class iXRTelemetry extends iXRBase
 		// ---
 		return this;
 	}
-// 	constexpr static auto properties = std.tuple_cat(super.properties, std.make_tuple(
-// 		property(&iXRTelemetry.m_szName, "name"),
-// 		property(&iXRTelemetry.m_dictData, "data")
-// 	));
-// 	constexpr static auto childobjectproperties = std.tuple_cat(super.childobjectproperties, std.make_tuple(
-// 		childobjectproperty(&iXRTelemetry.m_objInAppLocation, "inAppLocation")
-// 	));
+	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
+		super.m_mapProperties.m_rfp,
+ 		{m_szName: new FieldProperties("name")},
+ 		{m_dictData: new FieldProperties("data")},
+		// ---
+ 		{m_objInAppLocation: new FieldProperties("inAppLocation", FieldPropertyFlags.bfChild)}));
+	// ---
+	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
+	{
+		return iXRTelemetry.m_mapProperties;
+	}
 // 	// --- TESTS.
 // #ifdef _DEBUG
 // 	void FakeUpSomeRandomCrap();
@@ -463,11 +459,16 @@ export class iXRAIProxy extends iXRBase
 		return this;
 	}
 	// ---
-// 	constexpr static auto properties = std.tuple_cat(super.properties, std.make_tuple(
-// 		property(&iXRAIProxy.m_szPrompt, "prompt"),
-// 		property(&iXRAIProxy.m_dictPastMessages, "pastMessages"),
-// 		property(&iXRAIProxy.m_szLLMProvider, "llmProvider")
-// 	));
+	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
+		super.m_mapProperties.m_rfp,
+ 		{m_szPrompt: new FieldProperties("prompt")},
+ 		{m_dictPastMessages: new FieldProperties("pastMessages")},
+ 		{m_szLLMProvider: new FieldProperties("llmProvider")}));
+	// ---
+	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
+	{
+		return iXRAIProxy.m_mapProperties;
+	}
 // 	// --- TESTS.
 // #ifdef _DEBUG
 // 	void FakeUpSomeRandomCrap();
@@ -494,10 +495,15 @@ export class iXREvent extends iXRBase
 	m_dictMeta:			PythonDictStrings = new PythonDictStrings();
 	m_szEnvironment:	string = "";
 	// ---
-	// constexpr static auto properties = std.tuple_cat(super.properties, std.make_tuple(
-	// 	property(&iXREvent.m_szName, "name"),
-	// 	property(&iXREvent.m_dictMeta, "meta")
-	// ));
+	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
+		super.m_mapProperties.m_rfp,
+	 	{m_szName: new FieldProperties("name")},
+	 	{m_dictMeta: new FieldProperties("meta")}));
+	// ---
+	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
+	{
+		return iXREvent.m_mapProperties;
+	}
 	// ---
 	public Construct(szName: string, dictMeta: PythonDictStrings) : iXREvent
 	{
@@ -526,16 +532,20 @@ export class iXREvent extends iXRBase
 /// <typeparam name="bWantTimeStamp">Want timestamp when dumping JSON for backend.</typeparam>
 export class iXRXXXContainer<T extends DataObjectBase, T_CONTAINS, bTWantTimestamp extends boolean> extends iXRBase
 {
-	// public m_tIXRXXX:			T_CONTAINS = new T_CONTAINS();	// This is here to catch the data when Python is representing it as an object rather than array.
-	public m_tIXRXXX:			T_CONTAINS = {} as T_CONTAINS;	// This is here to catch the data when Python is representing it as an object rather than array.
-	public m_dspIXRXXXs:		DbSet<T> = new DbSet<T>();		// The main data.
+	// public m_tIXRXXX:		T_CONTAINS = new T_CONTAINS();	// This is here to catch the data when Python is representing it as an object rather than array.
+	public m_tIXRXXX:		T_CONTAINS = {} as T_CONTAINS;	// This is here to catch the data when Python is representing it as an object rather than array.
+	public m_dspIXRXXXs:	DbSet<T> = new DbSet<T>();		// The main data.
 	// ---
-	// constexpr static auto properties = std.tuple_cat(super.properties, std.make_tuple(
-	// 	property(&iXRXXXContainer<T, T_CONTAINS, bWantTimestamp>.m_tIXRXXX, "data")
-	// ));
-	// constexpr static auto childobjectlistproperties = std.tuple_cat(super.childobjectlistproperties, std.make_tuple(
-	// 	childobjectlistproperty(&iXRXXXContainer<T, T_CONTAINS, bWantTimestamp>.m_dspIXRXXXs, "data")
-	// ));
+	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
+		super.m_mapProperties.m_rfp,
+	 	{m_tIXRXXX: new FieldProperties("data")},
+		// ---
+	 	{m_dspIXRXXXs: new FieldProperties("data", FieldPropertyFlags.bfChildList)}));
+	// ---
+	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
+	{
+		return iXRContainer<TimeSpan, T_CONTAINS, bTWantTimestamp>.m_mapProperties;
+	}
 	// ---
 	constructor(public bWantTimestamp: bTWantTimestamp = false as bTWantTimestamp)
 	{
@@ -580,41 +590,44 @@ export class iXRXXXContainer<T extends DataObjectBase, T_CONTAINS, bTWantTimesta
 ///		This is that container object.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-//template <typename T> export class iXRXXXScalarContainer extends iXRBase
-//{
-//	using super = iXRBase;
-//	// ---
-//	T	m_tIXRXXX;
-//	// ---
-//	iXRXXXScalarContainer<T>() = default;
-//	iXRXXXScalarContainer<T>(const T& t) :
-//		m_tIXRXXX(t)
-//	{
-//	}
-//	iXRXXXScalarContainer<T>(T&& t) :
-//		m_tIXRXXX(t)
-//	{
-//	}
-//	// ---
-//	constexpr static auto properties = std.tuple_cat(super.properties, std.make_tuple(
-//		property(&iXRXXXScalarContainer<T>.m_tIXRXXX, "data")
-//	));
-//	// ---
-//	virtual bool ShouldDump(const char* szFieldName, const JsonFieldType eJsonFieldType, const DumpCategory eDumpCategory) const
-//	{
-//		switch (eDumpCategory)
-//		{
-//		case DumpCategory.eDumpingJsonForBackend:
-//			if (strcmp(szFieldName, "timestamp") == 0)
-//			{
-//				return false;
-//			}
-//		default:
-//			break;
-//		}
-//		return super.ShouldDump(szFieldName, eJsonFieldType, eDumpCategory);
-//	}
-//};
+export class iXRXXXScalarContainer<T extends DataObjectBase> extends iXRBase
+{
+	public m_tIXRXXX:	T = new T();
+	// ---
+	iXRXXXScalarContainer<T>() = default;
+	iXRXXXScalarContainer<T>(const T& t) :
+		m_tIXRXXX(t)
+	{
+	}
+	iXRXXXScalarContainer<T>(T&& t) :
+		m_tIXRXXX(t)
+	{
+	}
+	// ---
+	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
+		super.m_mapProperties.m_rfp,
+		{m_tIXRXXX: new FieldProperties("data")}));
+	// ---
+	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
+	{
+		return iXRXXXScalarContainer<T>.m_mapProperties;
+	}
+	// ---
+	public ShouldDump(szFieldName: string, eJsonFieldType: JsonFieldType, eDumpCategory: DumpCategory): boolean // virtual
+	{
+		switch (eDumpCategory)
+		{
+		case DumpCategory.eDumpingJsonForBackend:
+			if (strcmp(szFieldName, "timestamp") == 0)
+			{
+				return false;
+			}
+		default:
+			break;
+		}
+		return super.ShouldDump(szFieldName, eJsonFieldType, eDumpCategory);
+	}
+};
 
 // ---
 
@@ -638,9 +651,14 @@ export class iXRStorageData extends iXRBase
 		return this;
 	}
 	// ---
-	// constexpr static auto properties = std.tuple_cat(super.properties, std.make_tuple(
-	// 	property(&iXRStorageData.m_cdictData, "data")
-	// ));
+	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
+		super.m_mapProperties.m_rfp,
+	 	{m_cdictData: new FieldProperties("data")}));
+	// ---
+	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
+	{
+		return iXRStorageData.m_mapProperties;
+	}
 	// --- TESTS.
 // #ifdef _DEBUG
 // 	void FakeUpSomeRandomCrap();
@@ -708,16 +726,20 @@ export class iXRStorage extends iXRBase
 		return this;
 	}
 	// ---
-	// constexpr static auto properties = std.tuple_cat(super.properties, std.make_tuple(
-	// 	property(&iXRStorage.m_szKeepPolicy, "keepPolicy"),
-	// 	property(&iXRStorage.m_szName, "name"),
-	// 	property(&iXRStorage.m_szOrigin, "origin"),
-	// 	property(&iXRStorage.m_bSessionData, "sessionData"),
-	// 	property(&iXRStorage.m_lszTags, "tags")
-	// ));
-	// constexpr static auto childobjectlistproperties = std.tuple_cat(super.childobjectlistproperties, std.make_tuple(
-	// 	childobjectlistproperty(&iXRStorage.m_dsData, "data")
-	// ));
+	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
+		super.m_mapProperties.m_rfp,
+	 	{m_szKeepPolicy: new FieldProperties("keepPolicy")},
+	 	{m_szName: new FieldProperties("name")},
+	 	{m_szOrigin: new FieldProperties("origin")},
+	 	{m_bSessionData: new FieldProperties("sessionData")},
+	 	{m_lszTags: new FieldProperties("tags")},
+		// ---
+	 	{m_dsData: new FieldProperties("data", FieldPropertyFlags.bfChildList)}));
+	// ---
+	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
+	{
+		return iXRStorage.m_mapProperties;
+	}
 	// --- TESTS.
 // #ifdef _DEBUG
 // 	void FakeUpSomeRandomCrap();
@@ -891,9 +913,14 @@ export class iXRErrors extends iXRBase
 {
 	m_szErrorString:	string = "";
 	// ---
-	// constexpr static auto properties = std.tuple_cat(super.properties, std.make_tuple(
-	// 	property(&iXRErrors.m_szErrorString, "errorString")
-	// ));
+	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
+		super.m_mapProperties.m_rfp,
+	 	{m_szErrorString: new FieldProperties("errorString")}));
+	// ---
+	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
+	{
+		return iXRErrors.m_mapProperties;
+	}
 };
 
 /// <summary>
@@ -908,13 +935,14 @@ export class iXRDbContext extends DbContext
 	m_dsIXRStorage:			DbSet<iXRStorage> = new DbSet<iXRStorage>();	// State info, etc.
 	m_szDbPath:				string = "";
 	// ---
-	// constexpr static auto childobjectlistproperties = std.tuple_cat(super.childobjectlistproperties, std.make_tuple(
-	// 	childobjectlistproperty(&iXRDbContext.m_dsIXRApplications, "IXRApplications"),
-	// 	childobjectlistproperty(&iXRDbContext.m_dsIXRLogs, "IXRLogs"),
-	// 	childobjectlistproperty(&iXRDbContext.m_dsIXRTelemetry, "IXRTelemetry"),
-	// 	childobjectlistproperty(&iXRDbContext.m_dsIXREvents, "IXREvents"),
-	// 	childobjectlistproperty(&iXRDbContext.m_dsIXRStorage, "IXRStorage")
-	// ));
+	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
+		super.m_mapProperties.m_rfp,
+		// ---
+	 	{m_dsIXRApplications: new FieldProperties("IXRApplications", FieldPropertyFlags.bfChildList)},
+	 	{m_dsIXRLogs: new FieldProperties("IXRLogs", FieldPropertyFlags.bfChildList)},
+	 	{m_dsIXRTelemetry: new FieldProperties("IXRTelemetry", FieldPropertyFlags.bfChildList)},
+	 	{m_dsIXREvents: new FieldProperties("IXREvents", FieldPropertyFlags.bfChildList)},
+	 	{m_dsIXRStorage: new FieldProperties("IXRStorage", FieldPropertyFlags.bfChildList)}));
 	// ---
 	// iXRDbContext() :
 	// 	iXRDbContext(false)
