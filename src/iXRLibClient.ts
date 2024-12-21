@@ -94,7 +94,7 @@ export class AuthTokenRequest extends DataObjectBase
 	}
 	public RefreshSessionId(): void
 	{
-		var	suid:	SUID;
+		var	suid:	SUID = new SUID();
 
 		this.m_szSessionId = suid.ToStringPureHex();
 	}

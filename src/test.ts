@@ -1,6 +1,7 @@
 import { iXRInit, iXRInstance, ResultOptions, InteractionType } from './iXR';
+import { iXRDbContext } from './iXRLibCoreModel';
 import { AuthenticationRequestSchema } from './network/types';
-import { DataObjectBase, DbSet, FieldProperties, FieldPropertiesRecordContainer, FieldPropertyFlags, GenerateJson } from './network/utils/DataObjectBase';
+import { DataObjectBase, DbSet, DumpCategory, FieldProperties, FieldPropertiesRecordContainer, FieldPropertyFlags, GenerateJson } from './network/utils/DataObjectBase';
 import { PythonDictStrings, StringList } from './network/utils/DotNetishTypes';
 import { logError, logInfo } from './network/utils/logger';
 
@@ -99,13 +100,31 @@ class TestData extends DataObjectBase
 	}
 }
 
+class DbSetsOfStuff extends DataObjectBase
+{
+	public m_listTestDatas:		DbSet<TestData> = new DbSet<TestData>(TestData);
+	public m_listTestChildren:	DbSet<TestChild> = new DbSet<TestChild>(TestChild);
+}
+
 function TestJson()
 {
 	var objTestData:	TestData = new TestData();
 	var szJSON:			string = "";
 	var bLooped:		boolean = false;
+	var obj:			DbSetsOfStuff = new DbSetsOfStuff();
 
-	szJSON = GenerateJson(objTestData);
+	for (const [szField, objField] of Object.entries(obj))
+	{
+		console.log(szField, " ", typeof(objField));
+		if (objField instanceof DbSet)
+		{
+			if (objField.ContainedType() === typeof(TestData))
+			{
+				console.log("Found it: ", szField);
+			}
+		}
+	}
+	szJSON = GenerateJson(objTestData, DumpCategory.eDumpingJsonForBackend);
 	console.log(szJSON);
 	szJSON = JSON.stringify(objTestData, TestData.m_mapProperties.replacer);
 	console.log(szJSON);

@@ -4,7 +4,7 @@ import { iXRLibStorage } from './iXRLibStorage';
 import { Base64, DATEMAXVALUE, Sleep } from './network/types';
 import { crc32 } from './network/utils/crc32';
 import { SHA256 } from './network/utils/cryptoUtils';
-import { DataObjectBase, DbSet } from './network/utils/DataObjectBase';
+import { DataObjectBase, DbSet, FieldPropertyFlags } from './network/utils/DataObjectBase';
 import { iXRResult, DateTime, StringList, PythonDictStrings, JsonResult } from './network/utils/DotNetishTypes';
 import { JWTDecode } from './network/utils/JWT';
 import { TimeSpan } from './network/utils/timeSpan';
@@ -425,8 +425,24 @@ export class iXRLibAnalytics
 
 		try
 		{
-			var ixrDbContext: iXRDbContext = new iXRDbContext(false);
+			var ixrDbContext:	iXRDbContext = new iXRDbContext(false);
 
+			//Object.entries(iXRDbContext.m_mapProperties.m_rfp).forEach(([fKey, fValue]) =>
+			//	{
+			//		if (fValue.m_fFlags && (fValue.m_fFlags & FieldPropertyFlags.bfChildList) && fValue.m_szName === )
+			//		{
+
+			//		}
+			//		if (fValue.m_szName === key || fKey === key)
+			//		{
+			//			fpNode = this.m_rfp[fKey];
+			//			return;
+			//		}
+			//	});
+			//for (const fNode of iXRDbContext.m_mapProperties.m_rfp)
+			//{
+			//	if (fNode.)
+			//}
 			// constexpr size_t nbChildObjectListProperties = std::tuple_size_v<decltype(iXRDbContext.childobjectlistproperties)>;
 			// // ---
 			// // Find the ixrDbContext child list matching type T.

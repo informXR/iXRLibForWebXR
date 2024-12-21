@@ -26,11 +26,15 @@ export enum JsonFieldType
 
 export enum FieldPropertyFlags
 {
-	bfNull			= 0x00000000,
-	bfExclude		= 0x00000001,
-	bfStringOnly	= 0x00000002,
-	bfChild			= 0x00000004,
-	bfChildList		= 0x00000008
+	eOrdinaryColumn			= 0x00000000,
+	bfNull					= 0x00000000,
+	bfPrimaryKey			= 0x00000001,
+	bfParentKey				= 0x00000002,
+	bfBackendAccommodation	= 0x00000004,
+	bfNoEscapeJson			= 0x00000008,
+	bfStringOnly			= 0x00000010,
+	bfChild					= 0x00000020,
+	bfChildList				= 0x00000040
 }
 
 export class FieldProperties
@@ -114,7 +118,7 @@ export class FieldPropertiesRecordContainer
 						return;
 					}
 				});
-			if (fpNode && fpNode.m_fFlags && (fpNode.m_fFlags & (FieldPropertyFlags.bfExclude | FieldPropertyFlags.bfChild | FieldPropertyFlags.bfChildList)))
+			if (fpNode && fpNode.m_fFlags)
 			{
 				if (fpNode.m_fFlags & FieldPropertyFlags.bfExclude)
 				{
@@ -171,10 +175,6 @@ export class DataObjectBase
 		{m_nLastLoadedSignature: new FieldProperties("last_loaded_signature", FieldPropertyFlags.bfExclude)},
 		{m_bFlaggedForDelete: new FieldProperties("flagged_for_delete", FieldPropertyFlags.bfExclude)},
 		{m_bAlreadyTaken: new FieldProperties("already_taken", FieldPropertyFlags.bfExclude)}));
-	// constexpr static auto properties = std::make_tuple();
-	// constexpr static auto childobjectproperties = std::make_tuple();
-	// constexpr static auto childobjectlistproperties = std::make_tuple();
-	// constexpr static auto childscalarlistproperties = std::make_tuple();
 	// ---
 	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
 	{
@@ -227,9 +227,14 @@ export class DbContext extends DataObjectBase
 	// public m_db:		SqliteDbConnection = new SqliteDbConnection();
 	public m_guidId:	SUID = new SUID();	// Never actually gets dereferenced... needed so templates will instantiate as this object serves as a container for db objects.
 	// ---
-	// constexpr static auto properties = std::tuple_cat(std::make_tuple(
-		// 	property(&DbContext::m_guidId, "Id", ColumnAttributeBF(ColumnAttribute::bfPrimaryKey))
-	// ));
+	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
+		super.m_mapProperties.m_rfp,
+	 	{m_guidId: new FieldProperties("Id", FieldPropertyFlags.bfPrimaryKey)}));
+	// ---
+	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
+	{
+		return DbContext.m_mapProperties;
+	}
 	// ---
 	public SaveChanges(): DatabaseResult // virtual
 	{
@@ -243,6 +248,18 @@ export class DbContext extends DataObjectBase
 /// <typeparam name="T">Type of database object</typeparam>
 export class DbSet<T extends DataObjectBase> extends Array<T>
 {
+	//private m_tTypeCompare:	new() => T;
+	private m_tTypeCompare:	T;
+	// ---
+	constructor(ctor: new() => T)
+	{
+		super();
+		this.m_tTypeCompare = new ctor();
+	}
+	public ContainedType() : any
+	{
+		return typeof(this.m_tTypeCompare);
+	}
 	// --- C++/stl-ish from port from C++.
 	public empty(): boolean
 	{
