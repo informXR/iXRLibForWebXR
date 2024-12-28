@@ -2,7 +2,7 @@ import { iXRInit, iXRInstance, ResultOptions, InteractionType } from './iXR';
 import { iXRDbContext } from './iXRLibCoreModel';
 import { AuthenticationRequestSchema } from './network/types';
 import { DataObjectBase, DbSet, DumpCategory, FieldProperties, FieldPropertiesRecordContainer, FieldPropertyFlags, GenerateJson } from './network/utils/DataObjectBase';
-import { PythonDictStrings, StringList } from './network/utils/DotNetishTypes';
+import { PythonDictStrings, StringList, TimeSpan } from './network/utils/DotNetishTypes';
 import { logError, logInfo } from './network/utils/logger';
 
 export { iXRInit, iXRInstance, AuthenticationRequestSchema };
@@ -112,15 +112,19 @@ function TestJson()
 	var szJSON:			string = "";
 	var bLooped:		boolean = false;
 	var obj:			DbSetsOfStuff = new DbSetsOfStuff();
+	var pdsIXRXXX:		any = null;
+	var tsTest:			TimeSpan = TimeSpan.Parse("12:34:56");
 
 	for (const [szField, objField] of Object.entries(obj))
 	{
 		console.log(szField, " ", typeof(objField));
 		if (objField instanceof DbSet)
 		{
-			if (objField.ContainedType() === typeof(TestData))
+			if (objField.ContainedType() === TestData)
 			{
 				console.log("Found it: ", szField);
+				pdsIXRXXX = objField;
+				break;
 			}
 		}
 	}

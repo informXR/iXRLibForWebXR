@@ -3,7 +3,7 @@
 ///		In here as it is needed by Task.
 ///		Co-maintained with the one in iXRInterop.cs.
 
-import { DATEMAXVALUE, DATEMINVALUE } from "../types";
+import { atol, DATEMAXVALUE, DATEMINVALUE, Regex } from "../types";
 
 /// <summary>
 /// Main return code for library operations.
@@ -276,18 +276,18 @@ export class ConfigurationManager
 		// {
 		// 	csrstringb	csrszRegex;
 		// 	// ---
-		// 	csrszRegex.Format(R"(<add[\s]+key[\s]*=[\s]*"%s"[\s]+value[\s]*=[\s]*".*"[\s]*[/]?[\s]*>)", szFieldName);
+		// 	csrszRegex.Format(/<add[\s]+key[\s]*=[\s]*"%s"[\s]+value[\s]*=[\s]*".*"[\s]*[/]?[\s]*>/, szFieldName);
 		// 	// ---
 		// 	std::vector<mstringb>	vszMatches;
 
 		// 	// Filter out any HTML comments.
-		// 	CSREGEXB::ProgressiveMatch(szAppConfig, { R"(<\!\-\-.*\-\->)" }, { { true, R"(.*)" } }, vszMatches);
+		// 	Regex.ProgressiveMatch(szAppConfig, { /<\!\-\-.*\-\->/ }, { { true, /.*/ } }, vszMatches);
 		// 	for (const mstringb& sz : vszMatches)
 		// 	{
 		// 		szAppConfig.Replace(sz, "");
 		// 	}
 		// 	// Now do the "real" match.
-		// 	CSREGEXB::DeepMatch(szAppConfig, { csrszRegex, R"(value[\s]*=[\s]*".*"[\s]*[/]?[\s]*>)" }, R"(value[\s]*=[\s]*")", R"("[\s]*[/]?[\s]*>)", vszMatches);
+		// 	Regex.DeepMatch(szAppConfig, { csrszRegex, /value[\s]*=[\s]*".*"[\s]*[/]?[\s]*>/ }, /value[\s]*=[\s]*"/, /"[\s]*[/]?[\s]*>/, vszMatches);
 		// 	if (vszMatches.size() > 0)
 		// 	{
 		// 		return vszMatches[0];
@@ -313,18 +313,18 @@ export class ConfigurationManager
 // 		{
 // 			csrstringb	csrszRegex;
 // 			// ---
-// 			csrszRegex.Format(R"(<add[\s]+key[\s]*=[\s]*"%s"[\s]+value[\s]*=[\s]*".*"[\s]*[/]?[\s]*>)", szFieldName);
+// 			csrszRegex.Format(/<add[\s]+key[\s]*=[\s]*"%s"[\s]+value[\s]*=[\s]*".*"[\s]*[/]?[\s]*>/, szFieldName);
 // 			// ---
 // 			std::vector<mstringb>	vszMatches;
 
 // 			// Filter out any HTML comments.
-// 			CSREGEXB::ProgressiveMatch(szAppConfig, { R"(<\!\-\-.*\-\->)" }, { { true, R"(.*)" } }, vszMatches);
+// 			Regex.ProgressiveMatch(szAppConfig, { /<\!\-\-.*\-\->/ }, { { true, /.*/ } }, vszMatches);
 // 			for (const mstringb& sz : vszMatches)
 // 			{
 // 				szAppConfig.Replace(sz, "");
 // 			}
 // 			// Now do the "real" match.
-// 			CSREGEXB::DeepMatch(szAppConfig, { csrszRegex, R"(value[\s]*=[\s]*".*"[\s]*[/]?[\s]*>)" }, R"(value[\s]*=[\s]*")", R"("[\s]*[/]?[\s]*>)", vszMatches);
+// 			Regex.DeepMatch(szAppConfig, { csrszRegex, /value[\s]*=[\s]*".*"[\s]*[/]?[\s]*>/ }, /value[\s]*=[\s]*"/, /"[\s]*[/]?[\s]*>/, vszMatches);
 // 			if (vszMatches.size() > 0)
 // 			{
 // 				return vszMatches[0];
@@ -341,86 +341,89 @@ export class ConfigurationManager
 /// </summary>
 export class TimeSpan
 {
-// 	constructor()
-// 	{
-// 	}
-// 	TimeSpan(size_t nHours, size_t nMinutes, size_t nSeconds) :
-// 		super(std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::hours(nHours)) +
-// 			std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::minutes(nMinutes)) +
-// 			std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::seconds(nSeconds)))
-// 	{
-// 	}
-// 	TimeSpan(size_t nDays, size_t nHours, size_t nMinutes, size_t nSeconds) :
-// #ifndef _UNIX
-// 		super(std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::days(nDays)) +
-// #else
-// 		super(std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::hours(nDays * 24)) +
-// #endif // _UNIX
-// 			std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::hours(nHours)) +
-// 			std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::minutes(nMinutes)) +
-// 			std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::seconds(nSeconds)))
-// 	{
-// 	}
-// 	TimeSpan(const double& d) :
-// 		super(dseconds(d))
-// 	{
-// 	}
-// 	// Handles results of DateTime arithmetic.
-// 	TimeSpan(const std::chrono::system_clock::duration& dtDuration)
-// 	{
-// 		super::operator=(std::chrono::duration_cast<std::chrono::system_clock::duration, double, std::ratio<1, 1>>(dtDuration));
-// 	}
-// 	operator double()
-// 	{
-// 		return *reinterpret_cast<double*>(this);
-// 	}
-// 	operator const double() const
-// 	{
-// 		return *reinterpret_cast<const double*>(this);
-// 	}
-// 	static TimeSpan Zero()
-// 	{
-// 		std::chrono::duration<double>	ret = std::chrono::duration<double>::zero();
+	private m_dtDate:	Date = new Date();
+	// ---
+	constructor()
+	{
+	}
+	public Construct0(nHours: number, nMinutes: number, nSeconds: number): TimeSpan
+	{
+		this.m_dtDate = new Date((Math.floor(nHours) * 60 * 60 + Math.floor(nMinutes) * 60 + Math.floor(nSeconds)) * 1000);
+		// ---
+		return this;
+	}
+	public Construct1(nDays: number, nHours: number, nMinutes: number, nSeconds: number): TimeSpan
+	{
+		this.m_dtDate = new Date((Math.floor(nDays) * 24 * 60 * 60 + Math.floor(nHours) * 60 * 60 + Math.floor(nMinutes) * 60 + Math.floor(nSeconds)) * 1000);
+		// ---
+		return this;
+	}
+	public Construct2(d: number): TimeSpan
+	{
+		this.m_dtDate = new Date(d * 1000);
+		// ---
+		return this;
+	}
+	// Handles results of DateTime arithmetic.
+	// TimeSpan(const std::chrono::system_clock::duration& dtDuration)
+	// {
+	// 	super::operator=(std::chrono::duration_cast<std::chrono::system_clock::duration, double, std::ratio<1, 1>>(dtDuration));
+	// }
+	// operator double()
+	// {
+	// 	return *reinterpret_cast<double*>(this);
+	// }
+	// operator const double() const
+	// {
+	// 	return *reinterpret_cast<const double*>(this);
+	// }
+	public static Zero(): TimeSpan
+	{
+		return new TimeSpan().Construct2(0);
+	}
+	public static Parse(sz: string): TimeSpan
+	{
+		var tsRet:		TimeSpan = new TimeSpan();
+		var vszMatches:	string[] = [];
 
-// 		return *reinterpret_cast<TimeSpan*>(&ret);
-// 	}
-// 	template <typename CHAR> static TimeSpan Parse(const basic_mstring<CHAR>& sz)
-// 	{
-// 		TimeSpan				tsRet;
-// 		std::vector<mstringb>	vszMatches;
+		vszMatches = Regex.ProgressiveMatch(sz, [], [
+			[true, /[\d]/i], [false, /\./i],
+			[true, /[\d]{2}/i], [false, /:/i],
+			[true, /[\d]{2}/i], [false, /:/i],
+			[true, /[\d]{2}/i] ]);
+		if (vszMatches.length === 4)
+		{
+			// D.HH:MM:SS.
+			tsRet = new TimeSpan().Construct1(atol(vszMatches[0]), atol(vszMatches[1]), atol(vszMatches[2]), atol(vszMatches[3]));
+		}
+		else
+		{
+			vszMatches = Regex.ProgressiveMatch(sz, [], [
+				[true, /[\d]{2}/i], [false, /:/i],
+				[true, /[\d]{2}/i], [false, /:/i],
+				[true, /[\d]{2}/i] ]);
+			if (vszMatches.length === 3)
+			{
+				// HH:MM:SS.
+				tsRet = new TimeSpan().Construct0(atol(vszMatches[0]), atol(vszMatches[1]), atol(vszMatches[2]));
+			}
+			else
+			{
+				tsRet = TimeSpan.Zero();
+			}
+		}
+		// ---
+		return tsRet;
+	}
+	public ToString(): string
+	{
+		var	szRet:	string = "";
 
-// 		if (CIREGEXB::ProgressiveMatch(sz, {}, {
-// 			{true, R"([\d])"}, {false, R"(\.)"},
-// 			{true, R"([\d]{2})"}, {false, R"(:)"},
-// 			{true, R"([\d]{2})"}, {false, R"(:)"},
-// 			{true, R"([\d]{2})"} }, vszMatches) && vszMatches.size() == 4)
-// 		{
-// 			// D.HH:MM:SS.
-// 			tsRet = TimeSpan(atol(vszMatches[0]), atol(vszMatches[1]), atol(vszMatches[2]), atol(vszMatches[3]));
-// 		}
-// 		else if (CIREGEXB::ProgressiveMatch(sz, {}, {
-// 			{true, R"([\d]{2})"}, {false, R"(:)"},
-// 			{true, R"([\d]{2})"}, {false, R"(:)"},
-// 			{true, R"([\d]{2})"} }, vszMatches) && vszMatches.size() == 3)
-// 		{
-// 			// HH:MM:SS.
-// 			tsRet = TimeSpan(atol(vszMatches[0]), atol(vszMatches[1]), atol(vszMatches[2]));
-// 		}
-// 		else
-// 		{
-// 			tsRet = TimeSpan::Zero();
-// 		}
-// 		// ---
-// 		return tsRet;
-// 	}
-// 	public ToString(): string
-// 	{
-// 		mstringb	szRet;
-
-// 		szRet.Format("%f", (double)*this);
-// 		// ---
-// 		return szRet;
-// 	}
+		// szRet = this.m_dtDate.toISOString();
+		szRet = (this.m_dtDate.getMilliseconds() * 1000).toString();
+		// ---
+		return szRet;
+	}
 };
 
 /// <summary>

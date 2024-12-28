@@ -248,17 +248,17 @@ export class DbContext extends DataObjectBase
 /// <typeparam name="T">Type of database object</typeparam>
 export class DbSet<T extends DataObjectBase> extends Array<T>
 {
-	//private m_tTypeCompare:	new() => T;
-	private m_tTypeCompare:	T;
+	private m_tTypeCompare:	new() => T;
+	//private m_tTypeCompare:	T;
 	// ---
 	constructor(ctor: new() => T)
 	{
 		super();
-		this.m_tTypeCompare = new ctor();
+		this.m_tTypeCompare = ctor;
 	}
 	public ContainedType() : any
 	{
-		return typeof(this.m_tTypeCompare);
+		return this.m_tTypeCompare;
 	}
 	// --- C++/stl-ish from port from C++.
 	public empty(): boolean

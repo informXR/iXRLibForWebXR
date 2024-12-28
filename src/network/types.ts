@@ -175,6 +175,131 @@ export class SUID
 	}
 };
 
+export class Regex
+{
+	// Simple... is there a match anywhere in the string.
+	static Contains(data: string, regex: RegExp): boolean
+	{
+		return regex.test(data);
+	}
+	// First match from the beginning of the string, if any.
+	static FirstMatch(szData: string, rxRegex: RegExp): {match: string, range: [number, number]} | null
+	{
+		const raMatch:	RegExpMatchArray | null = szData.match(rxRegex);
+
+		if (!raMatch)
+		{
+			return null;
+		}
+		return {match: raMatch[0], range: [raMatch.index!, raMatch.index! + raMatch[0].length]};
+	}
+	/// <summary>
+	///		Drill down regexing through vrxszRegexLevels... i.e. vrxszRegexLevels[0] produces an array of matches, for each of those run vrxszRegexLevels[1], for each of those...
+	///		Then take the non-empty leaf node(s) and chew through using pbrxszRegexes, tossing the ones with false in the pair, accruing the ones with true in the pair.
+	/// </summary>
+	/// <param name="szData">String in which to search for matches</param>
+	/// <param name="vrxszRegexLevels">Regular expressions to drill down into desired matches... i.e. first level acquires set of matches, second level matches into those, third level matches into second level...</param>
+	/// <param name="pbrxszRegexes">pairs of <bool, regex-string> to chew through the matches from vrxszRegexLevels... keep the true ones, discard the false ones</param>
+	/// <param name="vszMatches">Matches from the true pbrxszRegexes</param>
+	/// <returns>true if there are matches, false if empty set</returns>
+	static ProgressiveMatch(szData: string, vrxszRegexLevels: RegExp[], pbrxszFilterRegexes: Array<[boolean, RegExp]>): string[]
+	{
+		let vszCurrentMatches = [szData];
+		const vszMatches:	string[] = [];
+
+		// Drill down through regex levels.
+		for (const regex of vrxszRegexLevels)
+		{
+			if (vszCurrentMatches.length === 0)
+			{
+				break;
+			}
+			const vszNextMatches: string[] = [];
+			for (const text of vszCurrentMatches)
+			{
+				const found = text.match(new RegExp(regex, 'g')) || [];
+				vszNextMatches.push(...found);
+			}
+			vszCurrentMatches = vszNextMatches;
+		}
+		// Process final matches through filter regexes.
+		for (const szText of vszCurrentMatches)
+		{
+			let szCurrentText = szText;
+			let bAllMatched = true;
+
+			for (const [bKeep, rxRegex] of pbrxszFilterRegexes)
+			{
+				const szrMatch = this.FirstMatch(szCurrentText, rxRegex);
+
+				if (!szrMatch)
+				{
+					bAllMatched = false;
+					break;
+				}
+				if (bKeep)
+				{
+					vszMatches.push(szrMatch.match);
+				}
+				szCurrentText = szCurrentText.slice(szrMatch.range[1]);
+			}
+		}
+		return vszMatches;
+	}
+	/// <summary>
+	/// Algorithm summary:
+	///		Drill down regexing through vrxszRegexLevels... i.e. vrxszRegexLevels[0] produces an array of matches, for each of those run vrxszRegexLevels[1], for each of those...
+	///		Then take the non-empty leaf node(s) and truncate rxszRegexPrefix and rxszPostFix and vszMatches are results of all of those.
+	/// High-level summary:
+	///		Hone in on substrings per vrxszRegexLevels then get at the meat in between what is bracketing it on the left and right.
+	/// </summary>
+	/// <param name="szData">String in which to search for matches</param>
+	/// <param name="vrxszRegexLevels">Regular expressions to drill down into desired matches... i.e. first level acquires set of matches, second level matches into those, third level matches into second level...</param>
+	/// <param name="rxszRegexPrefix">On final level matches, lop off left to trim to absolute final match</param>
+	/// <param name="rxszRegexPostfix">On final level matches, lop off right to trim to absolute final match</param>
+	/// <param name="vszMatches">Bottom line matches from all of above</param>
+	/// <returns>true if found any, false if empty set</returns>
+	static DeepMatch(szData: string, vrxszRegexLevels: RegExp[], rxPrefixRegex: RegExp, rxPostfixRegex: RegExp): string[]
+	{
+		let vszCurrentMatches = [szData];
+		const vszMatches: string[] = [];
+
+		// Drill down through regex levels.
+		for (const rxszRegex of vrxszRegexLevels)
+		{
+			if (vszCurrentMatches.length === 0)
+			{
+				break;
+			}
+			const vszNextMatches: string[] = [];
+			for (const szText of vszCurrentMatches)
+			{
+				const szFound = szText.match(new RegExp(rxszRegex, 'g')) || [];
+				vszNextMatches.push(...szFound);
+			}
+			vszCurrentMatches = vszNextMatches;
+		}
+		// Process final matches - remove prefix and postfix.
+		for (const szText of vszCurrentMatches)
+		{
+			const szPrefixMatch = this.FirstMatch(szText, rxPrefixRegex);
+			const szStartIndex = szPrefixMatch ? szPrefixMatch.range[1] : 0;
+			const szRemainingText = szText.slice(szStartIndex);
+			const szPostfixMatch = this.FirstMatch(szRemainingText, rxPostfixRegex);
+			const szEndIndex = szPostfixMatch ? szPostfixMatch.range[0] : szRemainingText.length;
+			const szFinalMatch = szRemainingText.slice(0, szEndIndex);
+
+			vszMatches.push(szFinalMatch);
+		}
+		return vszMatches;
+	}
+}
+
+export function atol(str: string): number
+{
+	return parseInt(str, 10);
+}
+
 // ---
 
 export interface ApiResponse<T = any> {

@@ -6,6 +6,7 @@ import { crc32 } from './network/utils/crc32';
 import { SHA256 } from './network/utils/cryptoUtils';
 import { DataObjectBase, DbSet, FieldPropertyFlags } from './network/utils/DataObjectBase';
 import { iXRResult, DateTime, StringList, PythonDictStrings, JsonResult } from './network/utils/DotNetishTypes';
+import { DatabaseResult } from './network/utils/iXRLibSQLite';
 import { JWTDecode } from './network/utils/JWT';
 import { TimeSpan } from './network/utils/timeSpan';
 
@@ -419,7 +420,7 @@ export class iXRLibAnalytics
 		var	nTrimCount:		number;
 		var	dtNow:			DateTime = DateTime.Now(),
 			dtOlderThan:	DateTime = dtNow - iXRLibStorage.m_ixrLibConfiguration.m_tsPruneSentItemsOlderThan;
-		var	pdsIXRXXX:		DbSet<T extends DataObjectBase> = new DbSet<T extends DataObjectBase>();
+		var	pdsIXRXXX:		DbSet<T extends DataObjectBase> = null;
 		var	eDb:			DatabaseResult;
 		var	eRet:			iXRResult = iXRResult.eOk;
 
@@ -427,22 +428,19 @@ export class iXRLibAnalytics
 		{
 			var ixrDbContext:	iXRDbContext = new iXRDbContext(false);
 
-			//Object.entries(iXRDbContext.m_mapProperties.m_rfp).forEach(([fKey, fValue]) =>
-			//	{
-			//		if (fValue.m_fFlags && (fValue.m_fFlags & FieldPropertyFlags.bfChildList) && fValue.m_szName === )
-			//		{
-
-			//		}
-			//		if (fValue.m_szName === key || fKey === key)
-			//		{
-			//			fpNode = this.m_rfp[fKey];
-			//			return;
-			//		}
-			//	});
-			//for (const fNode of iXRDbContext.m_mapProperties.m_rfp)
-			//{
-			//	if (fNode.)
-			//}
+			for (const [szField, objField] of Object.entries(iXRDbContext))
+			{
+				console.log(szField, " ", typeof(objField));
+				if (objField instanceof DbSet)
+				{
+					if (objField.ContainedType() === T)
+					{
+						console.log("Found it: ", szField);
+						pdsIXRXXX = objField;
+						break;
+					}
+				}
+			}
 			// constexpr size_t nbChildObjectListProperties = std::tuple_size_v<decltype(iXRDbContext.childobjectlistproperties)>;
 			// // ---
 			// // Find the ixrDbContext child list matching type T.
@@ -542,12 +540,12 @@ export class iXRLibAnalytics
 	/// <returns>As the call has not happened yet on return, this is the status of adding the task or failing to add it.</returns>
 	private static DeleteXXXTask<T extends DataObjectBase>(ixrT: T, szTableName: string, pfnDeleteIXRXXX: (ixrT: T, refparam: {szResponse: string}) => iXRResult, bNoCallbackOnSuccess: boolean, pfnStatusCallback: CB): iXRResult
 	{
-		var	nTrimCount: number;
-		var	dtNow = DateTime.Now(),
-			dtOlderThan = dtNow - iXRLibStorage.m_ixrLibConfiguration.m_tsPruneSentItemsOlderThan;
-		var	pdsIXRXXX: DbSet<T extends DataObjectBase> = new DbSet<T extends DataObjectBase>();
-		var	eDb: DatabaseResult;
-		var	eRet = iXRResult.eOk;
+		var	nTrimCount:		number;
+		var	dtNow:			DateTime = DateTime.Now(),
+			dtOlderThan:	DateTime = dtNow - iXRLibStorage.m_ixrLibConfiguration.m_tsPruneSentItemsOlderThan;
+		var	pdsIXRXXX:		DbSet<T extends DataObjectBase> = new DbSet<T extends DataObjectBase>();
+		var	eDb:			DatabaseResult;
+		var	eRet:			iXRResult = iXRResult.eOk;
 
 		try
 		{
@@ -639,10 +637,10 @@ export class iXRLibAnalytics
 		// If we have enough new yet-to-be-pushed-to-REST items, then do that and mark as sent.
 		if (iXRLibStorage.m_ixrLibConfiguration.RESTConfigured())
 		{
-			var	dspObjectsToSend: DbSet<T extends DataObjectBase>;
-			var	i: number;
-			var	bDoneSending: boolean = false;
-			var	eDb: DatabaseResult;
+			var	dspObjectsToSend:	DbSet<T extends DataObjectBase>;
+			var	i:					number;
+			var	bDoneSending:		boolean = false;
+			var	eDb:				DatabaseResult;
 
 			if (iXRLibStorage.m_ixrLibConfiguration.m_bUseDatabase)
 			{
