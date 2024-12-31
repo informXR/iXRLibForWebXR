@@ -1,7 +1,7 @@
 import { AuthTokenDecodedJWT, AuthTokenRequest, AuthTokenResponseFailure, AuthTokenResponseSuccess, iXRLibClient, Partner, PartnerToString, PostObjectsResponseFailure, PostObjectsResponseSuccess } from './iXRLibClient';
 import { iXRAIProxy, iXRBase, iXRDbContext, iXRStorage } from './iXRLibCoreModel';
 import { iXRLibStorage } from './iXRLibStorage';
-import { Base64, DATEMAXVALUE, Sleep } from './network/types';
+import { Base64, CurlHttp, DATEMAXVALUE, Sleep } from './network/types';
 import { crc32 } from './network/utils/crc32';
 import { SHA256 } from './network/utils/cryptoUtils';
 import { DataObjectBase, DbSet, FieldPropertyFlags } from './network/utils/DataObjectBase';
