@@ -1,5 +1,5 @@
 import { AuthTokenDecodedJWT, AuthTokenRequest, AuthTokenResponseFailure, AuthTokenResponseSuccess, iXRLibClient, Partner, PartnerToString, PostObjectsResponseFailure, PostObjectsResponseSuccess } from './iXRLibClient';
-import { iXRAIProxy, iXRDbContext, iXRStorage } from './iXRLibCoreModel';
+import { iXRAIProxy, iXRBase, iXRDbContext, iXRStorage } from './iXRLibCoreModel';
 import { iXRLibStorage } from './iXRLibStorage';
 import { Base64, DATEMAXVALUE, Sleep } from './network/types';
 import { crc32 } from './network/utils/crc32';
@@ -415,12 +415,12 @@ export class iXRLibAnalytics
 	/// <param name="bNoCallbackOnSuccess">true = Only call pfnStatusCallback on error, false = always call pfnStatusCallback (assuming pfnStatusCallback not null, do not call at all otherwise).</param>
 	/// <param name="pfnStatusCallback">null = do not want status callback, else call according to ^^^.</param>
 	/// <returns>As the call has not happened yet on return, this is the status of adding the task or failing to add it.</returns>
-	private static AddXXXTask<T extends DataObjectBase>(ixrT: T, szTableName: string, pfnPostIXRXXX: (listpT: DbSet<T extends DataObjectBase>, bOneAtATime: boolean, refparam: {szResponse: string}) => iXRResult, bOneAtATime: boolean, bNoCallbackOnSuccess: boolean, pfnStatusCallback: (ixrXXX: T, eResult: iXRResult, szExceptionMessage: string) => void | null): iXRResult
+	private static AddXXXTask<T extends iXRBase>(ixrT: T, szTableName: string, pfnPostIXRXXX: (listpT: DbSet<T>, bOneAtATime: boolean, refparam: {szResponse: string}) => iXRResult, bOneAtATime: boolean, bNoCallbackOnSuccess: boolean, pfnStatusCallback: (ixrXXX: T, eResult: iXRResult, szExceptionMessage: string) => void | null): iXRResult
 	{
 		var	nTrimCount:		number;
-		var	dtNow:			DateTime = DateTime.Now(),
-			dtOlderThan:	DateTime = dtNow - iXRLibStorage.m_ixrLibConfiguration.m_tsPruneSentItemsOlderThan;
-		var	pdsIXRXXX:		DbSet<T extends DataObjectBase> = null;
+		var	dtNow:			DateTime = DateTime.ConvertUnixTime(DateTime.Now()),
+			dtOlderThan:	DateTime = DateTime.ConvertUnixTime(dtNow.ToUnixTime() - iXRLibStorage.m_ixrLibConfiguration.m_tsPruneSentItemsOlderThan.ToDateTime().ToUnixTime());
+		var	pdsIXRXXX:		DbSet<T> | null | undefined = null;
 		var	eDb:			DatabaseResult;
 		var	eRet:			iXRResult = iXRResult.eOk;
 
@@ -430,37 +430,21 @@ export class iXRLibAnalytics
 
 			for (const [szField, objField] of Object.entries(iXRDbContext))
 			{
-				console.log(szField, " ", typeof(objField));
 				if (objField instanceof DbSet)
 				{
-					if (objField.ContainedType() === T)
+					if (objField.ContainedType() === typeof(T))
 					{
-						console.log("Found it: ", szField);
 						pdsIXRXXX = objField;
 						break;
 					}
 				}
 			}
-			// constexpr size_t nbChildObjectListProperties = std::tuple_size_v<decltype(iXRDbContext.childobjectlistproperties)>;
-			// // ---
-			// // Find the ixrDbContext child list matching type T.
-			// for_sequence(std::make_index_sequence<nbChildObjectListProperties>{}, [&](auto i)
-			// {
-			// 	// Get the property.
-			// 	constexpr auto	objChildListProperty = std::get<i>(iXRDbContext.childobjectlistproperties);
-			// 	// Get the type of the property.
-			// 	using Type = typename decltype(objChildListProperty)::Type;
-			// 	if (std::is_same_v<T, Type>)
-			// 	{
-			// 		pdsIXRXXX = reinterpret_cast<DbSet<T extends DataObjectBase>*>(&(ixrDbContext.*(objChildListProperty.member)));
-			// 	}
-			// });
 			// ---
 			// newscope
 			// {
 			// 	ScopeThreadBlock	cs(m_csDB);
 
-				pdsIXRXXX.Add(ixrT);
+				pdsIXRXXX?.Add(ixrT);
 				if (iXRLibStorage.m_ixrLibConfiguration.m_bUseDatabase)
 				{
 					eDb = ixrDbContext.SaveChanges();
@@ -469,50 +453,50 @@ export class iXRLibAnalytics
 			// If the un-pushed exceeds the limits (0 = ∞), trim out oldest necessary to get it under the limits.
 			if (iXRLibStorage.m_ixrLibConfiguration.m_nMaximumCachedItems > 0)
 			{
-				ScopeThreadBlock	cs(m_csDB);
+				// ScopeThreadBlock	cs(m_csDB);
 
-				if (iXRLibStorage.m_ixrLibConfiguration.m_bUseDatabase)
-				{
-					// Could be faster by obtaining the count with a SELECT COUNT... in a hurry to finish this port so doing it this way for now.
-					eDb = ExecuteSqlSelect(ixrDbContext.m_db, szTableName, "SELECT %s FROM %s WHERE SyncedWithCloud != 0 ORDER BY timestamp", {}, *pdsIXRXXX);
-					nTrimCount = pdsIXRXXX.Count() - iXRLibStorage.m_ixrLibConfiguration.m_nMaximumCachedItems;
-					if (nTrimCount > 0)
-					{
-						pdsIXRXXX.RemoveRange(nTrimCount);
-						eDb = ixrDbContext.SaveChanges();
-					}
-				}
-				else
+				// if (iXRLibStorage.m_ixrLibConfiguration.m_bUseDatabase)
+				// {
+				// 	// Could be faster by obtaining the count with a SELECT COUNT... in a hurry to finish this port so doing it this way for now.
+				// 	eDb = ExecuteSqlSelect(ixrDbContext.m_db, szTableName, "SELECT %s FROM %s WHERE SyncedWithCloud != 0 ORDER BY timestamp", {}, *pdsIXRXXX);
+				// 	nTrimCount = pdsIXRXXX.Count() - iXRLibStorage.m_ixrLibConfiguration.m_nMaximumCachedItems;
+				// 	if (nTrimCount > 0)
+				// 	{
+				// 		pdsIXRXXX.RemoveRange(nTrimCount);
+				// 		eDb = ixrDbContext.SaveChanges();
+				// 	}
+				// }
+				// else
 				{
 					// If not using the db, simply remove everything that sent successfully.
-					pdsIXRXXX.remove_if([](T& t) { return t.m_bSyncedWithCloud; });
+					pdsIXRXXX = pdsIXRXXX?.filter(t => !t.m_bSyncedWithCloud) as DbSet<T>;
 				}
 			}
 			// If pruneSentItemsOlderThan indicates a time (0 = ∞), trim older sent items.
-			if (iXRLibStorage.m_ixrLibConfiguration.m_tsPruneSentItemsOlderThan > TimeSpan.Zero())
+			if (iXRLibStorage.m_ixrLibConfiguration.m_tsPruneSentItemsOlderThan.ToInt64() > TimeSpan.Zero().ToInt64())
 			{
-				ScopeThreadBlock	cs(m_csDB);
+				// ScopeThreadBlock	cs(m_csDB);
 
-				if (iXRLibStorage.m_ixrLibConfiguration.m_bUseDatabase)
-				{
-					eDb = ExecuteSqlSelect(ixrDbContext.m_db, szTableName, "SELECT %s FROM %s WHERE SyncedWithCloud != 0 AND timestamp < ?", { {"timestamp", &dtOlderThan} }, *pdsIXRXXX);
-					if (pdsIXRXXX.Count() > 0)
-					{
-						pdsIXRXXX.RemoveRange();
-						eDb = ixrDbContext.SaveChanges();
-					}
-				}
-				else
+				// if (iXRLibStorage.m_ixrLibConfiguration.m_bUseDatabase)
+				// {
+				// 	eDb = ExecuteSqlSelect(ixrDbContext.m_db, szTableName, "SELECT %s FROM %s WHERE SyncedWithCloud != 0 AND timestamp < ?", { {"timestamp", &dtOlderThan} }, *pdsIXRXXX);
+				// 	if (pdsIXRXXX.Count() > 0)
+				// 	{
+				// 		pdsIXRXXX.RemoveRange();
+				// 		eDb = ixrDbContext.SaveChanges();
+				// 	}
+				// }
+				// else
 				{
 					// If not using the db, simply remove everything that sent successfully.
-					pdsIXRXXX = pdsIXRXXX.filter(t => { return t.m_bSyncedWithCloud; });
+					pdsIXRXXX = pdsIXRXXX?.filter(t => { return !t.m_bSyncedWithCloud; }) as DbSet<T>;
 				}
 			}
 			eRet = SendUnsentXXXs<T>(ixrDbContext, pdsIXRXXX, szTableName, pfnPostIXRXXX, bOneAtATime, iXRLibStorage.m_ixrLibConfiguration.m_nEventsPerSendAttempt, false);
 			// ---
 			if (iXRLibStorage.m_ixrLibConfiguration.m_bUseDatabase)
 			{
-				ScopeThreadBlock	cs(m_csDB);
+				// ScopeThreadBlock	cs(m_csDB);
 
 				eDb = ixrDbContext.SaveChanges();
 			}
@@ -538,12 +522,12 @@ export class iXRLibAnalytics
 	/// <param name="bNoCallbackOnSuccess">true = Only call pfnStatusCallback on error, false = always call pfnStatusCallback (assuming pfnStatusCallback not null, do not call at all otherwise).</param>
 	/// <param name="pfnStatusCallback">null = do not want status callback, else call according to ^^^.</param>
 	/// <returns>As the call has not happened yet on return, this is the status of adding the task or failing to add it.</returns>
-	private static DeleteXXXTask<T extends DataObjectBase>(ixrT: T, szTableName: string, pfnDeleteIXRXXX: (ixrT: T, refparam: {szResponse: string}) => iXRResult, bNoCallbackOnSuccess: boolean, pfnStatusCallback: CB): iXRResult
+	private static DeleteXXXTask<T extends iXRBase>(ixrT: T, szTableName: string, pfnDeleteIXRXXX: (ixrT: T, refparam: {szResponse: string}) => iXRResult, bNoCallbackOnSuccess: boolean, pfnStatusCallback: CB): iXRResult
 	{
 		var	nTrimCount:		number;
-		var	dtNow:			DateTime = DateTime.Now(),
-			dtOlderThan:	DateTime = dtNow - iXRLibStorage.m_ixrLibConfiguration.m_tsPruneSentItemsOlderThan;
-		var	pdsIXRXXX:		DbSet<T extends DataObjectBase> = new DbSet<T extends DataObjectBase>();
+		var	dtNow:			DateTime = DateTime.ConvertUnixTime(DateTime.Now()),
+			dtOlderThan:	DateTime = DateTime.ConvertUnixTime(dtNow.ToUnixTime() - iXRLibStorage.m_ixrLibConfiguration.m_tsPruneSentItemsOlderThan.ToDateTime().ToUnixTime());
+		var	pdsIXRXXX:		DbSet<T> | null | undefined = null;
 		var	eDb:			DatabaseResult;
 		var	eRet:			iXRResult = iXRResult.eOk;
 
@@ -551,61 +535,58 @@ export class iXRLibAnalytics
 		{
 			var ixrDbContext:	iXRDbContext = new iXRDbContext(false);
 
-			constexpr size_t nbChildObjectListProperties = std::tuple_size_v<decltype(iXRDbContext.childobjectlistproperties)>;
-			// ---
-			// Find the ixrDbContext child list matching type T.
-			for_sequence(std::make_index_sequence<nbChildObjectListProperties>{}, [&](auto i)
+			for (const [szField, objField] of Object.entries(iXRDbContext))
 			{
-				// Get the property.
-				constexpr auto	objChildListProperty = std::get<i>(iXRDbContext.childobjectlistproperties);
-				// Get the type of the property.
-				using Type = typename decltype(objChildListProperty)::Type;
-				if (std::is_same_v<T, Type>)
+				if (objField instanceof DbSet)
 				{
-					pdsIXRXXX = reinterpret_cast<DbSet<T extends DataObjectBase>*>(&(ixrDbContext.*(objChildListProperty.member)));
+					if (objField.ContainedType() === typeof(T))
+					{
+						pdsIXRXXX = objField;
+						break;
+					}
 				}
-			});
-			// ---
-			newscope
-			{
-				ScopeThreadBlock	cs(m_csDB);
-
-				pdsIXRXXX.Add(ixrT);
-				eDb = ixrDbContext.SaveChanges();
 			}
+			// ---
+			// newscope
+			// {
+			// 	ScopeThreadBlock	cs(m_csDB);
+
+				pdsIXRXXX?.Add(ixrT);
+				eDb = ixrDbContext.SaveChanges();
+			// }
 			// If the un-pushed exceeds the limits (0 = ∞), trim out oldest necessary to get it under the limits.
 			if (iXRLibStorage.m_ixrLibConfiguration.m_nMaximumCachedItems > 0)
 			{
-				ScopeThreadBlock	cs(m_csDB);
+				// ScopeThreadBlock	cs(m_csDB);
 
 				// Could be faster by obtaining the count with a SELECT COUNT... in a hurry to finish this port so doing it this way for now.
 				eDb = ExecuteSqlSelect(ixrDbContext.m_db, szTableName, "SELECT %s FROM %s WHERE SyncedWithCloud != 0 ORDER BY timestamp", {}, pdsIXRXXX);
-				nTrimCount = pdsIXRXXX.Count() - iXRLibStorage.m_ixrLibConfiguration.m_nMaximumCachedItems;
+				nTrimCount = pdsIXRXXX?.Count() - iXRLibStorage.m_ixrLibConfiguration.m_nMaximumCachedItems;
 				if (nTrimCount > 0)
 				{
-					pdsIXRXXX.RemoveRange(nTrimCount);
+					pdsIXRXXX?.RemoveRange(nTrimCount);
 					eDb = ixrDbContext.SaveChanges();
 				}
 			}
 			// If pruneSentItemsOlderThan indicates a time (0 = ∞), trim older sent items.
 			if (iXRLibStorage.m_ixrLibConfiguration.m_tsPruneSentItemsOlderThan > TimeSpan.Zero())
 			{
-				ScopeThreadBlock	cs(m_csDB);
+				// ScopeThreadBlock	cs(m_csDB);
 
 				eDb = ExecuteSqlSelect(ixrDbContext.m_db, szTableName, "SELECT %s FROM %s WHERE SyncedWithCloud != 0 AND timestamp < ?", { {"timestamp", &dtOlderThan} }, pdsIXRXXX);
-				if (pdsIXRXXX.Count() > 0)
+				if (pdsIXRXXX?.Count() > 0)
 				{
-					pdsIXRXXX.RemoveRange();
+					pdsIXRXXX?.RemoveRange();
 					eDb = ixrDbContext.SaveChanges();
 				}
 			}
 			// ---
-			newscope
-			{
-				ScopeThreadBlock	cs(m_csDB);
+			// newscope
+			// {
+			// 	ScopeThreadBlock	cs(m_csDB);
 
 				eDb = ixrDbContext.SaveChanges();
-			}
+			// }
 		}
 		catch (error)
 		{
@@ -622,14 +603,14 @@ export class iXRLibAnalytics
 	/// <typeparam name="T">Type of straggler objects to be sent.</typeparam>
 	/// <typeparam name="iXRLibStorage">Resolves forward reference catch-22.</typeparam>
 	/// <param name="ixrDbContext">Database object that contains all the iXRLib object lists</param>
-	/// <param name="dsIXRXXX">DbSet<T extends DataObjectBase> passed in by caller so we use the same one as we want any changes in its state to bubble up to the caller... contains the objects to send.</param>
+	/// <param name="dsIXRXXX">DbSet<T extends iXRBase> passed in by caller so we use the same one as we want any changes in its state to bubble up to the caller... contains the objects to send.</param>
 	/// <param name="szTableName">Name of corresponding table in the database.</param>
 	/// <param name="pfnPostIXRXXX">Pointer to function that sends a list of pointers to T which this function will calculate for sending to backend.</param>
 	/// <param name="bOneAtATime">true = POST the objects one object per POST, false = POST them as one single POST with all objects in the body content.</param>
 	/// <param name="nConfiguredXXXPerSendAttempt">The corresponding how many T's per send attempt from iXRLibConfiguration.</param>
 	/// <param name="bSendingStragglers">true when being called by TimerCallback to drive Nagle-algorithmish-straggler-send, false when doing a main send</param>
 	/// <returns>iXRResult status code</returns>
-	private SendUnsentXXXs<T extends DataObjectBase>(ixrDbContext: iXRDbContext, dsIXRXXX: DbSet<T extends DataObjectBase>, szTableName: string, pfnPostIXRXXX: (listpT: DbSet<T extends DataObjectBase>, bOneAtATime: boolean, refparam: {szResponse: string}) => iXRRresult, bOneAtATime: boolean, nConfiguredXXXPerSendAttempt: number, bSendingStragglers: boolean): iXRResult
+	private SendUnsentXXXs<T extends iXRBase>(ixrDbContext: iXRDbContext, dsIXRXXX: DbSet<T>, szTableName: string, pfnPostIXRXXX: (listpT: DbSet<T>, bOneAtATime: boolean, refparam: {szResponse: string}) => iXRResult, bOneAtATime: boolean, nConfiguredXXXPerSendAttempt: number, bSendingStragglers: boolean): iXRResult
 	{
 		var	eRet: iXRResult.eOk,
 			eTestRet = iXRResult.eOk;
@@ -637,27 +618,27 @@ export class iXRLibAnalytics
 		// If we have enough new yet-to-be-pushed-to-REST items, then do that and mark as sent.
 		if (iXRLibStorage.m_ixrLibConfiguration.RESTConfigured())
 		{
-			var	dspObjectsToSend:	DbSet<T extends DataObjectBase>;
+			var	dspObjectsToSend:	DbSet<T> | null | undefined = null;
 			var	i:					number;
 			var	bDoneSending:		boolean = false;
 			var	eDb:				DatabaseResult;
 
-			if (iXRLibStorage.m_ixrLibConfiguration.m_bUseDatabase)
-			{
-				ScopeThreadBlock	cs(m_csDB);
+			// if (iXRLibStorage.m_ixrLibConfiguration.m_bUseDatabase)
+			// {
+				// ScopeThreadBlock	cs(m_csDB);
 
-				eDb = ExecuteSqlSelect(ixrDbContext.m_db, szTableName, "SELECT %s FROM %s WHERE SyncedWithCloud == 0 ORDER BY timestamp", {}, dsIXRXXX);
-			}
+			// 	eDb = ExecuteSqlSelect(ixrDbContext.m_db, szTableName, "SELECT %s FROM %s WHERE SyncedWithCloud == 0 ORDER BY timestamp", {}, dsIXRXXX);
+			// }
 			// While the remaining unpushed > eventsPerSendAttempt...
-			while (!bDoneSending && dsIXRXXX.Count() > 0 && ((bSendingStragglers || dsIXRXXX.Count() >= nConfiguredXXXPerSendAttempt) || (!iXRLibStorage.m_ixrLibConfiguration.m_bUseDatabase)))
+			while (!bDoneSending && dsIXRXXX?.Count() > 0 && ((bSendingStragglers || dsIXRXXX?.Count() >= nConfiguredXXXPerSendAttempt) || (!iXRLibStorage.m_ixrLibConfiguration.m_bUseDatabase)))
 			{
-				newscope
-				{
-					ScopeThreadBlock	cs(m_csDB);
+				// newscope
+				// {
+					// ScopeThreadBlock	cs(m_csDB);
 
-					dspObjectsToSend = dsIXRXXX.Take(nConfiguredXXXPerSendAttempt);
+					dspObjectsToSend = dsIXRXXX?.Take(nConfiguredXXXPerSendAttempt);
 					// ---
-					if (dspObjectsToSend.size() == 0)
+					if (dspObjectsToSend?.size() == 0)
 					{
 						// I hope this code never gets executed.  I wrote it as a bandaid with a large comment
 						// rivaling the blather volume of this comment detailing how it really stinks and I
@@ -670,12 +651,12 @@ export class iXRLibAnalytics
 						// ---
 						// The meaning of this is "if we are about to send an empty list, do the tidy up as if
 						// we just sent then break out of this loop."
-						m_dtLastSuccessfulSend = DateTime.Now();
-						m_bCheckForStragglers = !bSendingStragglers;
+						iXRLibAnalytics.m_dtLastSuccessfulSend = DateTime.ConvertUnixTime(DateTime.Now());
+						iXRLibAnalytics.m_bCheckForStragglers = !bSendingStragglers;
 						bDoneSending = true;
 						break;
 					}
-				}
+				// }
 				for (i = 0; i < iXRLibStorage.m_ixrLibConfiguration.m_nSendRetriesOnFailure; i++)
 				{
 					try
@@ -707,28 +688,31 @@ export class iXRLibAnalytics
 							if (eTestRet == iXRResult.eOk)
 							{
 								// Succeeded... mark them as sent.
-								for (T* pt : dspObjectsToSend)
+								if (dspObjectsToSend)
 								{
-									pt.m_bSyncedWithCloud = true;
-								}
-								newscope
-								{
-									ScopeThreadBlock	cs(m_csDB);
-
-									if (iXRLibStorage.m_ixrLibConfiguration.m_bUseDatabase)
+									for (let pt of dspObjectsToSend)
 									{
-										ixrDbContext.SaveChanges();
-										eDb = ExecuteSqlSelect(ixrDbContext.m_db, szTableName, "SELECT %s FROM %s WHERE SyncedWithCloud == 0 ORDER BY timestamp", {}, dsIXRXXX);
+										pt.m_bSyncedWithCloud = true;
 									}
-									else
+								}
+								// newscope
+								// {
+								// 	ScopeThreadBlock	cs(m_csDB);
+
+									// if (iXRLibStorage.m_ixrLibConfiguration.m_bUseDatabase)
+									// {
+									// 	ixrDbContext.SaveChanges();
+									// 	eDb = ExecuteSqlSelect(ixrDbContext.m_db, szTableName, "SELECT %s FROM %s WHERE SyncedWithCloud == 0 ORDER BY timestamp", {}, dsIXRXXX);
+									// }
+									// else
 									{
 										// If not using the db, simply remove everything that sent successfully.
-										dsIXRXXX.remove_if([](T& t) { return t.m_bSyncedWithCloud; });
+										dsIXRXXX = dsIXRXXX?.filter(t => !t.m_bSyncedWithCloud);
 									}
-									m_dtLastSuccessfulSend = DateTime.Now();
-									m_bCheckForStragglers = !bSendingStragglers;
+									iXRLibAnalytics.m_dtLastSuccessfulSend = DateTime.ConvertUnixTime(DateTime.Now());
+									iXRLibAnalytics.m_bCheckForStragglers = !bSendingStragglers;
 									bDoneSending = true;
-								}
+								// }
 								break;
 							}
 							else
@@ -738,7 +722,7 @@ export class iXRLibAnalytics
 						}
 						else
 						{
-							Sleep(iXRLibStorage.m_ixrLibConfiguration.m_tsSendRetryInterval * 1000);
+							Sleep(iXRLibStorage.m_ixrLibConfiguration.m_tsSendRetryInterval.ToInt64() * 1000);
 						}
 					}
 					catch (error)
@@ -752,21 +736,21 @@ export class iXRLibAnalytics
 				//}
 			}
 			// Delete sent from local-db if thusly configured.
-			if (iXRLibStorage.m_ixrLibConfiguration.m_bUseDatabase)
-			{
-				if (!iXRLibStorage.m_ixrLibConfiguration.m_bRetainLocalAfterSent)
-				{
-					ScopeThreadBlock	cs(m_csDB);
+			// if (iXRLibStorage.m_ixrLibConfiguration.m_bUseDatabase)
+			// {
+			// 	if (!iXRLibStorage.m_ixrLibConfiguration.m_bRetainLocalAfterSent)
+			// 	{
+			// 		ScopeThreadBlock	cs(m_csDB);
 
-					eDb = ExecuteSqlSelect(ixrDbContext.m_db, szTableName, "SELECT %s FROM %s WHERE SyncedWithCloud != 0", {}, dsIXRXXX);
-					dsIXRXXX.RemoveRange();
-					ixrDbContext.SaveChanges();
-				}
-			}
-			else
+			// 		eDb = ExecuteSqlSelect(ixrDbContext.m_db, szTableName, "SELECT %s FROM %s WHERE SyncedWithCloud != 0", {}, dsIXRXXX);
+			// 		dsIXRXXX.RemoveRange();
+			// 		ixrDbContext.SaveChanges();
+			// 	}
+			// }
+			// else
 			{
 				// If not using the db, simply remove everything that sent successfully.
-				dsIXRXXX = dsIXRXXX.filter(t => { return t.m_bSyncedWithCloud; });
+				dsIXRXXX = dsIXRXXX?.filter(t => { return !t.m_bSyncedWithCloud; });
 			}
 		}
 		// ---
@@ -785,7 +769,7 @@ export class iXRLibAnalytics
 	/// <param name="bNoCallbackOnSuccess">When asynchronous and pfnStatusCallback not null, call always when this is false, only on failure when true.</param>
 	/// <param name="pfnStatusCallback">null = no-op, not-null = callback in asynchronous case with respect to bNoCallbackOnSuccess.</param>
 	/// <returns>iXRResult status code.</returns>
-	private static AddXXXNoDbTask<T extends DataObjectBase>(ixrT: T, pfnPostIXRXXX: (listpT: DbSet<T extends DataObjectBase>, bOneAtATime: boolean, refparam: { szResponse: string}) => iXRResult, bOneAtATime: boolean, bNoCallbackOnSuccess: boolean, pfnStatusCallback: CB): iXRResult
+	private static AddXXXNoDbTask<T extends iXRBase>(ixrT: T, pfnPostIXRXXX: (listpT: DbSet<T>, bOneAtATime: boolean, refparam: { szResponse: string}) => iXRResult, bOneAtATime: boolean, bNoCallbackOnSuccess: boolean, pfnStatusCallback: CB): iXRResult
 	{
 		var	eRet: iXRResult = iXRResult.eOk;
 
@@ -794,9 +778,9 @@ export class iXRLibAnalytics
 			// If we have enough new yet-to-be-pushed-to-REST items, then do that and mark as sent.
 			if (iXRLibStorage.m_ixrLibConfiguration.RESTConfigured())
 			{
-				var	pObjectsToSend: DbSet<T extends DataObjectBase>;
-				var	i: number;
-				var	bDoneSending: boolean = false;
+				var	pObjectsToSend:	DbSet<T> | null | undefined = null;
+				var	i:				number;
+				var	bDoneSending:	boolean = false;
 
 				// While the remaining unpushed > eventsPerSendAttempt...
 				pObjectsToSend.Add(ixrT);

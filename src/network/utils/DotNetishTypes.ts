@@ -348,21 +348,25 @@ export class TimeSpan
 	}
 	public Construct0(nHours: number, nMinutes: number, nSeconds: number): TimeSpan
 	{
-		this.m_dtDate = new Date((Math.floor(nHours) * 60 * 60 + Math.floor(nMinutes) * 60 + Math.floor(nSeconds)) * 1000);
+		this.m_dtDate = new Date((Math.floor(nHours) * 60.0 * 60.0 + Math.floor(nMinutes) * 60.0 + Math.floor(nSeconds)) * 1000.0);
 		// ---
 		return this;
 	}
 	public Construct1(nDays: number, nHours: number, nMinutes: number, nSeconds: number): TimeSpan
 	{
-		this.m_dtDate = new Date((Math.floor(nDays) * 24 * 60 * 60 + Math.floor(nHours) * 60 * 60 + Math.floor(nMinutes) * 60 + Math.floor(nSeconds)) * 1000);
+		this.m_dtDate = new Date((Math.floor(nDays) * 24.0 * 60.0 * 60.0 + Math.floor(nHours) * 60.0 * 60.0 + Math.floor(nMinutes) * 60.0 + Math.floor(nSeconds)) * 1000.0);
 		// ---
 		return this;
 	}
 	public Construct2(d: number): TimeSpan
 	{
-		this.m_dtDate = new Date(d * 1000);
+		this.m_dtDate = new Date(d * 1000.0);
 		// ---
 		return this;
+	}
+	public ToInt64(): number
+	{
+		return this.m_dtDate.getTime() / 1000.0;
 	}
 	// Handles results of DateTime arithmetic.
 	// TimeSpan(const std::chrono::system_clock::duration& dtDuration)
@@ -424,6 +428,10 @@ export class TimeSpan
 		// ---
 		return szRet;
 	}
+	public ToDateTime() : DateTime
+	{
+		return new Date(this.m_dtDate.getTime()) as DateTime;
+	}
 };
 
 /// <summary>
@@ -431,91 +439,103 @@ export class TimeSpan
 /// </summary>
 export class DateTime extends Date
 {
-    public static Now() : number
-    {
-        return super.now();
-    }
-    public static MaxValue() : DateTime
-    {
-        // Let them deal with the headset apocalypse when the y2224 bug happens.
-        const dt = new DateTime();
-        dt.setFullYear(DATEMAXVALUE);
-        // ---
-        return dt;
-    }
-    public static MinValue() : DateTime
-    {
-        const dt = new DateTime();
-        dt.setFullYear(DATEMINVALUE);
-        // ---
-        return dt;
-    }
-    /// <summary>
-    /// Core constructor.
-    ///		Constructs to local time... i.e. ToLocalTimeString() will yield exactly what was constructed here
-    ///		whereas ToUtcTimeString() will timezone-convert from what is passed in here.
-    /// </summary>
-    /// <param name="nYear">Year, i.e. 1957 indicates the year 1957</param>
-    /// <param name="nMonth">1-based</param>
-    /// <param name="nDay">1-based</param>
-    /// <param name="nHour">0-based</param>
-    /// <param name="nMinute">0-based</param>
-    /// <param name="nSecond">0-based</param>
-    /// <param name="nMilliseconds">0-based</param>
-    constructor(nYear?: number, nMonth?: number, nDay?: number, nHour?: number, nMinute?: number, nSecond?: number, nMilliseconds?: number)
-    {
-        super();
-        // this = new DateConstructor(nYear, nMonth, nDay, nHour, nMinute, nSecond, nMilliseconds);
-    }
-    // ---
-    public ToLocalTimeString(): string
-    {
-        return '';
-    }
-    public ToUtcTimeString(): string
-    {
-        return '';
-    }
-    public ToString(): string
-    {
-        return this.ToUtcTimeString();
-    }
-    public ToUnixTime(): string
-    {
-        return '';
-    }
-    public ToInt64(): string
-    {
-        return '';
-    }
-    public ToUnixTimeAsString(): string
-    {
-        return '';
-    }
-    public FromUnixTime(nTime: number): void
-    {
-        // *this = std::chrono::system_clock::from_time_t(nTime);
-    }
-    public FromInt64(nTime: number): void
-    {
-        // *(int64_t*)this = nTime;
-    }
-    // Cannot overload static and non-static, hence this slight inelegancy.
-    public static ConvertUnixTime(nTime: number): DateTime
-    {
-        var dt = new DateTime();
+	public static Now() : number
+	{
+		return super.now();
+	}
+	public static MaxValue() : DateTime
+	{
+		// Let them deal with the headset apocalypse when the y2224 bug happens.
+		const dt = new DateTime();
+		dt.setFullYear(DATEMAXVALUE);
+		// ---
+		return dt;
+	}
+	public static MinValue() : DateTime
+	{
+		const dt = new DateTime();
+		dt.setFullYear(DATEMINVALUE);
+		// ---
+		return dt;
+	}
+	/// <summary>
+	/// Core constructor.
+	///		Constructs to local time... i.e. ToLocalTimeString() will yield exactly what was constructed here
+	///		whereas ToUtcTimeString() will timezone-convert from what is passed in here.
+	/// </summary>
+	/// <param name="nYear">Year, i.e. 1957 indicates the year 1957</param>
+	/// <param name="nMonth">1-based</param>
+	/// <param name="nDay">1-based</param>
+	/// <param name="nHour">0-based</param>
+	/// <param name="nMinute">0-based</param>
+	/// <param name="nSecond">0-based</param>
+	/// <param name="nMilliseconds">0-based</param>
+	constructor(nYear?: number, nMonth?: number, nDay?: number, nHour?: number, nMinute?: number, nSecond?: number, nMilliseconds?: number)
+	{
+		if (nYear !== undefined)
+		{
+			if (nMonth === undefined) nMonth = 0;
+			if (nDay === undefined) nDay = 1;
+			if (nHour === undefined) nHour = 0;
+			if (nMinute === undefined) nMinute = 0;
+			if (nSecond === undefined) nSecond = 0;
+			if (nMilliseconds === undefined) nMilliseconds = 0;
+			super(nYear, nMonth, nDay, nHour, nMinute, nSecond, nMilliseconds);
+		}
+		else
+		{
+			super();
+		}
+	}
+	// ---
+	public ToLocalTimeString(): string
+	{
+		return super.toLocaleString();
+	}
+	public ToUtcTimeString(): string
+	{
+		return super.toUTCString();
+	}
+	public ToString(): string
+	{
+		return this.ToUtcTimeString();
+	}
+	public ToUnixTime(): number
+	{
+		return super.getTime();
+	}
+	public ToInt64(): number
+	{
+		return super.getTime();
+	}
+	public ToUnixTimeAsString(): string
+	{
+		return super.getTime().toString();
+	}
+	public FromUnixTime(nTime: number): void
+	{
+		super.setTime(nTime);
+	}
+	public FromInt64(nTime: number): void
+	{
+		super.setTime(nTime);
+	}
+	// Cannot overload static and non-static, hence this slight inelegancy.
+	public static ConvertUnixTime(nTime: number): DateTime
+	{
+		var dt = new DateTime();
 
-        // dt.FromUnixTime(nTime);
-        // ---
-        return dt;
-    }
-    // Calls core constructor therefore follows same convention (local / UTC)... referring to constructor
-    // rather than saying what the constructor does here as it is too easy to forget to update this as
-    // any change to the constructor is likely to be a hasty fix.
-    public static Parse(sz: string): DateTime
-    {
-        return new Date(super.parse(sz)) as DateTime;
-    }
+		dt.FromUnixTime(nTime);
+		// ---
+		return dt;
+	}
+	// Calls core constructor therefore follows same convention (local / UTC)... referring to constructor
+	// rather than saying what the constructor does here as it is too easy to forget to update this as
+	// any change to the constructor is likely to be a hasty fix.
+	public static Parse(sz: string): DateTime
+	{
+		return new Date(super.parse(sz)) as DateTime;
+	}
 };
 
 /// <summary>
