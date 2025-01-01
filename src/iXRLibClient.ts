@@ -4,7 +4,7 @@
 
 import { iXRLibAnalytics, iXRLibInit } from "./iXRLibAnalytics";
 import { iXRLibConfiguration, iXRXXXContainer } from "./iXRLibCoreModel";
-import { SUID } from "./network/types";
+import { JsonScalarArrayElement, SUID } from "./network/types";
 import { DataObjectBase, DbSet, FieldProperties, FieldPropertiesRecordContainer, FieldPropertyFlags } from "./network/utils/DataObjectBase";
 import { iXRResult, JsonResult, PythonDictStrings, StringList } from "./network/utils/DotNetishTypes";
 
@@ -444,7 +444,7 @@ export class iXRLibClient
 		return iXRResult.eOk;
 	}
 	// TODO:  Summary this when dust has settled.
-	public static DeleteIXRXXX<T, iXRLibInit, iXRLibAnalytics, iXRLibConfiguration>(vpszQueryParameters: Array<[string, string]>, refparam: {szResponse: string}): iXRResult
+	public static DeleteIXRXXX<T>(vpszQueryParameters: Array<[string, string]>, refparam: {szResponse: string}): iXRResult
 	{
 		try
 		{

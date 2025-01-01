@@ -13,47 +13,50 @@ export class Base64
 }
 
 export type time_t = number;
+export type JsonScalarArrayElement<T> = Array<T>;
 
 export function Sleep(nMilliseconds: number)
 {
 	return new Promise(resolve => setTimeout(resolve, nMilliseconds));
 }
 
+export enum Verb
+{
+	eGet,
+	eDelete,
+	eOptions,
+	eHead,
+	ePost,
+	eHasBody = ePost,
+	ePut,
+	ePatch
+};
+
+/// <summary>
+/// CURL-based HTTP client in the C++/TypeScript style.
+/// </summary>
 export class CurlHttp
 {
-	public m_objRequest: AxiosRequestConfig = {headers: {}};
-	public m_objResponse: AxiosResponse = {data: null, status: 0, statusText: "", headers: {}, config: {headers: {}}};
+	public m_objRequestHeaders:	Headers = new Headers();
+	public m_objRequest:		Request = new Request("");
+	public m_objResponse:		Response = new Response();
+	public m_szLastError:		string = "";
 	// ---
 	public AddHttpHeader(szName: string, szValue: string) : void
 	{
-		var szHeader:	string = "";
-
-		szHeader = `${szName}: ${szValue}`;
-		this.m_objRequest.headers = this.m_objRequest.headers || {};
-		this.m_objRequest.headers[szName] = szValue;
+		this.m_objRequestHeaders.append(szName, szValue);
 	}
 	public AddHttpAuthHeader(szName: string, szValue: string): void
 	{
-		var szHeader:	string = "";
-
-		szHeader = `Authorization: ${szName} ${szValue}`;
-		this.m_objRequest.headers = this.m_objRequest.headers || {};
-		this.m_objRequest.headers[szName] = szValue;
+		this.m_objRequestHeaders.append("Authorization", `${szName} ${szValue}`);
 	}
-	public Initialize(szUrl: string, vpszQueryParameters: Array<[string, string]>, eVerb: Method, pmbBodyContent: Buffer, refparam: {szResponse: string}): boolean
+	public Initialize(szUrl: string, vpszQueryParameters: Array<[string, string]>, eVerb: Verb, pmbBodyContent: Buffer | null, refparam: {szResponse: string}): boolean
 	{
-		CURLcode	eCode;
-		mstringb	szUrlWithQueryParameters;
+		var	szUrlWithQueryParameters:	string = "";
 
-		szResponse.clear();
+		this.m_objRequestHeaders = new Headers();
+		this.m_objResponse = new Response();
 		// ---
-		m_pccCurlConnection = curl_easy_init();
-		if (m_pccCurlConnection == nullptr)
-		{
-			m_szLastError = _T("Failed to create CURL connection");
-			// ---
-			return false;
-		}
 		if (vpszQueryParameters.length !== 0)
 		{
 			var	szQueryParams: string = "",
@@ -61,7 +64,7 @@ export class CurlHttp
 
 			for (const [szKey, szValue] of vpszQueryParameters)
 			{
-				szTemp = `${(szQueryParams.length === 0) ? "" : "&"}${szKey}=${szValue}';
+				szTemp = `${(szQueryParams.length === 0) ? "" : "&"}${szKey}=${szValue}`;
 				szQueryParams += szTemp;
 			}
 			szUrlWithQueryParameters = szUrl;
@@ -69,99 +72,23 @@ export class CurlHttp
 			szUrlWithQueryParameters += szQueryParams;
 			szUrl = szUrlWithQueryParameters;
 		}
-		eCode = curl_easy_setopt(m_pccCurlConnection, CURLOPT_ERRORBUFFER, m_szErrorBuffer);
-		if (eCode != CURLE_OK)
-		{
-			m_szLastError.Format(_T("Failed to set error buffer [%d]"), eCode);
-			// ---
-			return false;
-		}
-		eCode = curl_easy_setopt(m_pccCurlConnection, CURLOPT_URL, szUrl);
-		if (eCode != CURLE_OK)
-		{
-			m_szLastError.Format(_T("Failed to set URL [%s])"), mstringt(m_szErrorBuffer).c_str());
-			// ---
-			return false;
-		}
-		eCode = curl_easy_setopt(m_pccCurlConnection, CURLOPT_FOLLOWLOCATION, 1L);
-		if (eCode != CURLE_OK)
-		{
-			m_szLastError.Format(_T("Failed to set redirect option [%s]"), mstringt(m_szErrorBuffer).c_str());
-			// ---
-			return false;
-		}
-		eCode = curl_easy_setopt(m_pccCurlConnection, CURLOPT_WRITEFUNCTION, CurlHttp::WriterCallback);
-		if (eCode != CURLE_OK)
-		{
-			m_szLastError.Format(_T("Failed to set Writer callback [%s]"), mstringt(m_szErrorBuffer).c_str());
-			// ---
-			return false;
-		}
-		eCode = curl_easy_setopt(m_pccCurlConnection, CURLOPT_WRITEDATA, &szResponse);
-		if (eCode != CURLE_OK)
-		{
-			m_szLastError.Format(_T("Failed to set write data [%s]"), mstringt(m_szErrorBuffer).c_str());
-			// ---
-			return false;
-		}
 		// --- Body content for POST-style verbs.
-		if (pmbBodyContent != nullptr)
+		if (pmbBodyContent)
 		{
-			m_objWriteState.Setup(*pmbBodyContent);
-			eCode = curl_easy_setopt(m_pccCurlConnection, CURLOPT_POST, 1L);
-			if (eCode != CURLE_OK)
-			{
-				m_szLastError.Format(_T("Failed to set POST option [%s]"), mstringt(m_szErrorBuffer).c_str());
-				// ---
-				return false;
-			}
 			// If eVerb not POST, custom set whatever body-content verb it is.
 			switch (eVerb)
 			{
-			case Verb::ePut:
-				eCode = curl_easy_setopt(m_pccCurlConnection, CURLOPT_CUSTOMREQUEST, "PUT");
-				if (eCode != CURLE_OK)
-				{
-					m_szLastError.Format(_T("Failed to set verb to PUT [%s]"), mstringt(m_szErrorBuffer).c_str());
-					// ---
-					return false;
-				}
+			case Verb.ePut:
+				this.m_objRequest = new Request(szUrl, {method: "PUT", headers: this.m_objRequestHeaders, body: pmbBodyContent});
 				break;
-			case Verb::ePatch:
-				eCode = curl_easy_setopt(m_pccCurlConnection, CURLOPT_CUSTOMREQUEST, "PATCH");
-				if (eCode != CURLE_OK)
-				{
-					m_szLastError.Format(_T("Failed to set verb to PATCH [%s]"), mstringt(m_szErrorBuffer).c_str());
-					// ---
-					return false;
-				}
+			case Verb.ePatch:
+				this.m_objRequest = new Request(szUrl, {method: "PATCH", headers: this.m_objRequestHeaders, body: pmbBodyContent});
+				break;
+			case Verb.ePost:
+				this.m_objRequest = new Request(szUrl, {method: "POST", headers: this.m_objRequestHeaders, body: pmbBodyContent});
 				break;
 			default:
 				break;
-			}
-			// ---
-			eCode = curl_easy_setopt(m_pccCurlConnection, CURLOPT_POSTFIELDSIZE, (long)m_objWriteState.m_nRemainder);
-			if (eCode != CURLE_OK)
-			{
-				m_szLastError.Format(_T("Failed to set POST expected field size [%s]"), mstringt(m_szErrorBuffer).c_str());
-				// ---
-				return false;
-			}
-			// We want to use our own read function.
-			eCode = curl_easy_setopt(m_pccCurlConnection, CURLOPT_READFUNCTION, WriteState::read_callback);
-			if (eCode != CURLE_OK)
-			{
-				m_szLastError.Format(_T("Failed to set Reader callback [%s]"), mstringt(m_szErrorBuffer).c_str());
-				// ---
-				return false;
-			}
-			// Pointer to pass to our read function.
-			eCode = curl_easy_setopt(m_pccCurlConnection, CURLOPT_READDATA, &m_objWriteState);
-			if (eCode != CURLE_OK)
-			{
-				m_szLastError.Format(_T("Failed to set Reader callback read data [%s]"), mstringt(m_szErrorBuffer).c_str());
-				// ---
-				return false;
 			}
 		}
 		else
@@ -169,88 +96,85 @@ export class CurlHttp
 			// If eVerb not GET, custom set whatever non-body-content verb it is.
 			switch (eVerb)
 			{
-			case Verb::eDelete:
-				eCode = curl_easy_setopt(m_pccCurlConnection, CURLOPT_CUSTOMREQUEST, "DELETE");
-				if (eCode != CURLE_OK)
-				{
-					m_szLastError.Format(_T("Failed to set verb to DELETE [%s]"), mstringt(m_szErrorBuffer).c_str());
-					// ---
-					return false;
-				}
+			case Verb.eDelete:
+				this.m_objRequest = new Request(szUrl, {method: "DELETE", headers: this.m_objRequestHeaders});
 				break;
-			case Verb::eOptions:
-				eCode = curl_easy_setopt(m_pccCurlConnection, CURLOPT_CUSTOMREQUEST, "OPTIONS");
-				if (eCode != CURLE_OK)
-				{
-					m_szLastError.Format(_T("Failed to set verb to OPTIONS [%s]"), mstringt(m_szErrorBuffer).c_str());
-					// ---
-					return false;
-				}
+			case Verb.eOptions:
+				this.m_objRequest = new Request(szUrl, {method: "OPTIONS", headers: this.m_objRequestHeaders});
 				break;
-			case Verb::eHead:
-				eCode = curl_easy_setopt(m_pccCurlConnection, CURLOPT_CUSTOMREQUEST, "HEAD");
-				if (eCode != CURLE_OK)
-				{
-					m_szLastError.Format(_T("Failed to set verb to HEAD [%s]"), mstringt(m_szErrorBuffer).c_str());
-					// ---
-					return false;
-				}
+			case Verb.eHead:
+				this.m_objRequest = new Request(szUrl, {method: "HEAD", headers: this.m_objRequestHeaders});
 				break;
 			default:
 				break;
 			}
 		}
-		// --- Headers.
-		eCode = curl_easy_setopt(m_pccCurlConnection, CURLOPT_HTTPHEADER, m_pslHeaders);
-		if (eCode != CURLE_OK)
-		{
-			m_szLastError.Format(_T("Failed to set static headers [%s]"), mstringt(m_szErrorBuffer).c_str());
-			// ---
-			return false;
-		}
-		// --- SSL options.
-		// If you want to connect to a site who is not using a certificate that is
-		// signed by one of the certs in the CA bundle you have, you can skip the
-		// verification of the server's certificate. This makes the connection
-		// A LOT LESS SECURE.
-		// *
-		// If you have a CA cert for the server stored someplace else than in the
-		// default bundle, then the CURLOPT_CAPATH option might come handy for
-		// you.
-		// *
-		// MJP:  Commented this one in... looks dodgy to do so but cannot
-		// communicate with, e.g., www.yahoo.com without it... pretty bog-standard.
-		curl_easy_setopt(m_pccCurlConnection, CURLOPT_SSL_VERIFYPEER, 0L);
-		// ---
-		// If the site you are connecting to uses a different host name that what
-		// they have mentioned in their server certificate's commonName (or
-		// subjectAltName) fields, libcurl will refuse to connect. You can skip
-		// this check, but this will make the connection less secure.
-		//curl_easy_setopt(m_pccCurlConntection, CURLOPT_SSL_VERIFYHOST, 0L);
-		// ---
-		// Cache the CA cert bundle in memory for a week.
-		eCode = curl_easy_setopt(m_pccCurlConnection, CURLOPT_CA_CACHE_TIMEOUT, 604800L);
-		if (eCode != CURLE_OK)
-		{
-			m_szLastError.Format(_T("Failed to set certificate cache timeout [%s]"), mstringt(m_szErrorBuffer).c_str());
-			// ---
-			return false;
-		}
-		// --- end SSL options.
-		// Verbose debug output.
-		//eCode = curl_easy_setopt(m_pccCurlConnection, CURLOPT_VERBOSE, 1L);
-		//if (eCode != CURLE_OK)
-		//{
-		//	m_szLastError.Format(_T("Failed to set verbose [%s]"), mstringt(m_szErrorBuffer).c_str());
-		//	// ---
-		//	return false;
-		//}
 		// ---
 		return true;
 	}
-	CURLcode Get(const char* szUrl, const std::vector<std::pair<const char*, const char*>>& vpszQueryParameters, OUT mstringb& szResponse);
-	CURLcode Post(const char* szUrl, const std::vector<std::pair<const char*, const char*>>& vpszQueryParameters, const mbinary& mbBodyContent, OUT mstringb& szResponse);
-	CURLcode Delete(const char* szUrl, const std::vector<std::pair<const char*, const char*>>& vpszQueryParameters, OUT mstringb& szResponse);
+	public async Get(szUrl: string, vpszQueryParameters: Array<[string, string]>, refparam: {szResponse: string}): Promise<boolean>
+	{
+		try
+		{
+			if (this.Initialize(szUrl, vpszQueryParameters, Verb.eGet, null, {szResponse: refparam.szResponse}))
+			{
+				const objResponse:	Response = await fetch(this.m_objRequest);
+
+				refparam.szResponse = await objResponse.text();
+				// ---
+				return true;
+			}
+		}
+		catch (error: unknown)
+		{
+			this.m_szLastError = error instanceof Error ? error.message : String(error);
+			// ---
+			return false;
+		}
+		return false;
+	}
+	public async Post(szUrl: string, vpszQueryParameters: Array<[string, string]>, mbBodyContent: Buffer, refparam: {szResponse: string}): Promise<boolean>
+	{
+		try
+		{
+			if (this.Initialize(szUrl, vpszQueryParameters, Verb.ePost, mbBodyContent, {szResponse: refparam.szResponse}))
+			{
+				const objResponse:	Response = await fetch(this.m_objRequest);
+
+				refparam.szResponse = await objResponse.text();
+				// ---
+				return true;
+			}
+		}
+		catch (error: unknown)
+		{
+			this.m_szLastError = error instanceof Error ? error.message : String(error);
+			// ---
+			return false;
+		}
+		return false;
+	}
+	public async Delete(szUrl: string, vpszQueryParameters: Array<[string, string]>, refparam: {szResponse: string}): Promise<boolean>
+	{
+		try
+		{
+			if (this.Initialize(szUrl, vpszQueryParameters, Verb.eDelete, null, {szResponse: refparam.szResponse}))
+			{
+				const objResponse:	Response = await fetch(this.m_objRequest);
+
+				refparam.szResponse = await objResponse.text();
+				// ---
+				return true;
+			}
+		}
+		catch (error: unknown)
+		{
+			this.m_szLastError = error instanceof Error ? error.message : String(error);
+			// ---
+			return false;
+		}
+		return false;
+	}
 }
 
 /// <summary>
