@@ -3,7 +3,7 @@
 
 import { iXRLibClient } from "./iXRLibClient";
 import { iXRLibStorage } from "./iXRLibStorage";
-import { DATEMAXVALUE, DEFAULTNAME, SUID } from "./network/types";
+import { atobool, atol, DATEMAXVALUE, DEFAULTNAME, SUID } from "./network/types";
 import { DataObjectBase, DbContext, DbSet, DumpCategory, FieldProperties, FieldPropertiesRecordContainer, FieldPropertyFlags, JsonFieldType } from "./network/utils/DataObjectBase";
 import { ConfigurationManager, DateTime, Dictionary, iXRResult, PythonDictStrings, StringList, TimeSpan } from "./network/utils/DotNetishTypes";
 import { DatabaseResult, DbSuccess } from "./network/utils/iXRLibSQLite";
@@ -17,7 +17,7 @@ export class iXRBase extends DataObjectBase
 	public m_guidId:			SUID = new SUID();
 	public m_guidParentId:		SUID = new SUID();
 	// "Standard" timestamp... gets transmitted as text, subject to vagaries, should not be used for grouping objects that depend on precise comparison.
-	public m_dtTimeStamp:		DateTime = DATEMAXVALUE;
+	public m_dtTimeStamp:		DateTime = new DateTime().FromUnixTime(DATEMAXVALUE);
 	// A precise version of the timestamp that is declared as integer so it will only be subject to precise integer operations rather than time calculations which can introduce imprecisions.
 	// Note how this is not strictly Unix time... Unix time is seconds.  In order for this to guarantee the precision we want, it needs to be same resolution as the clock from which it is converted.
 	// This field is motivated by the backend grouping objects by timestamp, which is reckless when using the m_dtTimeStamp due to the adulterations to which it can be subject when converted back
@@ -27,8 +27,8 @@ export class iXRBase extends DataObjectBase
 	// ---
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
 		super.m_mapProperties.m_rfp,
-		{m_guidId: new FieldProperties("Id", FieldPropertyFlags.bfExclude)},
-		{m_guidParentId: new FieldProperties("parentId", FieldPropertyFlags.bfExclude)},
+		{m_guidId: new FieldProperties("Id", FieldPropertyFlags.bfPrimaryKey)},
+		{m_guidParentId: new FieldProperties("parentId", FieldPropertyFlags.bfParentKey)},
 		{m_dtTimeStamp: new FieldProperties("timestamp")},
 		{m_dtTimeStamp: new FieldProperties("preciseTimestamp")},
 		{m_bSyncedWithCloud: new FieldProperties("syncedWithCloud")}));
@@ -48,15 +48,15 @@ export class iXRBase extends DataObjectBase
 		}
 		else
 		{
-			this.m_dtTimeStamp = DateTime.Now();
-			this.m_nTimeStamp = m_dtTimeStamp.ToInt64();
+			this.m_dtTimeStamp = new DateTime().FromUnixTime(DateTime.Now());
+			this.m_nTimeStamp = this.m_dtTimeStamp.ToInt64();
 		}
 	}
 	// ---
 	public static CaptureTimeStamp(): void
 	{
 		this.m_bUseCapturedTimeStamp = true;
-		this.m_nCapturedTimeStamp = DateTime.Now().ToInt64();
+		this.m_nCapturedTimeStamp = DateTime.Now();
 	}
 	public static UnCaptureTimeStamp(): void
 	{
@@ -107,14 +107,14 @@ export class iXRLibConfiguration extends DataObjectBase
 	protected m_urlRestUrl:						URLParser.HTTP_URL;	// | Using accessor instead.
 	// ---
 	public m_nSendRetriesOnFailure:				number = 3;
-	public m_tsSendRetryInterval:				TimeSpan = { 0, 0, 3 };
-	public m_tsSendNextBatchWait:				TimeSpan = { 0, 0, 30 };
-	public m_tsStragglerTimeout:				TimeSpan = { 0, 0, 15 };
-	public m_nEventsPerSendAttempt:				TimeSpan = 16;
-	public m_nLogsPerSendAttempt:				TimeSpan = 16;
+	public m_tsSendRetryInterval:				TimeSpan = TimeSpan.Parse("00:00:03");
+	public m_tsSendNextBatchWait:				TimeSpan = TimeSpan.Parse("00:00:30");
+	public m_tsStragglerTimeout:				TimeSpan = TimeSpan.Parse("00:00:15");
+	public m_nEventsPerSendAttempt:				number = 16;
+	public m_nLogsPerSendAttempt:				TimeSpan = new TimeSpan().Construct2(16);
 	public m_nTelemetryEntriesPerSendAttempt:	number = 16;
 	public m_nStorageEntriesPerSendAttempt:		number = 16;
-	public m_tsPruneSentItemsOlderThan:			TimeSpan = { 1, 0, 0, 0 };
+	public m_tsPruneSentItemsOlderThan:			TimeSpan = TimeSpan.Parse("1.00:00:00");
 	public m_nMaximumCachedItems:				number = 1024;
 	public m_bRetainLocalAfterSent:				boolean = false;
 	// Thread will wake up periodically and if this is configured and the token expiration is looming, it will
@@ -196,9 +196,9 @@ export class iXRLibConfiguration extends DataObjectBase
 			// 0 = infinite, i.e. never prune.
 			this.m_tsPruneSentItemsOlderThan = TimeSpan.Parse(ConfigurationManager.AppSettings("PruneSentItemsOlderThan", "0"));
 			this.m_nMaximumCachedItems = atol(ConfigurationManager.AppSettings("MaximumCachedItems", "1024"));
-			this.m_bRetainLocalAfterSent = atob(ConfigurationManager.AppSettings("RetainLocalAfterSent", "false"));
-			this.m_bReAuthenticateBeforeTokenExpires = atob(ConfigurationManager.AppSettings("ReAuthenticateBeforeTokenExpires", "true"));
-			this.m_bUseDatabase = atob(ConfigurationManager.AppSettings("UseDatabase", "false"));
+			this.m_bRetainLocalAfterSent = atobool(ConfigurationManager.AppSettings("RetainLocalAfterSent", "false"));
+			this.m_bReAuthenticateBeforeTokenExpires = atobool(ConfigurationManager.AppSettings("ReAuthenticateBeforeTokenExpires", "true"));
+			this.m_bUseDatabase = atobool(ConfigurationManager.AppSettings("UseDatabase", "false"));
 			// Note the absence here of getting "AuthMechanism".  Unless something changes, that should be exclusively supplied by backend GET config.
 		}
 		catch (error)
@@ -439,7 +439,7 @@ export class iXRAIProxy extends iXRBase
 	public Construct0(szPrompt: string, szPastMessages: string, szLMMProvider: string): iXRAIProxy
 	{
 		this.m_szPrompt = szPrompt;
-		this.m_dictPastMessages = new PythonDictStrings.Construct(szPastMessages);
+		this.m_dictPastMessages = new PythonDictStrings().Construct(szPastMessages);
 		this.m_szLLMProvider = szLMMProvider;
 		// ---
 		return this;
@@ -530,11 +530,11 @@ export class iXREvent extends iXRBase
 /// <typeparam name="T">Type of object being contained.</typeparam>
 /// <typeparam name="T_CONTAINS">Type of object inside T that also has to be on its own for when Python makes it an object instead of an array in the JSON.</typeparam>
 /// <typeparam name="bWantTimeStamp">Want timestamp when dumping JSON for backend.</typeparam>
-export class iXRXXXContainer<T extends DataObjectBase, T_CONTAINS, bTWantTimestamp extends boolean> extends iXRBase
+export class iXRXXXContainer<T extends iXRBase, T_CONTAINS, bTWantTimestamp extends boolean> extends iXRBase
 {
 	// public m_tIXRXXX:		T_CONTAINS = new T_CONTAINS();	// This is here to catch the data when Python is representing it as an object rather than array.
 	public m_tIXRXXX:		T_CONTAINS = {} as T_CONTAINS;	// This is here to catch the data when Python is representing it as an object rather than array.
-	public m_dspIXRXXXs:	DbSet<T> = new DbSet<T>();		// The main data.
+	public m_dspIXRXXXs:	DbSet<T> = new DbSet<T>(T);		// The main data.
 	// ---
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
 		super.m_mapProperties.m_rfp,
@@ -544,7 +544,7 @@ export class iXRXXXContainer<T extends DataObjectBase, T_CONTAINS, bTWantTimesta
 	// ---
 	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
 	{
-		return iXRContainer<TimeSpan, T_CONTAINS, bTWantTimestamp>.m_mapProperties;
+		return iXRXXXContainer.m_mapProperties;
 	}
 	// ---
 	constructor(public bWantTimestamp: bTWantTimestamp = false as bTWantTimestamp)
@@ -564,7 +564,7 @@ export class iXRXXXContainer<T extends DataObjectBase, T_CONTAINS, bTWantTimesta
 		case DumpCategory.eDumpingJsonForBackend:
 			if (szFieldName === "timestamp")
 			{
-				return bWantTimestamp;
+				return this.bWantTimestamp;
 			}
 			break;
 		default:
@@ -590,19 +590,19 @@ export class iXRXXXContainer<T extends DataObjectBase, T_CONTAINS, bTWantTimesta
 ///		This is that container object.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-export class iXRXXXScalarContainer<T extends DataObjectBase> extends iXRBase
+export class iXRXXXScalarContainer<T extends iXRBase> extends iXRBase
 {
-	public m_tIXRXXX:	T = new T();
+	public m_tIXRXXX:	T = {} as T;
 	// ---
-	iXRXXXScalarContainer<T>() = default;
-	iXRXXXScalarContainer<T>(const T& t) :
-		m_tIXRXXX(t)
-	{
-	}
-	iXRXXXScalarContainer<T>(T&& t) :
-		m_tIXRXXX(t)
-	{
-	}
+	// iXRXXXScalarContainer<T>() = default;
+	// iXRXXXScalarContainer<T>(const T& t) :
+	// 	m_tIXRXXX(t)
+	// {
+	// }
+	// iXRXXXScalarContainer<T>(T&& t) :
+	// 	m_tIXRXXX(t)
+	// {
+	// }
 	// ---
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
 		super.m_mapProperties.m_rfp,
@@ -610,7 +610,7 @@ export class iXRXXXScalarContainer<T extends DataObjectBase> extends iXRBase
 	// ---
 	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
 	{
-		return iXRXXXScalarContainer<T>.m_mapProperties;
+		return iXRXXXScalarContainer.m_mapProperties;
 	}
 	// ---
 	public ShouldDump(szFieldName: string, eJsonFieldType: JsonFieldType, eDumpCategory: DumpCategory): boolean // virtual
@@ -618,7 +618,7 @@ export class iXRXXXScalarContainer<T extends DataObjectBase> extends iXRBase
 		switch (eDumpCategory)
 		{
 		case DumpCategory.eDumpingJsonForBackend:
-			if (strcmp(szFieldName, "timestamp") == 0)
+			if (szFieldName === "timestamp")
 			{
 				return false;
 			}
@@ -679,9 +679,9 @@ export class StorageContainer extends iXRXXXContainer<iXRStorageData, PythonDict
 {
 	FinalizeParse() : void // virtual
 	{
-		if (m_dspIXRXXXs.empty())
+		if (this.m_dspIXRXXXs.empty())
 		{
-			m_dspIXRXXXs.push(m_tIXRXXX);
+			this.m_dspIXRXXXs.push(this.m_tIXRXXX);
 		}
 	}
 };
@@ -693,7 +693,7 @@ export class iXRStorage extends iXRBase
 {
 	m_szKeepPolicy:	string = "";			// "keepLatest" or "appendHistory"
 	m_szName:		string = "";
-	m_dsData:		DbSet<StorageContainer> = new DbSet<StorageContainer>();	// Accommodates backend wanting this nested... on this end, always exactly one item in it.
+	m_dsData:		DbSet<StorageContainer> = new DbSet<StorageContainer>(StorageContainer);	// Accommodates backend wanting this nested... on this end, always exactly one item in it.
 	m_szOrigin:		string = "";			// Optional, but if not blank, must be "system" or "user"
 	m_bSessionData:	boolean = false;
 	m_lszTags:		StringList = new StringList();
@@ -776,11 +776,11 @@ export class DbSetStorage extends DbSet<iXRStorage>
 	}
 	// ---
 	// Default name 'state'
-	public SetEntry0(dictData: PythonDictStrings, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): iXRResult
+	public async SetEntry0(dictData: PythonDictStrings, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): Promise<iXRResult>
 	{
-		return this.SetEntry1(DEFAULTNAME, dictData, bKeepLatest, szOrigin, bSessionData);
+		return await this.SetEntry1(DEFAULTNAME, dictData, bKeepLatest, szOrigin, bSessionData);
 	}
-	public SetEntry1(szName: string, dictData: PythonDictStrings, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): iXRResult
+	public async SetEntry1(szName: string, dictData: PythonDictStrings, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): Promise<iXRResult>
 	{
 		for (let ixd of this.values())
 		{
@@ -795,14 +795,17 @@ export class DbSetStorage extends DbSet<iXRStorage>
 			}
 		}
 		// --- MJP:  for now, coding just the synchronous case.  As these are environment variables, blocking main thread should not be a big deal.
-		return iXRLibStorage.AddEntrySynchronous(super.push(new iXRStorage.Construct0(bKeepLatest, szName, dictData, szOrigin, bSessionData)));
+		const ixrs = new iXRStorage().Construct0(bKeepLatest, szName, dictData, szOrigin, bSessionData);
+		super.push(ixrs)
+		// ---
+		return await iXRLibStorage.AddEntrySynchronous(ixrs);
 	}
 	// Default name 'state'
-	public SetEntry2(szdictData: string, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): iXRResult
+	public async SetEntry2(szdictData: string, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): Promise<iXRResult>
 	{
-		return this.SetEntry3(DEFAULTNAME, szdictData, bKeepLatest, szOrigin, bSessionData);
+		return await this.SetEntry3(DEFAULTNAME, szdictData, bKeepLatest, szOrigin, bSessionData);
 	}
-	public SetEntry3(szName: string, szdictData: string, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): iXRResult
+	public async SetEntry3(szName: string, szdictData: string, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): Promise<iXRResult>
 	{
 		for (let ixd of this.values())
 		{
@@ -810,31 +813,34 @@ export class DbSetStorage extends DbSet<iXRStorage>
 			{
 				if (!ixd.m_dsData.empty() && !ixd.m_dsData[0].m_dspIXRXXXs.empty())
 				{
-					ixd.m_dsData[0].m_dspIXRXXXs[0].m_cdictData = new PythonDictStrings().Construct(dictData);
+					ixd.m_dsData[0].m_dspIXRXXXs[0].m_cdictData = new PythonDictStrings().Construct(szdictData);
 				}
 				// ---
 				return iXRLibStorage.AddEntrySynchronous(ixd);
 			}
 		}
 		// --- MJP:  for now, coding just the synchronous case.  As these are environment variables, blocking main thread should not be a big deal.
-		return iXRLibStorage.AddEntrySynchronous(super.push(iXRStorage.Construct0(bKeepLatest, szName, new PythonDictStrings.Construct(szdictData), szOrigin, bSessionData)));
+		const ixrs = new iXRStorage().Construct0(bKeepLatest, szName, new PythonDictStrings().Construct(szdictData), szOrigin, bSessionData);
+		super.push(ixrs)
+		// ---
+		return await iXRLibStorage.AddEntrySynchronous(ixrs);
 	}
 	// ---
 	// Default name 'state'
-	public RemoveEntry0(dbContext: iXRDbContext): iXRResult
+	public async RemoveEntry0(dbContext: iXRDbContext): Promise<iXRResult>
 	{
 		// As name is explicit, "state", passing false in for bSessionOnly (backend considers
 		// true to be default but since it is named, want anything with that name gone).
-		return this.RemoveEntry1(dbContext, DEFAULTNAME);
+		return await this.RemoveEntry1(dbContext, DEFAULTNAME);
 	}
-	public RemoveEntry1(dbContext: iXRDbContext, szName: string): iXRResult
+	public async RemoveEntry1(dbContext: iXRDbContext, szName: string): Promise<iXRResult>
 	{
 		var	eRet:				iXRResult;
 		var	szResponse:			string = "";
 		var	bChangedSomething:	boolean = false;
 
 		// Delete from backend.
-		eRet = iXRLibClient.DeleteIXRStorageEntry(szName, szResponse);
+		eRet = await iXRLibClient.DeleteIXRStorageEntry(szName, {szResponse: ""});
 		// ---
 		if (eRet == iXRResult.eOk)
 		{
@@ -928,11 +934,11 @@ export class iXRErrors extends iXRBase
 /// </summary>
 export class iXRDbContext extends DbContext
 {
-	m_dsIXRApplications:	DbSet<iXRApplication> = new DbSet<iXRApplication>();
-	m_dsIXRLogs:			DbSet<iXRLog> = new DbSet<iXRLog>();
-	m_dsIXRTelemetry:		DbSet<iXRTelemetry> = new DbSet<iXRTelemetry>();
-	m_dsIXREvents:			DbSet<iXREvent> = new DbSet<iXREvent>();		// Table name IXREvents.
-	m_dsIXRStorage:			DbSet<iXRStorage> = new DbSet<iXRStorage>();	// State info, etc.
+	m_dsIXRApplications:	DbSet<iXRApplication> = new DbSet<iXRApplication>(iXRApplication);
+	m_dsIXRLogs:			DbSet<iXRLog> = new DbSet<iXRLog>(iXRLog);
+	m_dsIXRTelemetry:		DbSet<iXRTelemetry> = new DbSet<iXRTelemetry>(iXRTelemetry);
+	m_dsIXREvents:			DbSet<iXREvent> = new DbSet<iXREvent>(iXREvent);		// Table name IXREvents.
+	m_dsIXRStorage:			DbSet<iXRStorage> = new DbSet<iXRStorage>(iXRStorage);	// State info, etc.
 	m_szDbPath:				string = "";
 	// ---
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
@@ -1143,31 +1149,31 @@ export class iXRDbContext extends DbContext
 /// <typeparam name="T">Type being POSTed.</typeparam>
 /// <typeparam name="iXRLibConfiguration">Pass in iXRLibConfiguration where this is instantiated... resolves forward-referencing catch-22.</typeparam>
 /// <returns>REST endpoint string const.</returns>
-function RESTEndpointFromType<T, iXRLibConfiguration>() : string
+function RESTEndpointFromType<T>() : string
 {
-	var tDraft:	T;
+	const tDraft = {} as T;
 
-	if (typeof(tDraft) === "iXREvent")
+	if (tDraft instanceof iXREvent)
 	{
 		return "collect/event";
 	}
-	else if (typeof(tDraft) === "iXRLog")
+	else if (tDraft instanceof iXRLog)
 	{
 		return "collect/log";
 	}
-	else if (typeof(tDraft) === "iXRTelemetry")
+	else if (tDraft instanceof iXRTelemetry)
 	{
 		return "collect/telemetry";
 	}
-	else if (typeof(tDraft) === "iXRAIProxy")
+	else if (tDraft instanceof iXRAIProxy)
 	{
 		return "services/llm";
 	}
-	else if (typeof(tDraft) === "iXRLibConfiguration")
+	else if (tDraft instanceof iXRLibConfiguration)
 	{
 		return "storage/config";
 	}
-	else if (typeof(tDraft) === "iXRStorage")
+	else if (tDraft instanceof iXRStorage)
 	{
 		return "storage";
 	}

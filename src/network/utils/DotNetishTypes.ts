@@ -512,13 +512,17 @@ export class DateTime extends Date
 	{
 		return super.getTime().toString();
 	}
-	public FromUnixTime(nTime: number): void
+	public FromUnixTime(nTime: number): DateTime
 	{
 		super.setTime(nTime);
+		// ---
+		return this;
 	}
-	public FromInt64(nTime: number): void
+	public FromInt64(nTime: number): DateTime
 	{
 		super.setTime(nTime);
+		// ---
+		return this;
 	}
 	// Cannot overload static and non-static, hence this slight inelegancy.
 	public static ConvertUnixTime(nTime: number): DateTime

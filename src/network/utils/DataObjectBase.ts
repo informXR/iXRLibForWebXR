@@ -265,6 +265,10 @@ export class DbSet<T extends DataObjectBase> extends Array<T>
 	{
 		return (super.length === 0);
 	}
+	public clear(): void
+	{
+		super.length = 0;
+	}
 	// --- C#ish from C# port to C++.
 	public Add(o: T): T
 	{
@@ -341,7 +345,7 @@ export class DbSet<T extends DataObjectBase> extends Array<T>
 	}
 };
 
-export function GenerateJson(o: DataObjectBase, eDumpCategory: DumpCategory): string
+export function GenerateJsonAlternate(o: DataObjectBase, eDumpCategory: DumpCategory, mpfnGenerateJsonAlternate: Array<[string, () => string]>): string
 {
 	var szJSON:	string = "";
 
@@ -351,30 +355,79 @@ export function GenerateJson(o: DataObjectBase, eDumpCategory: DumpCategory): st
 	// Replace the placeholders.
 	for (const [szName, oChildObject] of o.GetMapProperties().m_atpChildren)
 	{
-		const szObjectJSON:	string = GenerateJson(oChildObject as DataObjectBase, eDumpCategory);
+		if (o.ShouldDump(szName, JsonFieldType.eObject, eDumpCategory))
+		{
+			var szObjectJSON:				string = "";
+			const fnGenerateJsonAlternate:	(() => string) | undefined = mpfnGenerateJsonAlternate.find(([szName, fn]) => szName === szName)?.[1];
 
-		szJSON = szJSON.replace(szName, szObjectJSON);
+			if (fnGenerateJsonAlternate)
+			{
+				szObjectJSON = fnGenerateJsonAlternate();
+			}
+			else
+			{
+				szObjectJSON = GenerateJson(oChildObject as DataObjectBase, eDumpCategory);
+			}
+			szJSON = szJSON.replace(szName, szObjectJSON);
+		}
 	}
 	for (const [szName, oChildObjectList] of o.GetMapProperties().m_atpListChildren)
 	{
-		var szObjectListJSON:	string = "[";
-		var bDidOne:			boolean = false;
-
-		for (const o of oChildObjectList as DbSet<DataObjectBase>)
+		if (o.ShouldDump(szName, JsonFieldType.eObjectList, eDumpCategory))
 		{
-			const szInnerJson:  string = GenerateJson(o, eDumpCategory);
+			var szObjectListJSON:			string = "[";
+			var bDidOne:					boolean = false;
+			const fnGenerateJsonAlternate:	(() => string) | undefined = mpfnGenerateJsonAlternate.find(([szName, fn]) => szName === szName)?.[1];
 
-			if (bDidOne)
+			if (fnGenerateJsonAlternate)
 			{
-				szObjectListJSON += ",";
+				szObjectListJSON += fnGenerateJsonAlternate();
 			}
-			bDidOne = true;
-			szObjectListJSON += szInnerJson;
+			else
+			{
+				for (const o of oChildObjectList as DbSet<DataObjectBase>)
+				{
+					const szInnerJson:  string = GenerateJson(o, eDumpCategory);
+
+					if (bDidOne)
+					{
+						szObjectListJSON += ",";
+					}
+					bDidOne = true;
+					szObjectListJSON += szInnerJson;
+				}
+			}
+			szObjectListJSON += "]";
+			szJSON = szJSON.replace(szName, szObjectListJSON);
 		}
-		szObjectListJSON += "]";
-		szJSON = szJSON.replace(szName, szObjectListJSON);
 	}
 	o.FinalizeParse();
+	// ---
+	return szJSON;
+}
+
+export function GenerateJson(o: DataObjectBase, eDumpCategory: DumpCategory): string
+{
+	return GenerateJsonAlternate(o, eDumpCategory, []);
+}
+
+export function GenerateJsonList(l: DbSet<DataObjectBase>, eDumpCategory: DumpCategory): string
+{
+	var szJSON:		string = "[";
+	var bDidOne:	boolean = false;
+
+	for (const o of l as DbSet<DataObjectBase>)
+	{
+		const szInnerJson:  string = GenerateJson(o, eDumpCategory);
+
+		if (bDidOne)
+		{
+			szJSON += ",";
+		}
+		bDidOne = true;
+		szJSON += szInnerJson;
+	}
+	szObjectListJSON += "]";
 	// ---
 	return szJSON;
 }

@@ -3,9 +3,9 @@
 ///		Comaintain with iXRAnalytics.cs.
 
 import { iXRLibAnalytics, iXRLibInit } from "./iXRLibAnalytics";
-import { iXRLibConfiguration, iXRXXXContainer } from "./iXRLibCoreModel";
-import { JsonScalarArrayElement, SUID } from "./network/types";
-import { DataObjectBase, DbSet, FieldProperties, FieldPropertiesRecordContainer, FieldPropertyFlags } from "./network/utils/DataObjectBase";
+import { iXRAIProxy, iXRBase, iXREvent, iXRLibConfiguration, iXRLog, iXRStorage, iXRTelemetry, iXRXXXContainer } from "./iXRLibCoreModel";
+import { CurlHttp, JsonScalarArrayElement, SUID } from "./network/types";
+import { DataObjectBase, DbSet, DumpCategory, FieldProperties, FieldPropertiesRecordContainer, FieldPropertyFlags, GenerateJson, GenerateJsonAlternate, GenerateJsonList } from "./network/utils/DataObjectBase";
 import { iXRResult, JsonResult, PythonDictStrings, StringList } from "./network/utils/DotNetishTypes";
 
 /// </summary>
@@ -183,7 +183,7 @@ export class PostObjectsResponseFailure extends DataObjectBase
 /// </summary>
 export class AuthTokenResponseFailureDetail extends DataObjectBase
 {
-	m_lszLoc:	DbSet<JsonScalarArrayElement<string>> = new DbSet<JsonScalarArrayElement<string>>();
+	m_lszLoc:	DbSet<JsonScalarArrayElement<string>> = new DbSet<JsonScalarArrayElement<string>>(JsonScalarArrayElement<string>);
 	m_szMsg:	string = "";
 	m_szType:	string = "";
 	m_szInput:	string = "";
@@ -210,7 +210,7 @@ export class AuthTokenResponseFailureDetail extends DataObjectBase
 export class AuthTokenResponseFailure extends DataObjectBase
 {
 	m_szMessage:	string = "";	// This is for failures in the LMS/AuthMechanism flow where we get e.g. {"message": "Invalid assessment pin or the assessment is already active."}
-	m_listDetail:	DbSet<AuthTokenResponseFailureDetail> = new DbSet<AuthTokenResponseFailureDetail>();	// This is for more general case when we get one of those "detail": "<list of details dump>" error structures.
+	m_listDetail:	DbSet<AuthTokenResponseFailureDetail> = new DbSet<AuthTokenResponseFailureDetail>(AuthTokenResponseFailureDetail);	// This is for more general case when we get one of those "detail": "<list of details dump>" error structures.
 	// ^^^ Both of these are simply unioned and it will find and parse whichever is present.
 	// ---
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
@@ -285,13 +285,13 @@ export class iXRLibClient
 	/// <param name="szRESTEndpoint">Backend REST endpoint that receives the POST.</param>
 	/// <param name="szResponse">Response from backend... either success JSON or failure JSON.</param>
 	/// <returns>iXRResult status code.</returns>
-	public static PostIXRXXXs<T, iXRLibInit, iXRLibAnalytics, iXRLibConfiguration>(listpXXXs: DbSet<T>, bOneAtATime: boolean, refparam: {szResponse: string}): iXRResult
+	public static async PostIXRXXXs<T extends iXRBase>(listpXXXs: DbSet<T>, bOneAtATime: boolean, refparam: {szResponse: string}): Promise<iXRResult>
 	{
 		try
 		{
-			var	ixrXXXContainer:	iXRXXXContainer<T, number> = new iXRXXXContainer<T, number>();
-			var	eTestCurlRet:		CURLcode,
-				eCurlRet:			CURLcode = CURLE_OK;
+			var	ixrXXXContainer:	iXRXXXContainer<T, number, false> = new iXRXXXContainer<T, number, false>();
+			var	eTestCurlRet:		boolean,
+				eCurlRet:			boolean = true;
 			var	eJsonRet:			JsonResult;
 			var	szJSON:				string = "";
 			var	eReauthResult:		iXRResult;
@@ -301,9 +301,9 @@ export class iXRLibClient
 
 			if (bOneAtATime)
 			{
-				var	list1pXXXs = new DbSet<T>();
+				var	list1pXXXs:	DbSet<T> = new DbSet<T>(T);
 
-				list1pXXXs.push_back(null);
+				// list1pXXXs.push(null);
 				for (let pT of listpXXXs.values())
 				{
 					var	objRequest: CurlHttp = new CurlHttp();
@@ -313,13 +313,13 @@ export class iXRLibClient
 					// Backend complains about "it should be a valid list" with this one.
 					//szJSON = GenerateJsonAlternate(ixrXXXContainer, DumpCategory.eDumpingJsonForBackend, { {"data", [&]()->mstringb { return GenerateJson<T, 1>(*pT, DumpCategory.eDumpingJsonForBackend); } } });
 					list1pXXXs[0] = pT;
-					szJSON = GenerateJsonAlternate(ixrXXXContainer, DumpCategory.eDumpingJsonForBackend, { {"data", [&]()->mstringb { return GenerateJson<T, 1>(list1pXXXs, DumpCategory.eDumpingJsonForBackend); } } });
-					InPlaceRefresh<mbinary>(mbBodyContent, szJSON);
-					OUTPUTDEBUGSTRING(szJSON, "\n");
-					iXRLibAnalytics.SetHeadersFromCurrentState(objRequest, szJSON, true, true);
-					eTestCurlRet = objRequest.Post(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T, iXRLibConfiguration>()), {}, mbBodyContent, szResponse);
-					OUTPUTDEBUGSTRING(szResponse, "\n");
-					if (eTestCurlRet != CURLE_OK)
+					szJSON = GenerateJsonAlternate(ixrXXXContainer, DumpCategory.eDumpingJsonForBackend, [ ["data", () => { return GenerateJsonList(list1pXXXs, DumpCategory.eDumpingJsonForBackend); } ] ]);
+					mbBodyContent = Buffer.from(szJSON);
+					// OUTPUTDEBUGSTRING(szJSON, "\n");
+					// iXRLibAnalytics.SetHeadersFromCurrentState(objRequest, szJSON, true, true);
+					eTestCurlRet = await objRequest.Post(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T>()), [], mbBodyContent, {szResponse: ""});
+					// OUTPUTDEBUGSTRING(szResponse, "\n");
+					if (!eTestCurlRet)
 					{
 						eCurlRet = eTestCurlRet;
 					}
@@ -329,12 +329,12 @@ export class iXRLibClient
 			{
 				var	objRequest: CurlHttp = new CurlHttp();
 
-				szJSON = GenerateJsonAlternate(ixrXXXContainer, DumpCategory.eDumpingJsonForBackend, { {"data", [&]()->mstringb { return GenerateJson<T, 1>(listpXXXs, DumpCategory.eDumpingJsonForBackend); } } });
-				InPlaceRefresh<mbinary>(mbBodyContent, szJSON);
-				OUTPUTDEBUGSTRING(szJSON, "\n");
+				szJSON = GenerateJsonAlternate(ixrXXXContainer, DumpCategory.eDumpingJsonForBackend, [ ["data", () => { return GenerateJsonList(listpXXXs, DumpCategory.eDumpingJsonForBackend); } ] ]);
+				mbBodyContent = Buffer.from(szJSON);
+				// OUTPUTDEBUGSTRING(szJSON, "\n");
 				iXRLibAnalytics.SetHeadersFromCurrentState(objRequest, szJSON, true, true);
-				eCurlRet = objRequest.Post(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T, iXRLibConfiguration>()), {}, mbBodyContent, szResponse);
-				OUTPUTDEBUGSTRING(szJSON, "\n\nRESPONSE:\n\n", szResponse);
+				eCurlRet = await objRequest.Post(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T, iXRLibConfiguration>()), [], mbBodyContent, {szResponse: ""});
+				// OUTPUTDEBUGSTRING(szJSON, "\n\nRESPONSE:\n\n", szResponse);
 			}
 			// Judgment call here... if (bOneAtATime) then szResponse will be the last response and this will react to that.
 			// Betting that trying to do all of them and maybe some will get through is the good policy.  It may prove that
@@ -381,23 +381,23 @@ export class iXRLibClient
 		return iXRResult.eOk;
 	}
 	// TODO:  Summary this when dust has settled.
-	public static GetIXRXXXs<T, iXRLibInit, iXRLibAnalytics, iXRLibConfiguration>(vpszQueryParameters: Array<[string, string]>, /*OUT*/ ptContainedResponse: iXRXXXContainer<T, PythonDictStrings>, /*OUT*/ ptResponse: T): iXRResult
+	public static async GetIXRXXXs<T extends iXRBase>(vpszQueryParameters: Array<[string, string]>, /*OUT*/ ptContainedResponse: iXRXXXContainer<T, PythonDictStrings, false>, /*OUT*/ ptResponse: T | null): Promise<iXRResult>
 	{
 		try
 		{
 			var	objRequest:			CurlHttp = new CurlHttp();
-			var	eCurlRet:			CURLcode;
+			var	eCurlRet:			boolean;
 			var	eJsonRet:			JsonResult;
 			var	eReauthResult:		iXRResult;
 			var	szResponse:			string = "";
 			var	objResponseFailure:	PostObjectsResponseFailure = new PostObjectsResponseFailure();	// e.g. {"detail":"Invalid Login - Hash"}
 
 			iXRLibAnalytics.SetHeadersFromCurrentState(objRequest, "", false, true);
-			eCurlRet = objRequest.Get(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T, iXRLibConfiguration>()), vpszQueryParameters, szResponse);
+			eCurlRet = await objRequest.Get(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T, iXRLibConfiguration>()), vpszQueryParameters, {szResponse: ""});
 			// OUTPUTDEBUGSTRING("RESPONSE:\n", szResponse, "\n");
-			if (eCurlRet == CURLE_OK)
+			if (eCurlRet)
 			{
-				if (ptResponse != null)
+				if (ptResponse)
 				{
 					eJsonRet = LoadFromJson(ptResponse, szResponse);
 				}
@@ -444,21 +444,21 @@ export class iXRLibClient
 		return iXRResult.eOk;
 	}
 	// TODO:  Summary this when dust has settled.
-	public static DeleteIXRXXX<T>(vpszQueryParameters: Array<[string, string]>, refparam: {szResponse: string}): iXRResult
+	public static async DeleteIXRXXX<T extends iXRBase>(vpszQueryParameters: Array<[string, string]>, refparam: {szResponse: string}): Promise<iXRResult>
 	{
 		try
 		{
 			var	objRequest:			CurlHttp = new CurlHttp();
-			var	eCurlRet:			CURLcode;
+			var	eCurlRet:			boolean;
 			var	eJsonRet:			JsonResult;
 			var	eReauthResult:		iXRResult;
 			var	objResponseSuccess:	PostObjectsResponseSuccess = new PostObjectsResponseSuccess();	// e.g. {"status":"all data reset"}
 			var	objResponseFailure:	PostObjectsResponseFailure = new PostObjectsResponseFailure();	// e.g. {"detail":"Invalid Login - Hash"}
 
-			iXRLibAnalytics.SetHeadersFromCurrentState(objRequest, "", false, true);
-			eCurlRet = objRequest.Delete(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T, iXRLibConfiguration>()), vpszQueryParameters, szResponse);
+			// iXRLibAnalytics.SetHeadersFromCurrentState(objRequest, "", false, true);
+			eCurlRet = await objRequest.Delete(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T>()), vpszQueryParameters, {szResponse: ""});
 			// OUTPUTDEBUGSTRING(szResponse, "\n");
-			if (eCurlRet == CURLE_OK)
+			if (eCurlRet)
 			{
 				eJsonRet = LoadFromJson(objResponseSuccess, szResponse);
 				if (eJsonRet == JsonResult.eOk)
@@ -505,18 +505,18 @@ export class iXRLibClient
 	/// </summary>
 	/// <param name="authTokenRequest"></param>
 	/// <returns>Success or failure</returns>
-	public static PostAuthenticate(authTokenRequest: AuthTokenRequest, refparam: {szResponse: string}): iXRResult
+	public static async PostAuthenticate(authTokenRequest: AuthTokenRequest, refparam: {szResponse: string}): Promise<iXRResult>
 	{
 		var	objRequest:		CurlHttp = new CurlHttp();
-		var	eCurlRet:		CURLcode;
+		var	eCurlRet:		boolean;
 		var	szJSON:			string = GenerateJson(authTokenRequest, DumpCategory.eDumpEverything);	// Save a few ns not going with eDumpingJsonForBackend... this is not a database object, no need to exclude fields.
 		var	mbBodyContent:	Buffer = new Buffer(szJSON);
 
 		try
 		{
-			iXRLibAnalytics.SetHeadersFromCurrentState(objRequest, szJSON, true, false);
-			eCurlRet = objRequest.Post(iXRLibAnalytics.FinalUrl("auth/token"), {}, mbBodyContent, szResponse);
-			if (eCurlRet != CURLE_OK)
+			// iXRLibAnalytics.SetHeadersFromCurrentState(objRequest, szJSON, true, false);
+			eCurlRet = await objRequest.Post(iXRLibAnalytics.FinalUrl("auth/token"), [], mbBodyContent, {szResponse: ""});
+			if (!eCurlRet)
 			{
 				return iXRResult.eAuthenticateFailedNetworkError;
 			}
@@ -530,10 +530,10 @@ export class iXRLibClient
 		return iXRResult.eOk;
 	}
 	// ---
-	public static GetIXRConfig(/*OUT*/ ixrConfiguration: iXRLibConfiguration): iXRResult
+	public static async GetIXRConfig(/*OUT*/ ixrConfiguration: iXRLibConfiguration): Promise<iXRResult>
 	{
 		var	szRestUrl:	string = ixrConfiguration.GetRestUrl();
-		var	eRet:		iXRResult = GetIXRXXXs<iXRLibConfiguration, iXRLibInit, iXRLibAnalytics, iXRLibConfiguration>({}, null, ixrConfiguration);
+		var	eRet:		iXRResult = await iXRLibClient.GetIXRXXXs<iXRLibConfiguration>([], null, ixrConfiguration);
 
 		// Judgment call here... restore the REST_URL to what it was before getting the config from the backend.
 		// For example, when I am running test code, the local backend populates this field with the cloud URL,
@@ -543,9 +543,9 @@ export class iXRLibClient
 		// ---
 		return eRet;
 	}
-	public static GetIXRStorage(/*OUT*/ ixrStorage: iXRXXXContainer<iXRStorage, PythonDictStrings>): iXRResult
+	public static async GetIXRStorage(/*OUT*/ ixrStorage: iXRXXXContainer<iXRStorage, PythonDictStrings, false>): Promise<iXRResult>
 	{
-		return GetIXRXXXs<iXRStorage, iXRLibInit, iXRLibAnalytics, iXRLibConfiguration>({}, ixrStorage, null);
+		return await iXRLibClient.GetIXRXXXs<iXRStorage>([], ixrStorage, null);
 	}
 	/// <summary>
 	/// Delete single iXRStorage entry by name.
@@ -554,9 +554,9 @@ export class iXRLibClient
 	/// <param name="szName">Name of the Storage element.</param>
 	/// <param name="szResponse">Response from backend.</param>
 	/// <returns>iXRResult status code.</returns>
-	public static DeleteIXRStorageEntry(szName: string, refparam: {szResponse: string}): iXRResult
+	public static async DeleteIXRStorageEntry(szName: string, refparam: {szResponse: string}): Promise<iXRResult>
 	{
-		return DeleteIXRXXX<iXRStorage, iXRLibInit, iXRLibAnalytics, iXRLibConfiguration>({ ["name", szName] }, szResponse);
+		return await iXRLibClient.DeleteIXRXXX<iXRStorage>([ ["name", szName] ], {szResponse: ""});
 	}
 	/// <summary>
 	/// Delete iXRStorage entries for this device, either session only or all of them.
@@ -565,34 +565,34 @@ export class iXRLibClient
 	/// <param name="bSessionOnly">true if only session data is to be deleted, else all data.</param>
 	/// <param name="szResponse">Response from backend.</param>
 	/// <returns>iXRResult status code.</returns>
-	public static DeleteMultipleIXRStorageEntries(bSessionOnly: boolean, refparam: {szResponse: string}): iXRResult
+	public static async DeleteMultipleIXRStorageEntries(bSessionOnly: boolean, refparam: {szResponse: string}): Promise<iXRResult>
 	{
-		return DeleteIXRXXX<iXRStorage, iXRLibInit, iXRLibAnalytics, iXRLibConfiguration>({ ["sessionOnly", (bSessionOnly) ? "true" : "false"] }, szResponse);
+		return await iXRLibClient.DeleteIXRXXX<iXRStorage>([ ["sessionOnly", (bSessionOnly) ? "true" : "false"] ], {szResponse: ""});
 	}
 	// ---
-	public static PostIXREvents(listpEvents: DbSet<iXREvent>, bOneAtATime boolean, refparam: {szResponse: string}): iXRResult
+	public static async PostIXREvents(listpEvents: DbSet<iXREvent>, bOneAtATime: boolean, refparam: {szResponse: string}): Promise<iXRResult>
 	{
-		return PostIXRXXXs<iXREvent, iXRLibInit, iXRLibAnalytics, iXRLibConfiguration>(listpEvents, bOneAtATime, szResponse);
+		return await iXRLibClient.PostIXRXXXs<iXREvent>(listpEvents, bOneAtATime, {szResponse: ""});
 	}
-	public static PostIXRAIProxyObjects(listpAIProxyObjects: DbSet<iXRAIProxy>, bOneAtATime boolean, refparam: {szResponse: string}): iXRResult
+	public static async PostIXRAIProxyObjects(listpAIProxyObjects: DbSet<iXRAIProxy>, bOneAtATime: boolean, refparam: {szResponse: string}): Promise<iXRResult>
 	{
-		return PostIXRXXXs<iXRAIProxy, iXRLibInit, iXRLibAnalytics, iXRLibConfiguration>(listpAIProxyObjects, bOneAtATime, szResponse);
+		return await iXRLibClient.PostIXRXXXs<iXRAIProxy>(listpAIProxyObjects, bOneAtATime, {szResponse: ""});
 	}
-	public static PostIXRLogs(listpLogs: DbSet<iXRLog>, bOneAtATime boolean, refparam: {szResponse: string}): iXRResult
+	public static async PostIXRLogs(listpLogs: DbSet<iXRLog>, bOneAtATime: boolean, refparam: {szResponse: string}): Promise<iXRResult>
 	{
-		return PostIXRXXXs<iXRLog, iXRLibInit, iXRLibAnalytics, iXRLibConfiguration>(listpLogs, bOneAtATime, szResponse);
+		return await iXRLibClient.PostIXRXXXs<iXRLog>(listpLogs, bOneAtATime, {szResponse: ""});
 	}
-	public static PostIXRTelemetry(listpTelemetry: DbSet<iXRTelemetry>, bOneAtATime: boolean, refparam: {szResponse: string}): iXRResult
+	public static async PostIXRTelemetry(listpTelemetry: DbSet<iXRTelemetry>, bOneAtATime: boolean, refparam: {szResponse: string}): Promise<iXRResult>
 	{
-		return PostIXRXXXs<iXRTelemetry, iXRLibInit, iXRLibAnalytics, iXRLibConfiguration>(listpTelemetry, bOneAtATime, szResponse);
+		return await iXRLibClient.PostIXRXXXs<iXRTelemetry>(listpTelemetry, bOneAtATime, {szResponse: ""});
 	}
-	public static PostIXRAIProxy(listpAIProxy: DbSet<iXRAIProxy>, bOneAtATime: boolean, refparam: {szResponse: string}): iXRResult
+	public static async PostIXRAIProxy(listpAIProxy: DbSet<iXRAIProxy>, bOneAtATime: boolean, refparam: {szResponse: string}): Promise<iXRResult>
 	{
-		return PostIXRXXXs<iXRAIProxy, iXRLibInit, iXRLibAnalytics, iXRLibConfiguration>(listpAIProxy, bOneAtATime, szResponse);
+		return await iXRLibClient.PostIXRXXXs<iXRAIProxy>(listpAIProxy, bOneAtATime, {szResponse: ""});
 	}
-	public static PostIXRStorage(listpStorage: DbSet<iXRStorage>, bOneAtATime: boolean, refparam: {szResponse: string}): iXRResult
+	public static async PostIXRStorage(listpStorage: DbSet<iXRStorage>, bOneAtATime: boolean, refparam: {szResponse: string}): Promise<iXRResult>
 	{
-		return PostIXRXXXs<iXRStorage, iXRLibInit, iXRLibAnalytics, iXRLibConfiguration>(listpStorage, bOneAtATime, szResponse);
+		return await iXRLibClient.PostIXRXXXs<iXRStorage>(listpStorage, bOneAtATime, {szResponse: ""});
 	}
 	// ---
 	/// <summary>

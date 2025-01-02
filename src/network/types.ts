@@ -1,6 +1,7 @@
 import { AxiosRequestConfig, AxiosResponse, Method } from 'axios';
 import { Agent } from 'https';
 import { Guid  } from 'guid-typescript';
+import { DataObjectBase, FieldProperties, FieldPropertiesRecordContainer } from './utils/DataObjectBase';
 
 export const DATEMAXVALUE = 2222;
 export const DATEMINVALUE = 1972;
@@ -13,7 +14,20 @@ export class Base64
 }
 
 export type time_t = number;
-export type JsonScalarArrayElement<T> = Array<T>;
+
+export class JsonScalarArrayElement<T> extends DataObjectBase
+{
+	public m_data:	T|null = null;
+	// ---
+	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
+		super.m_mapProperties.m_rfp,
+	 	{m_data: new FieldProperties("data")}));
+	// ---
+	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
+	{
+		return JsonScalarArrayElement.m_mapProperties;
+	}
+}
 
 export function Sleep(nMilliseconds: number)
 {
@@ -456,6 +470,21 @@ export class Regex
 export function atol(str: string): number
 {
 	return parseInt(str, 10);
+}
+
+export function atobool(str: string): boolean
+{
+	return str === "true";
+}
+
+export function atoi(str: string): number
+{
+	return parseInt(str, 10);
+}
+
+export function atof(str: string): number
+{
+	return parseFloat(str);
 }
 
 // ---
