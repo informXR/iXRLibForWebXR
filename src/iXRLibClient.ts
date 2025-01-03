@@ -3,9 +3,9 @@
 ///		Comaintain with iXRAnalytics.cs.
 
 import { iXRLibAnalytics, iXRLibInit } from "./iXRLibAnalytics";
-import { iXRAIProxy, iXRBase, iXREvent, iXRLibConfiguration, iXRLog, iXRStorage, iXRTelemetry, iXRXXXContainer } from "./iXRLibCoreModel";
-import { CurlHttp, JsonScalarArrayElement, SUID } from "./network/types";
-import { DataObjectBase, DbSet, DumpCategory, FieldProperties, FieldPropertiesRecordContainer, FieldPropertyFlags, GenerateJson, GenerateJsonAlternate, GenerateJsonList } from "./network/utils/DataObjectBase";
+import { iXRAIProxy, iXRBase, iXREvent, iXRLibConfiguration, iXRLog, iXRStorage, iXRTelemetry, iXRXXXContainer, RESTEndpointFromType } from "./iXRLibCoreModel";
+import { CurlHttp, JsonScalarArrayElement, SUID, time_t } from "./network/types";
+import { DataObjectBase, DbSet, DumpCategory, FieldProperties, FieldPropertiesRecordContainer, FieldPropertyFlags, GenerateJson, GenerateJsonAlternate, GenerateJsonList, LoadFromJson } from "./network/utils/DataObjectBase";
 import { iXRResult, JsonResult, PythonDictStrings, StringList } from "./network/utils/DotNetishTypes";
 
 /// </summary>
@@ -109,9 +109,9 @@ export class AuthTokenRequest extends DataObjectBase
 /// </summary>
 export class AuthTokenDecodedJWT extends DataObjectBase
 {
-	m_utTokenExpiration:	time_t;	// Token expiration in Unix time (time_t).
-	m_szType:				string = "";
-	m_szJti:				string = "";
+	public m_utTokenExpiration:	time_t = 0;	// Token expiration in Unix time (time_t).
+	public m_szType:			string = "";
+	public m_szJti:				string = "";
 	// ---
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
 		super.m_mapProperties.m_rfp,
@@ -183,11 +183,11 @@ export class PostObjectsResponseFailure extends DataObjectBase
 /// </summary>
 export class AuthTokenResponseFailureDetail extends DataObjectBase
 {
-	m_lszLoc:	DbSet<JsonScalarArrayElement<string>> = new DbSet<JsonScalarArrayElement<string>>(JsonScalarArrayElement<string>);
-	m_szMsg:	string = "";
-	m_szType:	string = "";
-	m_szInput:	string = "";
-	m_szUrl:	string = "";
+	public m_lszLoc:	DbSet<JsonScalarArrayElement<string>> = new DbSet<JsonScalarArrayElement<string>>(JsonScalarArrayElement<string>);
+	public m_szMsg:		string = "";
+	public m_szType:	string = "";
+	public m_szInput:	string = "";
+	public m_szUrl:		string = "";
 	// ---
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
 		super.m_mapProperties.m_rfp,
@@ -209,8 +209,8 @@ export class AuthTokenResponseFailureDetail extends DataObjectBase
 /// </summary>
 export class AuthTokenResponseFailure extends DataObjectBase
 {
-	m_szMessage:	string = "";	// This is for failures in the LMS/AuthMechanism flow where we get e.g. {"message": "Invalid assessment pin or the assessment is already active."}
-	m_listDetail:	DbSet<AuthTokenResponseFailureDetail> = new DbSet<AuthTokenResponseFailureDetail>(AuthTokenResponseFailureDetail);	// This is for more general case when we get one of those "detail": "<list of details dump>" error structures.
+	public m_szMessage:		string = "";	// This is for failures in the LMS/AuthMechanism flow where we get e.g. {"message": "Invalid assessment pin or the assessment is already active."}
+	public m_listDetail:	DbSet<AuthTokenResponseFailureDetail> = new DbSet<AuthTokenResponseFailureDetail>(AuthTokenResponseFailureDetail);	// This is for more general case when we get one of those "detail": "<list of details dump>" error structures.
 	// ^^^ Both of these are simply unioned and it will find and parse whichever is present.
 	// ---
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
@@ -316,7 +316,7 @@ export class iXRLibClient
 					szJSON = GenerateJsonAlternate(ixrXXXContainer, DumpCategory.eDumpingJsonForBackend, [ ["data", () => { return GenerateJsonList(list1pXXXs, DumpCategory.eDumpingJsonForBackend); } ] ]);
 					mbBodyContent = Buffer.from(szJSON);
 					// OUTPUTDEBUGSTRING(szJSON, "\n");
-					// iXRLibAnalytics.SetHeadersFromCurrentState(objRequest, szJSON, true, true);
+					iXRLibAnalytics.SetHeadersFromCurrentState(objRequest, Buffer.from(szJSON), true, true);
 					eTestCurlRet = await objRequest.Post(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T>()), [], mbBodyContent, {szResponse: ""});
 					// OUTPUTDEBUGSTRING(szResponse, "\n");
 					if (!eTestCurlRet)
@@ -332,16 +332,16 @@ export class iXRLibClient
 				szJSON = GenerateJsonAlternate(ixrXXXContainer, DumpCategory.eDumpingJsonForBackend, [ ["data", () => { return GenerateJsonList(listpXXXs, DumpCategory.eDumpingJsonForBackend); } ] ]);
 				mbBodyContent = Buffer.from(szJSON);
 				// OUTPUTDEBUGSTRING(szJSON, "\n");
-				iXRLibAnalytics.SetHeadersFromCurrentState(objRequest, szJSON, true, true);
-				eCurlRet = await objRequest.Post(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T, iXRLibConfiguration>()), [], mbBodyContent, {szResponse: ""});
+				iXRLibAnalytics.SetHeadersFromCurrentState(objRequest, Buffer.from(szJSON), true, true);
+				eCurlRet = await objRequest.Post(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T>()), [], mbBodyContent, {szResponse: ""});
 				// OUTPUTDEBUGSTRING(szJSON, "\n\nRESPONSE:\n\n", szResponse);
 			}
 			// Judgment call here... if (bOneAtATime) then szResponse will be the last response and this will react to that.
 			// Betting that trying to do all of them and maybe some will get through is the good policy.  It may prove that
 			// bailing on the first failure is better but I do not know for sure.
-			if (eCurlRet == CURLE_OK)
+			if (eCurlRet)
 			{
-				eJsonRet = LoadFromJson(objResponseSuccess, szResponse);
+				eJsonRet = LoadFromJson(objResponseSuccess, refparam.szResponse);
 				if (eJsonRet == JsonResult.eOk)
 				{
 					return iXRResult.eOk;
@@ -349,11 +349,11 @@ export class iXRLibClient
 				else
 				{
 					// Did not get success, does failure parse?
-					eJsonRet = LoadFromJson(objResponseFailure, szResponse);
+					eJsonRet = LoadFromJson(objResponseFailure, refparam.szResponse);
 					if (eJsonRet == JsonResult.eOk)
 					{
 						// Failure parses, probably auth error.
-						eReauthResult = iXRLibInit.ReAuthenticate(true);
+						eReauthResult = await iXRLibInit.ReAuthenticate(true);
 						if (eReauthResult != iXRResult.eOk)
 						{
 							return eReauthResult;
@@ -392,8 +392,8 @@ export class iXRLibClient
 			var	szResponse:			string = "";
 			var	objResponseFailure:	PostObjectsResponseFailure = new PostObjectsResponseFailure();	// e.g. {"detail":"Invalid Login - Hash"}
 
-			iXRLibAnalytics.SetHeadersFromCurrentState(objRequest, "", false, true);
-			eCurlRet = await objRequest.Get(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T, iXRLibConfiguration>()), vpszQueryParameters, {szResponse: ""});
+			iXRLibAnalytics.SetHeadersFromCurrentState(objRequest, Buffer.from(""), false, true);
+			eCurlRet = await objRequest.Get(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T>()), vpszQueryParameters, {szResponse: ""});
 			// OUTPUTDEBUGSTRING("RESPONSE:\n", szResponse, "\n");
 			if (eCurlRet)
 			{
@@ -416,7 +416,7 @@ export class iXRLibClient
 					if (eJsonRet == JsonResult.eOk)
 					{
 						// Failure parses, probably auth error.
-						eReauthResult = iXRLibInit.ReAuthenticate(true);
+						eReauthResult = await iXRLibInit.ReAuthenticate(true);
 						if (eReauthResult != iXRResult.eOk)
 						{
 							return eReauthResult;
@@ -460,7 +460,7 @@ export class iXRLibClient
 			// OUTPUTDEBUGSTRING(szResponse, "\n");
 			if (eCurlRet)
 			{
-				eJsonRet = LoadFromJson(objResponseSuccess, szResponse);
+				eJsonRet = LoadFromJson(objResponseSuccess, refparam.szResponse);
 				if (eJsonRet == JsonResult.eOk)
 				{
 					return iXRResult.eOk;
@@ -468,11 +468,11 @@ export class iXRLibClient
 				else
 				{
 					// Did not get success, does failure parse?
-					eJsonRet = LoadFromJson(objResponseFailure, szResponse);
+					eJsonRet = LoadFromJson(objResponseFailure, refparam.szResponse);
 					if (eJsonRet == JsonResult.eOk)
 					{
 						// Failure parses, probably auth error.
-						eReauthResult = iXRLibInit.ReAuthenticate(true);
+						eReauthResult = await iXRLibInit.ReAuthenticate(true);
 						if (eReauthResult != iXRResult.eOk)
 						{
 							return eReauthResult;

@@ -2,7 +2,7 @@
 /// Allows for several categories of object dumping each with rules for which fields to dump or filter.
 
 import { SUID } from "../types";
-import { PythonDictStrings } from "./DotNetishTypes";
+import { iXRResult, JsonResult, PythonDictStrings } from "./DotNetishTypes";
 import { DatabaseResult } from "./iXRLibSQLite";
 
 /// </summary>
@@ -289,6 +289,16 @@ export class DbSet<T extends DataObjectBase> extends Array<T>
 		}
 		return nRet;
 	}
+	/// <summary>
+	/// Like .NET List<T>.Count / stl-ish size().
+	///		Note that this is not the same as Count() which is the number of items in this not filtered by m_bAlreadyTaken or m_bFlaggedForDelete.
+	///		Generally use Count(), this is here to port a specific safety case from C++.
+	/// </summary>
+	/// <returns>Number of items in this not filtered by m_bAlreadyTaken or m_bFlaggedForDelete</returns>
+	public size(): number
+	{
+		return this.length;
+	}
 	public RemoveAllRange(): void
 	{
 		for (let t of this.values())
@@ -318,8 +328,8 @@ export class DbSet<T extends DataObjectBase> extends Array<T>
 	/// <returns>List of pointers to first <nCount> objects in this</returns>
 	public Take(nCount: number): DbSet<T>
 	{
-		var	lRet:	DbSet<T> = new DbSet<T>;
-		var	bMarkAsTaken = (nCount < Number.MAX_VALUE);
+		var	lRet:			DbSet<T> = new DbSet<T>(this.m_tTypeCompare);
+		var	bMarkAsTaken:	boolean = (nCount < Number.MAX_VALUE);
 
 		if (nCount > 0)
 		{
@@ -427,7 +437,12 @@ export function GenerateJsonList(l: DbSet<DataObjectBase>, eDumpCategory: DumpCa
 		bDidOne = true;
 		szJSON += szInnerJson;
 	}
-	szObjectListJSON += "]";
+	szJSON += "]";
 	// ---
 	return szJSON;
+}
+
+export function LoadFromJson(o: DataObjectBase, szJSON: string): JsonResult
+{
+	return JsonResult.eOk;
 }

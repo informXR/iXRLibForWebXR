@@ -111,7 +111,7 @@ export class iXRLibConfiguration extends DataObjectBase
 	public m_tsSendNextBatchWait:				TimeSpan = TimeSpan.Parse("00:00:30");
 	public m_tsStragglerTimeout:				TimeSpan = TimeSpan.Parse("00:00:15");
 	public m_nEventsPerSendAttempt:				number = 16;
-	public m_nLogsPerSendAttempt:				TimeSpan = new TimeSpan().Construct2(16);
+	public m_nLogsPerSendAttempt:				number = 16;
 	public m_nTelemetryEntriesPerSendAttempt:	number = 16;
 	public m_nStorageEntriesPerSendAttempt:		number = 16;
 	public m_tsPruneSentItemsOlderThan:			TimeSpan = TimeSpan.Parse("1.00:00:00");
@@ -1149,7 +1149,7 @@ export class iXRDbContext extends DbContext
 /// <typeparam name="T">Type being POSTed.</typeparam>
 /// <typeparam name="iXRLibConfiguration">Pass in iXRLibConfiguration where this is instantiated... resolves forward-referencing catch-22.</typeparam>
 /// <returns>REST endpoint string const.</returns>
-function RESTEndpointFromType<T>() : string
+export function RESTEndpointFromType<T>() : string
 {
 	const tDraft = {} as T;
 
@@ -1179,3 +1179,28 @@ function RESTEndpointFromType<T>() : string
 	}
 	return "dev/null";
 }
+
+// The AI suggests these and since this seems to have to be revisited ad infinitum, going to document them with comments.
+// function RESTEndpointFromType<T>(): string
+// {
+// 	// Map types to their REST endpoints
+// 	if ((T as any) === iXREvent) return "events";
+// 	if ((T as any) === iXRLog) return "logs";
+// 	if ((T as any) === iXRTelemetry) return "telemetry";
+// 	if ((T as any) === iXRStorage) return "storage";
+// 	if ((T as any) === iXRAIProxy) return "ai/proxy";
+// 	return "";
+// }
+
+// function RESTEndpointFromType<T extends iXRBase>(): string
+// {
+// 	switch (T.name)
+// 	{
+// 		case 'iXREvent': return 'events';
+// 		case 'iXRLog': return 'logs';
+// 		case 'iXRTelemetry': return 'telemetry';
+// 		case 'iXRStorage': return 'storage';
+// 		case 'iXRAIProxy': return 'ai/proxy';
+// 		default: return '';
+// 	}
+// }

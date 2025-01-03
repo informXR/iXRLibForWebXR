@@ -368,6 +368,10 @@ export class TimeSpan
 	{
 		return this.m_dtDate.getTime() / 1000.0;
 	}
+	public get totalMilliseconds(): number
+	{
+		return this.m_dtDate.getTime();
+	}
 	// Handles results of DateTime arithmetic.
 	// TimeSpan(const std::chrono::system_clock::duration& dtDuration)
 	// {
