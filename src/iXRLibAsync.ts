@@ -3,15 +3,65 @@
 /// Queue main tasks and chew through them one at a time both for sequencing and not oversaturating bandwidth.
 
 import { iXRResult } from "./network/utils/DotNetishTypes";
+//import { Worker } from "worker_threads";		// For Node.js.
+//import { parentPort } from 'worker_threads';	// For Node.js.
+//import { spawn, Thread, Worker } from "threads"
+
+// NOTES:  The commented out code is a) code samples for doing threading in both browser and Node.js and b) the C++ code unported to TypeScript.
+// For the first cut, I am betting on promises and async/await being sufficient.  We can either clean out the comments if we become totally sure
+// promises will always be sufficient or we can use the threading code as a reference for how to do threading in TypeScript.
+
+//// main.ts
+//if (typeof Worker !== 'undefined')
+//{
+//	// Web Worker for browser environments.
+//	const objWorker:	Worker = new Worker(new URL('./worker.ts', import.meta.url));
+
+//	objWorker.postMessage('Hello from the main thread!');
+//	objWorker.onmessage = (event) =>
+//	{
+//		console.log('Received message from worker:', event.data);
+//	};
+//}
+//else
+//{
+//	console.log('Web Workers are not supported in this environment.');
+//}
+
+//// worker.ts Worker thread for Web Worker.
+//self.onmessage = (event) =>
+//{
+//	console.log('Received message from main thread:', event.data);
+//	self.postMessage('Hello from the worker thread!');
+//};
+
+//// ---
+
+//// main.ts
+//const worker = new Worker(new URL('./worker.ts', import.meta.url));
+
+//worker.on('message', (message) =>
+//{
+//console.log('Received message from worker:', message);
+//});
+
+//worker.postMessage('Hello from the main thread!');
+
+//// worker.ts Worker thread for Node.js.
+//parentPort.on('message', (message) =>
+//{
+//	console.log('Received message from main thread:', message);
+//	parentPort.postMessage('Hello from the worker thread!');
+//});
+
+type TimerCallback = (bExiting: boolean) => void;
 
 /// </summary>
 export class iXRLibAsync
 {
 // protected:
 	// ---
-	// using TimerCallback = std::function<void (bool bExiting)>;
-	// // ---
-	// public const			m_nCallbackPeriodicity: number = 500;	// Half second.
+	public static m_nCallbackPeriodicity:	number = 500;	// Half second.
 	// // ---
 	// std::recursive_mutex	m_cs;
 	// std::thread				m_tWorkerThread;
@@ -34,8 +84,16 @@ export class iXRLibAsync
 	// 	Dispose();
 	// }
 	// Client thread.
-	public async AddTask(pfnTask: (o: any) => Promise<iXRResult>, pObject: any, pfnCleanup: (o: any) => void): Promise<iXRResult>
+	public AddTask(pfnTask: (o: any) => iXRResult, pObject: any, pfnCleanup: (o: any) => void): iXRResult
 	{
+		var objPromise:	Promise<iXRResult> = new Promise(
+			(resolve, reject) =>
+			{
+				var eRet:	iXRResult = pfnTask(pObject);
+
+				pfnCleanup(pObject);
+				resolve(eRet);
+			});
 		// newscope
 		// {
 		// 	ScopeThreadBlock	cs(m_cs);

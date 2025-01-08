@@ -34,14 +34,14 @@ class Authentication
 	// ---
 	// Cat these together, then checksum then timestamp and hash it.
 	// Headers for Hash, Timestamp, ApiToken, HardwareID.  Alternately or in addition to... JWT token?
-	public async SetHeadersFromCurrentState(objRequest: CurlHttp, pbBodyContent: Buffer, bHasBody: boolean): void
+	public async SetHeadersFromCurrentState(objRequest: CurlHttp, pbBodyContent: Buffer, bHasBody: boolean): Promise<void>
 	{
 		try
 		{
-			const dtNow = new DateTime(DateTime.Now());
-			var szHashSource = this.m_szApiToken + this.m_szApiSecret + dtNow.toISOString();
-			var szHash: string;
-			var nCrc32: number;
+			const dtNow:		DateTime = new DateTime(DateTime.Now());
+			var szHashSource:	string = this.m_szApiToken + this.m_szApiSecret + dtNow.toISOString();
+			var szHash:			string = "";
+			var nCrc32:			number;
 
 			if (bHasBody)
 			{
@@ -175,7 +175,7 @@ export class iXRLibInit
 					// it is excessively fastidious/brittle to fail due to this.
 				}
 				// --- While we are here, and now that we are authenticated, try and get the config from the backend.
-				eRet = iXRLibStorage.ReadConfigFromBackend(bLookForAuthMechanism);
+				eRet = await iXRLibStorage.ReadConfigFromBackend(bLookForAuthMechanism);
 			}
 			else
 			{
@@ -416,7 +416,7 @@ export class iXRLibAnalytics
 	/// <param name="bNoCallbackOnSuccess">true = Only call pfnStatusCallback on error, false = always call pfnStatusCallback (assuming pfnStatusCallback not null, do not call at all otherwise).</param>
 	/// <param name="pfnStatusCallback">null = do not want status callback, else call according to ^^^.</param>
 	/// <returns>As the call has not happened yet on return, this is the status of adding the task or failing to add it.</returns>
-	private static async AddXXXTask<T extends iXRBase>(ixrT: T, szTableName: string, pfnPostIXRXXX: (listpT: DbSet<T>, bOneAtATime: boolean, refparam: {szResponse: string}) => Promise<iXRResult>, bOneAtATime: boolean, bNoCallbackOnSuccess: boolean, pfnStatusCallback: ((ixrXXX: T, eResult: iXRResult, szExceptionMessage: string) => void) | null): Promise<iXRResult>
+	/*private*/ public static async AddXXXTask<T extends iXRBase>(ixrT: T, szTableName: string, pfnPostIXRXXX: (listpT: DbSet<T>, bOneAtATime: boolean, refparam: {szResponse: string}) => Promise<iXRResult>, bOneAtATime: boolean, bNoCallbackOnSuccess: boolean, pfnStatusCallback: ((ixrXXX: T, eResult: iXRResult, szExceptionMessage: string) => void) | null): Promise<iXRResult>
 	{
 		var	nTrimCount:		number;
 		var	dtNow:			DateTime = DateTime.ConvertUnixTime(DateTime.Now()),
@@ -945,7 +945,7 @@ export class iXRLibAnalytics
 	{
 		iXRLibAnalytics.DiagnosticWriteLine("Going to call AddAIProxy().");
 		// Notice the = capture... so pfnStatusCallback propagates by copy into the thread.  Notice it is not needed in the typescript port colon paren.
-		return iXRLibAnalytics.m_ixrLibAsync.AddTask(async (pObject: any): Promise<iXRResult> => { return iXRLibAnalytics.AddXXXNoDbTask<iXRAIProxy>(pObject as iXRAIProxy, iXRLibClient.PostIXRAIProxyObjects, false, bNoCallbackOnSuccess, pfnStatusCallback);},
+		return iXRLibAnalytics.m_ixrLibAsync.AddTask((pObject: any): iXRResult => { return iXRLibAnalytics.AddXXXNoDbTask<iXRAIProxy>(pObject as iXRAIProxy, iXRLibClient.PostIXRAIProxyObjects, false, bNoCallbackOnSuccess, pfnStatusCallback).then((eRet: iXRResult) => { return eRet; }).catch((eRet: iXRResult) => { return eRet; }); },
 			ixrAIProxy,
 			(pObject: any): void => { /*delete (iXRAIProxy*)pObject;*/ }
 		);
@@ -959,7 +959,7 @@ export class iXRLibAnalytics
 	{
 		iXRLibAnalytics.DiagnosticWriteLine("Going to call AddAIProxy().");
 		// Notice the = capture... so pfnStatusCallback propagates by copy into the thread.  Notice it is not needed in the typescript port colon paren.
-		return iXRLibAnalytics.m_ixrLibAsync.AddTask(async (pObject: any) : Promise<iXRResult> => { return iXRLibAnalytics.AddXXXTask<iXRAIProxy>(pObject as iXRAIProxy, "IXRAIProxy", iXRLibClient.PostIXRAIProxy, false, bNoCallbackOnSuccess, pfnStatusCallback); },
+		return iXRLibAnalytics.m_ixrLibAsync.AddTask((pObject: any) : iXRResult => { return iXRLibAnalytics.AddXXXTask<iXRAIProxy>(pObject as iXRAIProxy, "IXRAIProxy", iXRLibClient.PostIXRAIProxy, false, bNoCallbackOnSuccess, pfnStatusCallback).then((eRet: iXRResult) => { return eRet; }).catch((eRet: iXRResult) => { return eRet; }); },
 			ixrAIProxy,
 			(pObject: any) => void { /*delete (iXRAIProxy*)pObject;*/ });
 	}

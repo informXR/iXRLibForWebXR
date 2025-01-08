@@ -381,7 +381,7 @@ export class iXRLibClient
 		return iXRResult.eOk;
 	}
 	// TODO:  Summary this when dust has settled.
-	public static async GetIXRXXXs<T extends iXRBase>(vpszQueryParameters: Array<[string, string]>, /*OUT*/ ptContainedResponse: iXRXXXContainer<T, PythonDictStrings, false>, /*OUT*/ ptResponse: T | null): Promise<iXRResult>
+	public static async GetIXRXXXs<T extends DataObjectBase>(vpszQueryParameters: Array<[string, string]>, /*OUT*/ ptContainedResponse: iXRXXXContainer<T, PythonDictStrings, false>, /*OUT*/ ptResponse: T | null): Promise<iXRResult>
 	{
 		try
 		{

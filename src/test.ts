@@ -1,5 +1,5 @@
 import { iXRInit, iXRInstance, ResultOptions, InteractionType } from './iXR';
-import { iXRDbContext } from './iXRLibCoreModel';
+import { iXRBase, iXRDbContext } from './iXRLibCoreModel';
 import { AuthenticationRequestSchema } from './network/types';
 import { DataObjectBase, DbSet, DumpCategory, FieldProperties, FieldPropertiesRecordContainer, FieldPropertyFlags, GenerateJson } from './network/utils/DataObjectBase';
 import { PythonDictStrings, StringList, TimeSpan } from './network/utils/DotNetishTypes';
@@ -28,7 +28,7 @@ if (typeof window === 'undefined') {
 
 // ---
 
-class TestChild extends DataObjectBase
+class TestChild extends iXRBase
 {
 	public m_nGardenWall:	number = 3.4;
 	public m_szDingALing:	string = "My ding a ling.";
@@ -44,7 +44,7 @@ class TestChild extends DataObjectBase
 	}
 }
 
-class TestListChild extends DataObjectBase
+class TestListChild extends iXRBase
 {
 	public m_szDemented:	string = "Ghastly Gary";
 	public m_nBartSimpson:	number = 3.1415926535897932384626433;
@@ -60,13 +60,13 @@ class TestListChild extends DataObjectBase
 	}
 }
 
-class TestData extends DataObjectBase
+class TestData extends iXRBase
 {
 	public m_nStrictlyCommercial:	number = 1.2;
 	public m_szSomeString:			string = "with a lead filled snowshoe."
 	public m_objTestChild:			TestChild = new TestChild();
 	public m_dictTest:				PythonDictStrings = new PythonDictStrings();
-	public m_listTestListChild:		DbSet<TestListChild> = new DbSet<TestListChild>();
+	public m_listTestListChild:		DbSet<TestListChild> = new DbSet<TestListChild>(TestListChild);
 	public m_listTestStringList:	StringList = new StringList();
 	// ---
 	constructor()
@@ -100,7 +100,7 @@ class TestData extends DataObjectBase
 	}
 }
 
-class DbSetsOfStuff extends DataObjectBase
+class DbSetsOfStuff extends iXRBase
 {
 	public m_listTestDatas:		DbSet<TestData> = new DbSet<TestData>(TestData);
 	public m_listTestChildren:	DbSet<TestChild> = new DbSet<TestChild>(TestChild);

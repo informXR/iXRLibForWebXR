@@ -3,10 +3,11 @@
 
 import { iXRLibClient } from "./iXRLibClient";
 import { iXRLibStorage } from "./iXRLibStorage";
-import { atobool, atol, DATEMAXVALUE, DEFAULTNAME, SUID } from "./network/types";
+import { atobool, atol, DATEMAXVALUE, DEFAULTNAME, EnsureSingleEndingCharacter, Factory, SUID } from "./network/types";
 import { DataObjectBase, DbContext, DbSet, DumpCategory, FieldProperties, FieldPropertiesRecordContainer, FieldPropertyFlags, JsonFieldType } from "./network/utils/DataObjectBase";
 import { ConfigurationManager, DateTime, Dictionary, iXRResult, PythonDictStrings, StringList, TimeSpan } from "./network/utils/DotNetishTypes";
 import { DatabaseResult, DbSuccess } from "./network/utils/iXRLibSQLite";
+import { HTTP_URL, URLParser } from "./network/utils/URLParser";
 
 /// </summary>
 export class iXRBase extends DataObjectBase
@@ -38,6 +39,11 @@ export class iXRBase extends DataObjectBase
 		return iXRBase.m_mapProperties;
 	}
 	// ---
+	// MJPQ:  attempt at getting around the type used as value bollocks.
+	public static construct<T extends iXRBase>(ixrT: new () => T): T
+	{
+		return new ixrT();
+	}
 	constructor()
 	{
 		super();
@@ -103,8 +109,8 @@ export class CaptureTimeStampLifetime
 /// iXRLibClient.h so it needs to be here.
 export class iXRLibConfiguration extends DataObjectBase
 {
-	protected m_szRestUrl:						string = "";		// |_Would be cool to use __declspec(property) but that does not port to Linux.
-	protected m_urlRestUrl:						URLParser.HTTP_URL;	// | Using accessor instead.
+	protected m_szRestUrl:						string = "";				// |_Would be cool to use __declspec(property) but that does not port to Linux.
+	protected m_urlRestUrl:						HTTP_URL = new HTTP_URL();	// | Using accessor instead.
 	// ---
 	public m_nSendRetriesOnFailure:				number = 3;
 	public m_tsSendRetryInterval:				TimeSpan = TimeSpan.Parse("00:00:03");
@@ -138,13 +144,13 @@ export class iXRLibConfiguration extends DataObjectBase
 	public SetRestUrl(szRestUrl: string): void
 	{
 		this.m_szRestUrl = szRestUrl;
-		this.m_urlRestUrl = URLParser.Parse(m_szRestUrl);
+		this.m_urlRestUrl = URLParser.Parse(this.m_szRestUrl);
 	}
 	public GetRestUrl(): string
 	{
 		return this.m_szRestUrl;
 	}
-	public GetRestUrlObject(): URLParser.HTTP_URL
+	public GetRestUrlObject(): HTTP_URL
 	{
 		return this.m_urlRestUrl;
 	}
@@ -183,7 +189,7 @@ export class iXRLibConfiguration extends DataObjectBase
 			// MJP TODO: Auth to REST service?  Content creator vs Customer.
 			// MJP TODO: LMS (Learning Management System) integration.
 			this.m_szRestUrl = ConfigurationManager.AppSettings("REST_URL", "");
-			this.m_szRestUrl.EnsureSingleEndingCharacter('/');
+			this.m_szRestUrl = EnsureSingleEndingCharacter(this.m_szRestUrl, '/');
 			this.m_urlRestUrl = URLParser.Parse(this.m_szRestUrl);
 			this.m_nSendRetriesOnFailure = atol(ConfigurationManager.AppSettings("SendRetriesOnFailure", "3"));
 			// --- Bandwidth config parameters.
@@ -532,7 +538,7 @@ export class iXREvent extends iXRBase
 /// <typeparam name="bWantTimeStamp">Want timestamp when dumping JSON for backend.</typeparam>
 export class iXRXXXContainer<T extends iXRBase, T_CONTAINS, bTWantTimestamp extends boolean> extends iXRBase
 {
-	// public m_tIXRXXX:		T_CONTAINS = new T_CONTAINS();	// This is here to catch the data when Python is representing it as an object rather than array.
+	//public m_tIXRXXX:		T_CONTAINS = Factory.Create(T_CONTAINS);	// This is here to catch the data when Python is representing it as an object rather than array.
 	public m_tIXRXXX:		T_CONTAINS = {} as T_CONTAINS;	// This is here to catch the data when Python is representing it as an object rather than array.
 	public m_dspIXRXXXs:	DbSet<T> = new DbSet<T>(T);		// The main data.
 	// ---
@@ -553,7 +559,7 @@ export class iXRXXXContainer<T extends iXRBase, T_CONTAINS, bTWantTimestamp exte
 	}
 	public ShouldDump(szFieldName: string, eJsonFieldType: JsonFieldType, eDumpCategory: DumpCategory) : boolean // virtual
 	{
-		const bWantTimestamp:	bTWantTimestamp;
+		//const bWantTimestamp:	bTWantTimestamp;
 
 		if (eJsonFieldType === JsonFieldType.eField && szFieldName === "data")
 		{
@@ -638,13 +644,13 @@ export class iXRStorageData extends iXRBase
 {
 	public m_cdictData:	PythonDictStrings = new PythonDictStrings();
 	// ---
-	Construct0(dictData: PythonDictStrings) : iXRStorageData
+	public Construct0(dictData: PythonDictStrings) : iXRStorageData
 	{
 		this.m_cdictData = dictData;
 		// ---
 		return this;
 	}
-	Construct1(szdictData: string) : iXRStorageData
+	public Construct1(szdictData: string) : iXRStorageData
 	{
 		this.m_cdictData = new PythonDictStrings().Construct(szdictData);
 		// ---
@@ -681,7 +687,7 @@ export class StorageContainer extends iXRXXXContainer<iXRStorageData, PythonDict
 	{
 		if (this.m_dspIXRXXXs.empty())
 		{
-			this.m_dspIXRXXXs.push(this.m_tIXRXXX);
+			this.m_dspIXRXXXs.Add(new iXRStorageData().Construct0(this.m_tIXRXXX));
 		}
 	}
 };
@@ -710,18 +716,18 @@ export class iXRStorage extends iXRBase
 		this.m_szOrigin = szOrigin;
 		this.m_bSessionData = bSessionData;
 		this.m_dsData.clear();
-		this.m_dsData.push().m_dspIXRXXXs.push(dictData);
+		this.m_dsData.Add(new StorageContainer).m_dspIXRXXXs.Add(new iXRStorageData().Construct0(dictData));
 		// ---
 		return this;
 	}
-	Construct1(bKeepLatest: boolean, szName: string, szdictData: string, szOrigin: string, bSessionData: string) : iXRStorage
+	Construct1(bKeepLatest: boolean, szName: string, szdictData: string, szOrigin: string, bSessionData: boolean) : iXRStorage
 	{
 		this.m_szKeepPolicy = (bKeepLatest) ? "keepLatest" : "appendHistory";
 		this.m_szName = szName;
 		this.m_szOrigin = szOrigin;
 		this.m_bSessionData = bSessionData;
 		this.m_dsData.clear();
-		this.m_dsData.push().m_dspIXRXXXs.push(szdictData);
+		this.m_dsData.Add(new StorageContainer).m_dspIXRXXXs.Add(new iXRStorageData().Construct1(szdictData));
 		// ---
 		return this;
 	}
@@ -756,7 +762,7 @@ export class iXRStorage extends iXRBase
 /// </summary>
 export class DbSetStorage extends DbSet<iXRStorage>
 {
-	const DEFAULTNAME:	string = "state";
+	public static DEFAULTNAME:	string = "state";
 	// ---
 	// Default name 'state'
 	public GetEntry0(): iXRStorage|null
@@ -871,14 +877,14 @@ export class DbSetStorage extends DbSet<iXRStorage>
 		// ---
 		return iXRResult.eObjectNotFound;
 	}
-	public RemoveMultipleEntries(dbContext: iXRDbContext, bSessionOnly: boolean): iXRResult
+	public async RemoveMultipleEntries(dbContext: iXRDbContext, bSessionOnly: boolean): Promise<iXRResult>
 	{
 		var	eRet:				iXRResult;
 		var	szResponse:			string = "";
 		var	bChangedSomething:	boolean = false;
 
 		// Delete from backend.
-		eRet = iXRLibClient.DeleteMultipleIXRStorageEntries(bSessionOnly, szResponse);
+		eRet = await iXRLibClient.DeleteMultipleIXRStorageEntries(bSessionOnly, {szResponse});
 		// ---
 		if (eRet == iXRResult.eOk)
 		{
@@ -1025,21 +1031,21 @@ export class iXRDbContext extends DbContext
 		return DatabaseResult.eOk;
 	}
 	// Default name 'state'
-	public StorageGetEntry0(): PythonDictStrings
+	public StorageGetEntry0(): PythonDictStrings | null
 	{
-		var pixrs:	iXRStorage;
+		var pixrs:	iXRStorage | null;
 
 		this.LoadStorageEntriesIfNecessary();
-		pixrs = this.m_dsIXRStorage.GetEntry0();
+		pixrs = (this.m_dsIXRStorage as DbSetStorage).GetEntry0();
 		// ---
 		return (pixrs != null && pixrs != undefined && !pixrs.m_dsData.empty() && !pixrs.m_dsData[0].m_dspIXRXXXs.empty()) ? pixrs.m_dsData[0].m_dspIXRXXXs[0].m_cdictData : null;
 	}
-	public StorageGetEntry1(szName: string): PythonDictStrings
+	public StorageGetEntry1(szName: string): PythonDictStrings | null
 	{
-		var	pixrs: iXRStorage;
+		var	pixrs: iXRStorage | null;
 
 		this.LoadStorageEntriesIfNecessary();
-		pixrs = this.m_dsIXRStorage.GetEntry1(szName);
+		pixrs = (this.m_dsIXRStorage as DbSetStorage).GetEntry1(szName);
 		// ---
 		return (pixrs != null && pixrs != undefined && !pixrs.m_dsData.empty() && !pixrs.m_dsData[0].m_dspIXRXXXs.empty()) ? pixrs.m_dsData[0].m_dspIXRXXXs[0].m_cdictData : null;
 	}
@@ -1047,10 +1053,10 @@ export class iXRDbContext extends DbContext
 	public StorageGetEntryAsString0(): string
 	{
 		var	szRet:	string = "";
-		var	pixrs:	iXRStorage;
+		var	pixrs:	iXRStorage | null;
 
 		this.LoadStorageEntriesIfNecessary();
-		pixrs = this.m_dsIXRStorage.GetEntry();
+		pixrs = (this.m_dsIXRStorage as DbSetStorage).GetEntry0();
 		if (pixrs != null && pixrs != undefined && !pixrs.m_dsData.empty() && !pixrs.m_dsData[0].m_dspIXRXXXs.empty())
 		{
 			szRet = pixrs.m_dsData[0].m_dspIXRXXXs[0].m_cdictData.ToString();
@@ -1061,10 +1067,10 @@ export class iXRDbContext extends DbContext
 	public StorageGetEntryAsString1(szName: string): string
 	{
 		var	szRet:	string = "";
-		var	pixrs:	iXRStorage;
+		var	pixrs:	iXRStorage | null;
 
 		this.LoadStorageEntriesIfNecessary();
-		pixrs = this.m_dsIXRStorage.GetEntry1(szName);
+		pixrs = (this.m_dsIXRStorage as DbSetStorage).GetEntry1(szName);
 		if (pixrs != null && pixrs != undefined && !pixrs.m_dsData.empty() && !pixrs.m_dsData[0].m_dspIXRXXXs.empty())
 		{
 			szRet = pixrs.m_dsData[0].m_dspIXRXXXs[0].m_cdictData.ToString();
@@ -1073,49 +1079,49 @@ export class iXRDbContext extends DbContext
 		return szRet;
 	}
 	// Default name 'state'
-	public StorageSetEntry0(szData: string, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): iXRResult
+	public async StorageSetEntry0(szData: string, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): Promise<iXRResult>
 	{
 		this.LoadStorageEntriesIfNecessary();
 		// ---
-		return this.m_dsIXRStorage.SetEntry(szData, bKeepLatest, szOrigin, bSessionData);
+		return (this.m_dsIXRStorage as DbSetStorage).SetEntry0(new PythonDictStrings().Construct(szData), bKeepLatest, szOrigin, bSessionData);
 	}
-	public StorageSetEntry1(szName: string, szData: string, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): iXRResult
+	public async StorageSetEntry1(szName: string, szData: string, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): Promise<iXRResult>
 	{
 		this.LoadStorageEntriesIfNecessary();
 		// ---
-		return this.m_dsIXRStorage.SetEntry(szName, szData, bKeepLatest, szOrigin, bSessionData);
+		return (this.m_dsIXRStorage as DbSetStorage).SetEntry1(szName, szData, bKeepLatest, szOrigin, bSessionData);
 	}
 	// Default name 'state'
-	public StorageSetEntry2(dictData: PythonDictStrings, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): iXRResult
+	public async StorageSetEntry2(dictData: PythonDictStrings, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): Promise<iXRResult>
 	{
 		this.LoadStorageEntriesIfNecessary();
 		// ---
-		return this.m_dsIXRStorage.SetEntry(dictData, bKeepLatest, szOrigin, bSessionData);
+		return (this.m_dsIXRStorage as DbSetStorage).SetEntry0(dictData, bKeepLatest, szOrigin, bSessionData);
 	}
-	public StorageSetEntry3(szName: string, dictData: PythonDictStrings, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): iXRResult
+	public async StorageSetEntry3(szName: string, dictData: PythonDictStrings, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): Promise<iXRResult>
 	{
 		this.LoadStorageEntriesIfNecessary();
 		// ---
-		return this.m_dsIXRStorage.SetEntry(szName, dictData, bKeepLatest, szOrigin, bSessionData);
+		return (this.m_dsIXRStorage as DbSetStorage).SetEntry1(szName, dictData, bKeepLatest, szOrigin, bSessionData);
 	}
 	// Default name 'state'
 	public StorageRemoveEntry0(): iXRResult
 	{
 		this.LoadStorageEntriesIfNecessary();
 		// ---
-		return this.m_dsIXRStorage.RemoveEntry(this);
+		return (this.m_dsIXRStorage as DbSetStorage).RemoveEntry0(this);
 	}
 	public StorageRemoveEntry1(szName: string): iXRResult
 	{
 		this.LoadStorageEntriesIfNecessary();
 		// ---
-		return this.m_dsIXRStorage.RemoveEntry(this, szName);
+		return (this.m_dsIXRStorage as DbSetStorage).RemoveEntry1(this, szName);
 	}
 	public StorageRemoveMultipleEntries(bSessionOnly: boolean): iXRResult
 	{
 		this.LoadStorageEntriesIfNecessary();
 		// ---
-		return this.m_dsIXRStorage.RemoveMultipleEntries(this, bSessionOnly);
+		return (this.m_dsIXRStorage as DbSetStorage).RemoveMultipleEntries(this, bSessionOnly);
 	}
 	// --- END Functions supporting adding/changing/deleting iXRStorage objects.
 	private ConstructGuts(): void
@@ -1130,7 +1136,8 @@ export class iXRDbContext extends DbContext
 	}
 	public SaveChanges(): DatabaseResult // virtual
 	{
-		return iXRLib.SaveChanges(m_db, null, *this);
+		//return iXRLib.SaveChanges(m_db, null, this);
+		return DatabaseResult.eOk;
 	}
 	// Return dictionary
 	public getAllData(): PythonDictStrings

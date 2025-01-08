@@ -13,6 +13,15 @@ export class Base64
     public static Encode = (buf: Buffer):string => buf.toString('base64');
 }
 
+// MJPQ:  Another attempt to evade the type used as value bollocks.
+export class Factory
+{
+	public static Create<T>(T: new () => T): T
+	{
+		return new T();
+	}
+}
+
 export type time_t = number;
 
 export class JsonScalarArrayElement<T> extends DataObjectBase
@@ -32,6 +41,25 @@ export class JsonScalarArrayElement<T> extends DataObjectBase
 export function Sleep(nMilliseconds: number)
 {
 	return new Promise(resolve => setTimeout(resolve, nMilliseconds));
+}
+
+export class ScopeThreadBlock
+{
+	private m_cs:	object;
+	// ---
+	constructor(cs: object)
+	{
+		this.m_cs = cs;
+	}
+	// ---
+	public Enter(): void
+	{
+		Atomics.wait(this.m_cs, 0, 0, 0);
+	}
+	public Leave(): void
+	{
+		this.m_cs.unlock();
+	}
 }
 
 export enum Verb
@@ -485,6 +513,15 @@ export function atoi(str: string): number
 export function atof(str: string): number
 {
 	return parseFloat(str);
+}
+
+export function EnsureSingleEndingCharacter(str: string, ch: string): string
+{
+	if (str.endsWith(ch))
+	{
+		return str;
+	}
+	return str + ch;
 }
 
 // ---

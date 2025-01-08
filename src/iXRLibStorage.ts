@@ -22,9 +22,9 @@ export class iXRLibStorage
 	///		false = not only do not copy it but destroy it as it is not needed and would gum up the works on the backend.
 	/// </param>
 	/// <returns>iXRResult status code.</returns>
-	public static ReadConfigFromBackend(bLookForAuthMechanism: boolean): iXRResult
+	public static async ReadConfigFromBackend(bLookForAuthMechanism: boolean): Promise<iXRResult>
 	{
-		var	eRet:	iXRResult = iXRLibClient.GetIXRConfig(iXRLibStorage.m_ixrLibConfiguration);
+		var	eRet:	iXRResult = await iXRLibClient.GetIXRConfig(iXRLibStorage.m_ixrLibConfiguration);
 
 		if (eRet === iXRResult.eOk)
 		{
@@ -45,9 +45,9 @@ export class iXRLibStorage
 	/// GET "/storage" endpoint
 	/// </summary>
 	/// <returns></returns>
-	public static ReadStorageFromBackend(): iXRResult
+	public static async ReadStorageFromBackend(): Promise<iXRResult>
 	{
-		var	ixrStorage:	iXRXXXContainer<iXRStorage, PythonDictStrings> = new iXRXXXContainer<iXRStorage, PythonDictStrings>();
+		var	ixrStorage:	iXRXXXContainer<iXRStorage, PythonDictStrings, false> = new iXRXXXContainer<iXRStorage, PythonDictStrings, false>();
 
 		return iXRLibClient.GetIXRStorage(ixrStorage);
 	}
@@ -174,16 +174,16 @@ export class iXRLibStorage
 		return dbContext.StorageRemoveMultipleEntries(bSessionOnly);
 	}
 	// --- END Environment / state data functions.
-	public static AddEntrySynchronous(ixrStorage: iXRStorage): iXRResult
+	public static async AddEntrySynchronous(ixrStorage: iXRStorage): Promise<iXRResult>
 	{
-		return iXRLibAnalytics.AddXXXTask<iXRStorage, iXRLibAnalyticsStorageCallback, iXRLibStorage>(ixrStorage, "IXRStorage", iXRLibClient.PostIXRStorage, true, false, null);
+		return await iXRLibAnalytics.AddXXXTask<iXRStorage>(ixrStorage, "IXRStorage", iXRLibClient.PostIXRStorage, true, false, null);
 	}
-	public static AddEntry(ixrStorage: iXRStorage, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsStorageCallback): iXRResult
+	public static async AddEntry(ixrStorage: iXRStorage, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsStorageCallback): Promise<iXRResult>
 	{
 		iXRLibAnalytics.DiagnosticWriteLine("Going to call DeleteStorage().");
 		// Notice the = capture... so pfnStatusCallback propagates by copy into the thread.
-		return iXRLibAnalytics.m_ixrLibAsync.AddTask((pObject: object) => iXRResult { return iXRLibAnalytics.AddXXXTask<iXRStorage, iXRLibAnalyticsStorageCallback, iXRLibStorage>(pObject, "IXRStorage", iXRLibClient.PostIXRStorage, true, bNoCallbackOnSuccess, pfnStatusCallback); },
+		return iXRLibAnalytics.m_ixrLibAsync.AddTask((pObject: any): iXRResult => { return iXRLibAnalytics.AddXXXTask<iXRStorage>(pObject, "IXRStorage", iXRLibClient.PostIXRStorage, true, bNoCallbackOnSuccess, pfnStatusCallback).then((eRet: iXRResult) => { return eRet; }).catch((eRet: iXRResult) => { return eRet; }); },
 			ixrStorage,
-			(pObject: object) => void { /*delete (iXRStorage*)pObject;*/ });
+			(pObject: any) => void { /*delete (iXRStorage*)pObject;*/ });
 	}
 };

@@ -269,6 +269,10 @@ export class DbSet<T extends DataObjectBase> extends Array<T>
 	{
 		super.length = 0;
 	}
+	public erase(o: T): void
+	{
+		super.splice(super.indexOf(o), 1);
+	}
 	// --- C#ish from C# port to C++.
 	public Add(o: T): T
 	{
