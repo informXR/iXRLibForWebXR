@@ -47,7 +47,7 @@ export class iXRLibStorage
 	/// <returns></returns>
 	public static async ReadStorageFromBackend(): Promise<iXRResult>
 	{
-		var	ixrStorage:	iXRXXXContainer<iXRStorage, PythonDictStrings, false> = new iXRXXXContainer<iXRStorage, PythonDictStrings, false>();
+		var	ixrStorage:	iXRXXXContainer<iXRStorage, PythonDictStrings, false> = new iXRXXXContainer<iXRStorage, PythonDictStrings, false>(iXRStorage, PythonDictStrings);
 
 		return iXRLibClient.GetIXRStorage(ixrStorage);
 	}
@@ -104,74 +104,74 @@ export class iXRLibStorage
 	//		as reading/writing config and storage entries would not be done that often and is not a speed-critical operation (and there should
 	//		never be that many of them).
 	// Default name 'state'
-	public static GetEntryAsString0(): string
+	public static async GetEntryAsString0(): Promise<string>
 	{
 		var	dbContext:	iXRDbContext = new iXRDbContext(false);
 		// ---
-		return dbContext.StorageGetEntryAsString0();
+		return await dbContext.StorageGetEntryAsString0();
 	}
-	public static GetEntryAsString1(szName: string): string
+	public static async GetEntryAsString1(szName: string): Promise<string>
 	{
 		var	dbContext:	iXRDbContext = new iXRDbContext(false);
 		// ---
-		return dbContext.StorageGetEntryAsString1(szName);
+		return await dbContext.StorageGetEntryAsString1(szName);
 	}
-	public static GetEntryRaw0(): PythonDictStrings
+	public static async GetEntryRaw0(): Promise<PythonDictStrings | null>
 	{
 		var	dbContext:	iXRDbContext = new iXRDbContext(false);
 		// ---
-		return dbContext.StorageGetEntry0();
+		return await dbContext.StorageGetEntry0();
 	}
-	public static GetEntryRaw1(szName: string): PythonDictStrings
+	public static async GetEntryRaw1(szName: string): Promise<PythonDictStrings | null>
 	{
 		var	dbContext:	iXRDbContext = new iXRDbContext(false);
 		// ---
-		return dbContext.StorageGetEntry1(szName);
-	}
-	// Default name 'state'
-	public static SetEntry0(szdictData: string, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): iXRResult
-	{
-		var	dbContext:	iXRDbContext = new iXRDbContext(false);
-		// ---
-		return dbContext.StorageSetEntry0(szdictData, bKeepLatest, szOrigin, bSessionData);
-	}
-	public static SetEntry1(szName: string, szdictData: string, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): iXRResult
-	{
-		var	dbContext:	iXRDbContext = new iXRDbContext(false);
-		// ---
-		return dbContext.StorageSetEntry1(szName, szdictData, bKeepLatest, szOrigin, bSessionData);
+		return await dbContext.StorageGetEntry1(szName);
 	}
 	// Default name 'state'
-	public static SetEntry2(dictData: PythonDictStrings, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): iXRResult
+	public static async SetEntry0(szdictData: string, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): Promise<iXRResult>
 	{
 		var	dbContext:	iXRDbContext = new iXRDbContext(false);
 		// ---
-		return dbContext.StorageSetEntry2(dictData, bKeepLatest, szOrigin, bSessionData);
+		return await dbContext.StorageSetEntry0(szdictData, bKeepLatest, szOrigin, bSessionData);
 	}
-	public static SetEntry3(szName: string, dictData: PythonDictStrings, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): iXRResult
+	public static async SetEntry1(szName: string, szdictData: string, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): Promise<iXRResult>
 	{
 		var	dbContext:	iXRDbContext = new iXRDbContext(false);
 		// ---
-		return dbContext.StorageSetEntry3(szName, dictData, bKeepLatest, szOrigin, bSessionData);
+		return await dbContext.StorageSetEntry1(szName, szdictData, bKeepLatest, szOrigin, bSessionData);
 	}
 	// Default name 'state'
-	public static RemoveEntry4(): iXRResult
+	public static async SetEntry2(dictData: PythonDictStrings, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): Promise<iXRResult>
 	{
 		var	dbContext:	iXRDbContext = new iXRDbContext(false);
 		// ---
-		return dbContext.StorageRemoveEntry0();
+		return await dbContext.StorageSetEntry2(dictData, bKeepLatest, szOrigin, bSessionData);
 	}
-	public static RemoveEntry5(szName: string): iXRResult
+	public static async SetEntry3(szName: string, dictData: PythonDictStrings, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): Promise<iXRResult>
 	{
 		var	dbContext:	iXRDbContext = new iXRDbContext(false);
 		// ---
-		return dbContext.StorageRemoveEntry1(szName);
+		return await dbContext.StorageSetEntry3(szName, dictData, bKeepLatest, szOrigin, bSessionData);
 	}
-	public static RemoveMultipleEntries(bSessionOnly: boolean): iXRResult
+	// Default name 'state'
+	public static async RemoveEntry4(): Promise<iXRResult>
 	{
 		var	dbContext:	iXRDbContext = new iXRDbContext(false);
 		// ---
-		return dbContext.StorageRemoveMultipleEntries(bSessionOnly);
+		return await dbContext.StorageRemoveEntry0();
+	}
+	public static async RemoveEntry5(szName: string): Promise<iXRResult>
+	{
+		var	dbContext:	iXRDbContext = new iXRDbContext(false);
+		// ---
+		return await dbContext.StorageRemoveEntry1(szName);
+	}
+	public static async RemoveMultipleEntries(bSessionOnly: boolean): Promise<iXRResult>
+	{
+		var	dbContext:	iXRDbContext = new iXRDbContext(false);
+		// ---
+		return await dbContext.StorageRemoveMultipleEntries(bSessionOnly);
 	}
 	// --- END Environment / state data functions.
 	public static async AddEntrySynchronous(ixrStorage: iXRStorage): Promise<iXRResult>

@@ -28,9 +28,9 @@ class Authentication
 		this.m_dtTokenExpiration.setFullYear(DATEMAXVALUE);
 	}
 	// ---
-	public m_szAuthSecret: string = "";	// Not exposed via properties or anything else, only available to iXRLibInit for use in 2-stage authentication (dictAuthMechanism flows)... in C++, no friend classes in TypeScript so public.
+	public m_szAuthSecret:			string = "";	// Not exposed via properties or anything else, only available to iXRLibInit for use in 2-stage authentication (dictAuthMechanism flows)... in C++, no friend classes in TypeScript so public.
 	// ---
-	public m_objAuthTokenRequest = new AuthTokenRequest();	// For setting the environment/session members of AuthTokenRequest as global properties that then get incorporated into the specific auth request on Authenticate().
+	public m_objAuthTokenRequest:	AuthTokenRequest = new AuthTokenRequest();	// For setting the environment/session members of AuthTokenRequest as global properties that then get incorporated into the specific auth request on Authenticate().
 	// ---
 	// Cat these together, then checksum then timestamp and hash it.
 	// Headers for Hash, Timestamp, ApiToken, HardwareID.  Alternately or in addition to... JWT token?
@@ -136,7 +136,7 @@ export class iXRLibInit
 		objAuthTokenRequest.m_dictAuthMechanism = iXRLibInit.m_ixrLibAuthentication.m_objAuthTokenRequest.m_dictAuthMechanism;
 		// ---
 		eRet = await iXRLibClient.PostAuthenticate(objAuthTokenRequest, {szResponse});
-		if (eRet == iXRResult.eOk)
+		if (eRet === iXRResult.eOk)
 		{
 			var	eSuccessParse,
 				eFailureParse,
@@ -147,11 +147,11 @@ export class iXRLibInit
 
 			eSuccessParse = LoadFromJson(objAuthTokenResponseSuccess, szResponse);
 			eFailureParse = LoadFromJson(objAuthTokenResponseFailure, szResponse);
-			if (eSuccessParse == JsonResult.eBadJsonStructure || eFailureParse == JsonResult.eBadJsonStructure)
+			if (eSuccessParse === JsonResult.eBadJsonStructure || eFailureParse === JsonResult.eBadJsonStructure)
 			{
 				eRet = iXRResult.eCorruptJson;
 			}
-			else if (eSuccessParse == JsonResult.eOk)
+			else if (eSuccessParse === JsonResult.eOk)
 			{
 				var	szJWT: string;
 
@@ -372,9 +372,9 @@ export class iXRLibAnalytics
     /// <returns>eResult</returns>
     private static TaskErrorReturn(eResult: iXRResult, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsGeneralCallback, szExceptionMessage: string): iXRResult
     {
-        if (pfnStatusCallback != null && pfnStatusCallback != undefined)
+        if (pfnStatusCallback !== null && pfnStatusCallback !== undefined)
         {
-            if (!bNoCallbackOnSuccess || eResult != iXRResult.eOk)
+            if (!bNoCallbackOnSuccess || eResult !== iXRResult.eOk)
             {
                 pfnStatusCallback(eResult, szExceptionMessage);
             }
@@ -394,9 +394,9 @@ export class iXRLibAnalytics
 	/// <returns>eResult</returns>
 	private static TaskErrorReturnT<T>(eResult: iXRResult, ixrXXX: T, bNoCallbackOnSuccess: boolean, pfnStatusCallback: ((ixrXXX: T, eResult: iXRResult, szExceptionMessage: string) => void) | null, szExceptionMessage: string): iXRResult
 	{
-		if (pfnStatusCallback != null && pfnStatusCallback != undefined)
+		if (pfnStatusCallback !== null && pfnStatusCallback !== undefined)
 		{
-			if (!bNoCallbackOnSuccess || eResult != iXRResult.eOk)
+			if (!bNoCallbackOnSuccess || eResult !== iXRResult.eOk)
 			{
 				pfnStatusCallback(ixrXXX, eResult, szExceptionMessage);
 			}
@@ -410,13 +410,14 @@ export class iXRLibAnalytics
 	/// <typeparam name="CB">Callback type, generally 1-1 with object type, e.g. (iXREvent, iXRLibAnalyticsEventCallback).</typeparam>
 	/// <typeparam name="iXRLibStorage">Resolves forward reference catch-22.</typeparam>
 	/// <param name="ixrT">T (Event, Log, etc) to add.</param>
+	/// <(type)param name="tTypeOfT">Type of object to be deleted as an any due to TypeScript's screwiness w.r.t. generics.</typeparam>
 	/// <param name="szTableName">Name of corresponding table in the database.</param>
 	/// <param name="pfnPostIXRXXX">Pointer to function that sends a list of pointers to T which this function will calculate for sending to backend.</param>
 	/// <param name="bOneAtATime">true = POST the objects one object per POST, false = POST them as one single POST with all objects in the body content.</param>
 	/// <param name="bNoCallbackOnSuccess">true = Only call pfnStatusCallback on error, false = always call pfnStatusCallback (assuming pfnStatusCallback not null, do not call at all otherwise).</param>
 	/// <param name="pfnStatusCallback">null = do not want status callback, else call according to ^^^.</param>
 	/// <returns>As the call has not happened yet on return, this is the status of adding the task or failing to add it.</returns>
-	/*private*/ public static async AddXXXTask<T extends iXRBase>(ixrT: T, szTableName: string, pfnPostIXRXXX: (listpT: DbSet<T>, bOneAtATime: boolean, refparam: {szResponse: string}) => Promise<iXRResult>, bOneAtATime: boolean, bNoCallbackOnSuccess: boolean, pfnStatusCallback: ((ixrXXX: T, eResult: iXRResult, szExceptionMessage: string) => void) | null): Promise<iXRResult>
+	/*private*/ public static async AddXXXTask<T extends iXRBase>(ixrT: T, tTypeOfT: any, szTableName: string, pfnPostIXRXXX: (listpT: DbSet<T>, bOneAtATime: boolean, refparam: {szResponse: string}) => Promise<iXRResult>, bOneAtATime: boolean, bNoCallbackOnSuccess: boolean, pfnStatusCallback: ((ixrXXX: T, eResult: iXRResult, szExceptionMessage: string) => void) | null): Promise<iXRResult>
 	{
 		var	nTrimCount:		number;
 		var	dtNow:			DateTime = DateTime.ConvertUnixTime(DateTime.Now()),
@@ -459,7 +460,7 @@ export class iXRLibAnalytics
 				// if (iXRLibStorage.m_ixrLibConfiguration.m_bUseDatabase)
 				// {
 				// 	// Could be faster by obtaining the count with a SELECT COUNT... in a hurry to finish this port so doing it this way for now.
-				// 	eDb = ExecuteSqlSelect(ixrDbContext.m_db, szTableName, "SELECT %s FROM %s WHERE SyncedWithCloud != 0 ORDER BY timestamp", {}, *pdsIXRXXX);
+				// 	eDb = ExecuteSqlSelect(ixrDbContext.m_db, szTableName, "SELECT %s FROM %s WHERE SyncedWithCloud !== 0 ORDER BY timestamp", {}, *pdsIXRXXX);
 				// 	nTrimCount = pdsIXRXXX.Count() - iXRLibStorage.m_ixrLibConfiguration.m_nMaximumCachedItems;
 				// 	if (nTrimCount > 0)
 				// 	{
@@ -480,7 +481,7 @@ export class iXRLibAnalytics
 
 				// if (iXRLibStorage.m_ixrLibConfiguration.m_bUseDatabase)
 				// {
-				// 	eDb = ExecuteSqlSelect(ixrDbContext.m_db, szTableName, "SELECT %s FROM %s WHERE SyncedWithCloud != 0 AND timestamp < ?", { {"timestamp", &dtOlderThan} }, *pdsIXRXXX);
+				// 	eDb = ExecuteSqlSelect(ixrDbContext.m_db, szTableName, "SELECT %s FROM %s WHERE SyncedWithCloud !== 0 AND timestamp < ?", { {"timestamp", &dtOlderThan} }, *pdsIXRXXX);
 				// 	if (pdsIXRXXX.Count() > 0)
 				// 	{
 				// 		pdsIXRXXX.RemoveRange();
@@ -493,7 +494,7 @@ export class iXRLibAnalytics
 					pdsIXRXXX = pdsIXRXXX?.filter(t => { return !t.m_bSyncedWithCloud; }) as DbSet<T>;
 				}
 			}
-			eRet = await iXRLibAnalytics.SendUnsentXXXs<T>(ixrDbContext, pdsIXRXXX, szTableName, pfnPostIXRXXX, bOneAtATime, iXRLibStorage.m_ixrLibConfiguration.m_nEventsPerSendAttempt, false);
+			eRet = await iXRLibAnalytics.SendUnsentXXXs<T>(ixrDbContext, pdsIXRXXX, tTypeOfT, szTableName, pfnPostIXRXXX, bOneAtATime, iXRLibStorage.m_ixrLibConfiguration.m_nEventsPerSendAttempt, false);
 			// ---
 			if (iXRLibStorage.m_ixrLibConfiguration.m_bUseDatabase)
 			{
@@ -518,12 +519,13 @@ export class iXRLibAnalytics
 	/// <typeparam name="CB">Callback type, generally 1-1 with object type, e.g. (iXREvent, iXRLibAnalyticsEventCallback).</typeparam>
 	/// <typeparam name="iXRLibStorage">Resolves forward reference catch-22.</typeparam>
 	/// <param name="ixrT">T (Event, Log, etc) to delete.</param>
+	/// <(type)param name="tTypeOfT">Type of object to be deleted as an any due to TypeScript's screwiness w.r.t. generics.</typeparam>
 	/// <param name="szTableName">Name of corresponding table in the database.</param>
 	/// <param name="pfnPostIXRXXX">Pointer to function that sends a list of pointers to T which this function will calculate for sending to backend.</param>
 	/// <param name="bNoCallbackOnSuccess">true = Only call pfnStatusCallback on error, false = always call pfnStatusCallback (assuming pfnStatusCallback not null, do not call at all otherwise).</param>
 	/// <param name="pfnStatusCallback">null = do not want status callback, else call according to ^^^.</param>
 	/// <returns>As the call has not happened yet on return, this is the status of adding the task or failing to add it.</returns>
-	private static DeleteXXXTask<T extends iXRBase>(ixrT: T, szTableName: string, pfnDeleteIXRXXX: (ixrT: T, refparam: {szResponse: string}) => iXRResult, bNoCallbackOnSuccess: boolean, pfnStatusCallback: ((ixrXXX: T, eResult: iXRResult, szExceptionMessage: string) => void) | null): iXRResult
+	private static DeleteXXXTask<T extends iXRBase>(ixrT: T, tTypeOfT: any, szTableName: string, pfnDeleteIXRXXX: (ixrT: T, refparam: {szResponse: string}) => iXRResult, bNoCallbackOnSuccess: boolean, pfnStatusCallback: ((ixrXXX: T, eResult: iXRResult, szExceptionMessage: string) => void) | null): iXRResult
 	{
 		var	nTrimCount:		number;
 		var	dtNow:			DateTime = DateTime.ConvertUnixTime(DateTime.Now()),
@@ -540,7 +542,7 @@ export class iXRLibAnalytics
 			{
 				if (objField instanceof DbSet)
 				{
-					if (objField.ContainedType() === typeof(T))
+					if (objField.ContainedType() === tTypeOfT)
 					{
 						pdsIXRXXX = objField;
 						break;
@@ -561,7 +563,7 @@ export class iXRLibAnalytics
 			// 	// ScopeThreadBlock	cs(m_csDB);
 
 			// 	// Could be faster by obtaining the count with a SELECT COUNT... in a hurry to finish this port so doing it this way for now.
-			// 	eDb = ExecuteSqlSelect(ixrDbContext.m_db, szTableName, "SELECT %s FROM %s WHERE SyncedWithCloud != 0 ORDER BY timestamp", {}, pdsIXRXXX);
+			// 	eDb = ExecuteSqlSelect(ixrDbContext.m_db, szTableName, "SELECT %s FROM %s WHERE SyncedWithCloud !== 0 ORDER BY timestamp", {}, pdsIXRXXX);
 			// 	nTrimCount = pdsIXRXXX?.Count() - iXRLibStorage.m_ixrLibConfiguration.m_nMaximumCachedItems;
 			// 	if (nTrimCount > 0)
 			// 	{
@@ -574,7 +576,7 @@ export class iXRLibAnalytics
 			// {
 			// 	// ScopeThreadBlock	cs(m_csDB);
 
-			// 	eDb = ExecuteSqlSelect(ixrDbContext.m_db, szTableName, "SELECT %s FROM %s WHERE SyncedWithCloud != 0 AND timestamp < ?", { {"timestamp", &dtOlderThan} }, pdsIXRXXX);
+			// 	eDb = ExecuteSqlSelect(ixrDbContext.m_db, szTableName, "SELECT %s FROM %s WHERE SyncedWithCloud !== 0 AND timestamp < ?", { {"timestamp", &dtOlderThan} }, pdsIXRXXX);
 			// 	if (pdsIXRXXX?.Count() > 0)
 			// 	{
 			// 		pdsIXRXXX?.RemoveRange();
@@ -605,13 +607,14 @@ export class iXRLibAnalytics
 	/// <typeparam name="iXRLibStorage">Resolves forward reference catch-22.</typeparam>
 	/// <param name="ixrDbContext">Database object that contains all the iXRLib object lists</param>
 	/// <param name="dsIXRXXX">DbSet<T extends iXRBase> passed in by caller so we use the same one as we want any changes in its state to bubble up to the caller... contains the objects to send.</param>
+	/// <(type)param name="tTypeOfT">Type of object to be deleted as an any due to TypeScript's screwiness w.r.t. generics.</typeparam>
 	/// <param name="szTableName">Name of corresponding table in the database.</param>
 	/// <param name="pfnPostIXRXXX">Pointer to function that sends a list of pointers to T which this function will calculate for sending to backend.</param>
 	/// <param name="bOneAtATime">true = POST the objects one object per POST, false = POST them as one single POST with all objects in the body content.</param>
 	/// <param name="nConfiguredXXXPerSendAttempt">The corresponding how many T's per send attempt from iXRLibConfiguration.</param>
 	/// <param name="bSendingStragglers">true when being called by TimerCallback to drive Nagle-algorithmish-straggler-send, false when doing a main send</param>
 	/// <returns>iXRResult status code</returns>
-	protected static async SendUnsentXXXs<T extends iXRBase>(ixrDbContext: iXRDbContext, dsIXRXXX: DbSet<T> | null, szTableName: string, pfnPostIXRXXX: (listpT: DbSet<T>, bOneAtATime: boolean, refparam: {szResponse: string}) => Promise<iXRResult>, bOneAtATime: boolean, nConfiguredXXXPerSendAttempt: number, bSendingStragglers: boolean): Promise<iXRResult>
+	protected static async SendUnsentXXXs<T extends iXRBase>(ixrDbContext: iXRDbContext, dsIXRXXX: DbSet<T> | null, tTypeOfT: any, szTableName: string, pfnPostIXRXXX: (listpT: DbSet<T>, bOneAtATime: boolean, refparam: {szResponse: string}) => Promise<iXRResult>, bOneAtATime: boolean, nConfiguredXXXPerSendAttempt: number, bSendingStragglers: boolean): Promise<iXRResult>
 	{
 		var	eRet:		iXRResult = iXRResult.eOk,
 			eTestRet:	iXRResult = iXRResult.eOk;
@@ -628,7 +631,7 @@ export class iXRLibAnalytics
 			// {
 				// ScopeThreadBlock	cs(m_csDB);
 
-			// 	eDb = ExecuteSqlSelect(ixrDbContext.m_db, szTableName, "SELECT %s FROM %s WHERE SyncedWithCloud == 0 ORDER BY timestamp", {}, dsIXRXXX);
+			// 	eDb = ExecuteSqlSelect(ixrDbContext.m_db, szTableName, "SELECT %s FROM %s WHERE SyncedWithCloud === 0 ORDER BY timestamp", {}, dsIXRXXX);
 			// }
 			// While the remaining unpushed > eventsPerSendAttempt...
 			while (!bDoneSending && (dsIXRXXX?.Count() ?? 0) > 0 && ((bSendingStragglers || (dsIXRXXX?.Count() ?? 0) >= nConfiguredXXXPerSendAttempt) || (!iXRLibStorage.m_ixrLibConfiguration.m_bUseDatabase)))
@@ -664,7 +667,7 @@ export class iXRLibAnalytics
 					{
 						var	szResponse: string = "";
 
-						if ((await pfnPostIXRXXX((dspObjectsToSend ?? new DbSet<T>(T)), bOneAtATime, {szResponse})) == iXRResult.eOk)
+						if ((await pfnPostIXRXXX((dspObjectsToSend ?? new DbSet<T>(tTypeOfT)), bOneAtATime, {szResponse})) === iXRResult.eOk)
 						{
 							var	eSuccessParse:		JsonResult,
 								eFailureParse:		JsonResult;
@@ -673,11 +676,11 @@ export class iXRLibAnalytics
 
 							eSuccessParse = LoadFromJson(objResponseSuccess, szResponse);
 							eFailureParse = LoadFromJson(objResponseFailure, szResponse);
-							if (eSuccessParse == JsonResult.eBadJsonStructure || eFailureParse == JsonResult.eBadJsonStructure)
+							if (eSuccessParse === JsonResult.eBadJsonStructure || eFailureParse === JsonResult.eBadJsonStructure)
 							{
 								eTestRet = iXRResult.eCorruptJson;
 							}
-							else if (eSuccessParse == JsonResult.eOk)
+							else if (eSuccessParse === JsonResult.eOk)
 							{
 								// Do something with the data?  Haven't seen a success yet.  TODO.
 								eTestRet = iXRResult.eOk;
@@ -686,7 +689,7 @@ export class iXRLibAnalytics
 							{
 								eTestRet = iXRResult.eAuthenticateFailed;
 							}
-							if (eTestRet == iXRResult.eOk)
+							if (eTestRet === iXRResult.eOk)
 							{
 								// Succeeded... mark them as sent.
 								if (dspObjectsToSend)
@@ -703,7 +706,7 @@ export class iXRLibAnalytics
 									// if (iXRLibStorage.m_ixrLibConfiguration.m_bUseDatabase)
 									// {
 									// 	ixrDbContext.SaveChanges();
-									// 	eDb = ExecuteSqlSelect(ixrDbContext.m_db, szTableName, "SELECT %s FROM %s WHERE SyncedWithCloud == 0 ORDER BY timestamp", {}, dsIXRXXX);
+									// 	eDb = ExecuteSqlSelect(ixrDbContext.m_db, szTableName, "SELECT %s FROM %s WHERE SyncedWithCloud === 0 ORDER BY timestamp", {}, dsIXRXXX);
 									// }
 									// else
 									{
@@ -743,7 +746,7 @@ export class iXRLibAnalytics
 			// 	{
 			// 		ScopeThreadBlock	cs(m_csDB);
 
-			// 		eDb = ExecuteSqlSelect(ixrDbContext.m_db, szTableName, "SELECT %s FROM %s WHERE SyncedWithCloud != 0", {}, dsIXRXXX);
+			// 		eDb = ExecuteSqlSelect(ixrDbContext.m_db, szTableName, "SELECT %s FROM %s WHERE SyncedWithCloud !== 0", {}, dsIXRXXX);
 			// 		dsIXRXXX.RemoveRange();
 			// 		ixrDbContext.SaveChanges();
 			// 	}
@@ -765,21 +768,22 @@ export class iXRLibAnalytics
 	/// <typeparam name="CB">Type of object-specific callback when asynchronous and callback is desired.</typeparam>
 	/// <typeparam name="iXRLibStorage">Resolves forward reference catch-22.</typeparam>
 	/// <param name="ixrT">The object to POST to backend.</param>
+	/// <(type)param name="tTypeOfT">Type of object to be deleted as an any due to TypeScript's screwiness w.r.t. generics.</typeparam>
 	/// <param name="pfnPostIXRXXX">Function pointer to function that POSTs list of objects (will always be list of one object when coming from here).</param>
 	/// <param name="bOneAtATime">true = POST the objects one object per POST, false = POST them as one single POST with all objects in the body content.</param>
 	/// <param name="bNoCallbackOnSuccess">When asynchronous and pfnStatusCallback not null, call always when this is false, only on failure when true.</param>
 	/// <param name="pfnStatusCallback">null = no-op, not-null = callback in asynchronous case with respect to bNoCallbackOnSuccess.</param>
 	/// <returns>iXRResult status code.</returns>
-		private static async AddXXXNoDbTask<T extends iXRBase>(ixrT: T, pfnPostIXRXXX: (listpT: DbSet<T>, bOneAtATime: boolean, refparam: { szResponse: string}) => Promise<iXRResult>, bOneAtATime: boolean, bNoCallbackOnSuccess: boolean, pfnStatusCallback: ((ixrXXX: T, eResult: iXRResult, szExceptionMessage: string) => void) | null): Promise<iXRResult>
+	private static async AddXXXNoDbTask<T extends iXRBase>(ixrT: T, tTypeOfT: any, pfnPostIXRXXX: (listpT: DbSet<T>, bOneAtATime: boolean, refparam: { szResponse: string}) => Promise<iXRResult>, bOneAtATime: boolean, bNoCallbackOnSuccess: boolean, pfnStatusCallback: ((ixrXXX: T, eResult: iXRResult, szExceptionMessage: string) => void) | null): Promise<iXRResult>
 	{
-		var	eRet: iXRResult = iXRResult.eOk;
+		var	eRet:	iXRResult = iXRResult.eOk;
 
 		try
 		{
 			// If we have enough new yet-to-be-pushed-to-REST items, then do that and mark as sent.
 			if (iXRLibStorage.m_ixrLibConfiguration.RESTConfigured())
 			{
-				var	pObjectsToSend:	DbSet<T> = new DbSet<T>(T);
+				var	pObjectsToSend:	DbSet<T> = new DbSet<T>(tTypeOfT);
 				var	i:				number;
 				var	bDoneSending:	boolean = false;
 
@@ -803,11 +807,11 @@ export class iXRLibAnalytics
 
 								eSuccessParse = LoadFromJson(objResponseSuccess, szResponse);
 								eFailureParse = LoadFromJson(objResponseFailure, szResponse);
-								if (eSuccessParse == JsonResult.eBadJsonStructure || eFailureParse == JsonResult.eBadJsonStructure)
+								if (eSuccessParse === JsonResult.eBadJsonStructure || eFailureParse === JsonResult.eBadJsonStructure)
 								{
 									eTestRet = iXRResult.eCorruptJson;
 								}
-								else if (eSuccessParse == JsonResult.eOk)
+								else if (eSuccessParse === JsonResult.eOk)
 								{
 									// Do something with the data?  Haven't seen a success yet.  TODO.
 									eTestRet = iXRResult.eOk;
@@ -845,27 +849,27 @@ export class iXRLibAnalytics
 	/// <returns>iXRResult enum.</returns>
     public static async ForceSendUnsentSynchronous(): Promise<iXRResult>
 	{
-		var	eRet: iXRResult = iXRResult.eOk,
-			eTestRet: iXRResult = iXRResult.eOk;
-		var	ixrDbContext: iXRDbContext = new iXRDbContext(false);
+		var	eRet:			iXRResult = iXRResult.eOk,
+			eTestRet:		iXRResult = iXRResult.eOk;
+		var	ixrDbContext:	iXRDbContext = new iXRDbContext(false);
 
-		eTestRet = await iXRLibAnalytics.SendUnsentXXXs<iXREvent>(ixrDbContext, ixrDbContext.m_dsIXREvents, "IXREvents", iXRLibClient.PostIXREvents, false, iXRLibStorage.m_ixrLibConfiguration.m_nEventsPerSendAttempt, true);
-		if (eTestRet != iXRResult.eOk)
+		eTestRet = await iXRLibAnalytics.SendUnsentXXXs<iXREvent>(ixrDbContext, ixrDbContext.m_dsIXREvents, iXREvent, "IXREvents", iXRLibClient.PostIXREvents, false, iXRLibStorage.m_ixrLibConfiguration.m_nEventsPerSendAttempt, true);
+		if (eTestRet !== iXRResult.eOk)
 		{
 			eRet = eTestRet;
 		}
-		eTestRet = await iXRLibAnalytics.SendUnsentXXXs<iXRLog>(ixrDbContext, ixrDbContext.m_dsIXRLogs, "IXRLogs", iXRLibClient.PostIXRLogs, false, iXRLibStorage.m_ixrLibConfiguration.m_nLogsPerSendAttempt, true);
-		if (eTestRet != iXRResult.eOk)
+		eTestRet = await iXRLibAnalytics.SendUnsentXXXs<iXRLog>(ixrDbContext, ixrDbContext.m_dsIXRLogs, iXRLog, "IXRLogs", iXRLibClient.PostIXRLogs, false, iXRLibStorage.m_ixrLibConfiguration.m_nLogsPerSendAttempt, true);
+		if (eTestRet !== iXRResult.eOk)
 		{
 			eRet = eTestRet;
 		}
-		eTestRet = await iXRLibAnalytics.SendUnsentXXXs<iXRTelemetry>(ixrDbContext, ixrDbContext.m_dsIXRTelemetry, "IXRTelemetry", iXRLibClient.PostIXRTelemetry, false, iXRLibStorage.m_ixrLibConfiguration.m_nTelemetryEntriesPerSendAttempt, true);
-		if (eTestRet != iXRResult.eOk)
+		eTestRet = await iXRLibAnalytics.SendUnsentXXXs<iXRTelemetry>(ixrDbContext, ixrDbContext.m_dsIXRTelemetry, iXRTelemetry, "IXRTelemetry", iXRLibClient.PostIXRTelemetry, false, iXRLibStorage.m_ixrLibConfiguration.m_nTelemetryEntriesPerSendAttempt, true);
+		if (eTestRet !== iXRResult.eOk)
 		{
 			eRet = eTestRet;
 		}
-		eTestRet = await iXRLibAnalytics.SendUnsentXXXs<iXRStorage>(ixrDbContext, ixrDbContext.m_dsIXRStorage, "IXRStorage", iXRLibClient.PostIXRStorage, true, iXRLibStorage.m_ixrLibConfiguration.m_nStorageEntriesPerSendAttempt, true);
-		if (eTestRet != iXRResult.eOk)
+		eTestRet = await iXRLibAnalytics.SendUnsentXXXs<iXRStorage>(ixrDbContext, ixrDbContext.m_dsIXRStorage, iXRStorage, "IXRStorage", iXRLibClient.PostIXRStorage, true, iXRLibStorage.m_ixrLibConfiguration.m_nStorageEntriesPerSendAttempt, true);
+		if (eTestRet !== iXRResult.eOk)
 		{
 			eRet = eTestRet;
 		}
@@ -939,13 +943,13 @@ export class iXRLibAnalytics
 	// --- End API (C++ dll and C# dll) versions of AddAIProxy().
 	public static async AddAIProxySynchronous(ixrAIProxy: iXRAIProxy): Promise<iXRResult>
 	{
-		return await iXRLibAnalytics.AddXXXNoDbTask<iXRAIProxy>(ixrAIProxy, iXRLibClient.PostIXRAIProxyObjects, false, false, null);
+		return await iXRLibAnalytics.AddXXXNoDbTask<iXRAIProxy>(ixrAIProxy, iXRAIProxy, iXRLibClient.PostIXRAIProxyObjects, false, false, null);
 	}
 	public static AddAIProxy(ixrAIProxy: iXRAIProxy, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsAIProxyCallback | null): iXRResult
 	{
 		iXRLibAnalytics.DiagnosticWriteLine("Going to call AddAIProxy().");
 		// Notice the = capture... so pfnStatusCallback propagates by copy into the thread.  Notice it is not needed in the typescript port colon paren.
-		return iXRLibAnalytics.m_ixrLibAsync.AddTask((pObject: any): iXRResult => { return iXRLibAnalytics.AddXXXNoDbTask<iXRAIProxy>(pObject as iXRAIProxy, iXRLibClient.PostIXRAIProxyObjects, false, bNoCallbackOnSuccess, pfnStatusCallback).then((eRet: iXRResult) => { return eRet; }).catch((eRet: iXRResult) => { return eRet; }); },
+		return iXRLibAnalytics.m_ixrLibAsync.AddTask((pObject: any): iXRResult => { return iXRLibAnalytics.AddXXXNoDbTask<iXRAIProxy>(pObject as iXRAIProxy, iXRAIProxy, iXRLibClient.PostIXRAIProxyObjects, false, bNoCallbackOnSuccess, pfnStatusCallback).then((eRet: iXRResult) => { return eRet; }).catch((eRet: iXRResult) => { return eRet; }); },
 			ixrAIProxy,
 			(pObject: any): void => { /*delete (iXRAIProxy*)pObject;*/ }
 		);
@@ -953,15 +957,15 @@ export class iXRLibAnalytics
 	// ---
 	public static async AddAIProxyEntrySynchronous(ixrAIProxy: iXRAIProxy): Promise<iXRResult>
 	{
-		return await iXRLibAnalytics.AddXXXTask<iXRAIProxy>(ixrAIProxy, "IXRAIProxy", iXRLibClient.PostIXRAIProxy, false, false, null);
+		return await iXRLibAnalytics.AddXXXTask<iXRAIProxy>(ixrAIProxy, iXRAIProxy, "IXRAIProxy", iXRLibClient.PostIXRAIProxy, false, false, null);
 	}
 	public static AddAIProxyEntry(ixrAIProxy: iXRAIProxy, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsAIProxyCallback): iXRResult
 	{
 		iXRLibAnalytics.DiagnosticWriteLine("Going to call AddAIProxy().");
 		// Notice the = capture... so pfnStatusCallback propagates by copy into the thread.  Notice it is not needed in the typescript port colon paren.
-		return iXRLibAnalytics.m_ixrLibAsync.AddTask((pObject: any) : iXRResult => { return iXRLibAnalytics.AddXXXTask<iXRAIProxy>(pObject as iXRAIProxy, "IXRAIProxy", iXRLibClient.PostIXRAIProxy, false, bNoCallbackOnSuccess, pfnStatusCallback).then((eRet: iXRResult) => { return eRet; }).catch((eRet: iXRResult) => { return eRet; }); },
+		return iXRLibAnalytics.m_ixrLibAsync.AddTask((pObject: any): iXRResult => { return iXRLibAnalytics.AddXXXTask<iXRAIProxy>(pObject as iXRAIProxy, iXRAIProxy, "IXRAIProxy", iXRLibClient.PostIXRAIProxy, false, bNoCallbackOnSuccess, pfnStatusCallback).then((eRet: iXRResult) => { return eRet; }).catch((eRet: iXRResult) => { return eRet; }); },
 			ixrAIProxy,
-			(pObject: any) => void { /*delete (iXRAIProxy*)pObject;*/ });
+			(pObject: any): void => { /*delete (iXRAIProxy*)pObject;*/ });
 	}
 	// --- End Core AddXXX() functions called by the API functions.
 	public static DefaultDiagnosticCallback(szLine: string): void
@@ -972,5 +976,6 @@ export class iXRLibAnalytics
 	}
 	public static DiagnosticWriteLine(szLine: string): void
 	{
+		console.log(szLine);
 	}
 };

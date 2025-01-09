@@ -3,7 +3,7 @@
 
 import { iXRLibClient } from "./iXRLibClient";
 import { iXRLibStorage } from "./iXRLibStorage";
-import { atobool, atol, DATEMAXVALUE, DEFAULTNAME, EnsureSingleEndingCharacter, Factory, SUID } from "./network/types";
+import { atobool, atol, DATEMAXVALUE, DEFAULTNAME, EnsureSingleEndingCharacter, /*Factory,MJPQ*/ SUID } from "./network/types";
 import { DataObjectBase, DbContext, DbSet, DumpCategory, FieldProperties, FieldPropertiesRecordContainer, FieldPropertyFlags, JsonFieldType } from "./network/utils/DataObjectBase";
 import { ConfigurationManager, DateTime, Dictionary, iXRResult, PythonDictStrings, StringList, TimeSpan } from "./network/utils/DotNetishTypes";
 import { DatabaseResult, DbSuccess } from "./network/utils/iXRLibSQLite";
@@ -40,10 +40,10 @@ export class iXRBase extends DataObjectBase
 	}
 	// ---
 	// MJPQ:  attempt at getting around the type used as value bollocks.
-	public static construct<T extends iXRBase>(ixrT: new () => T): T
-	{
-		return new ixrT();
-	}
+	//public static construct<T extends iXRBase>(ixrT: new () => T): T
+	//{
+	//	return new ixrT();
+	//}
 	constructor()
 	{
 		super();
@@ -93,7 +93,7 @@ export class CaptureTimeStampLifetime
 	{
 		iXRBase.CaptureTimeStamp();
 	}
-	dispose()
+	dispose(): void
 	{
 		iXRBase.UnCaptureTimeStamp();
 	}
@@ -136,8 +136,9 @@ export class iXRLibConfiguration extends DataObjectBase
 	// being filled in.  Scorm interactionid is the initial motivation.
 	public m_dictAuthMechanism:					PythonDictStrings = new PythonDictStrings();
 	// ---
-	iXRLibConfiguration()
+	constructor()
 	{
+		super();
 		// Default URL... can be overriden by App.config or accessors in C# and C++.
 		this.SetRestUrl("https://libapi.informxr.io/");
 	}
@@ -536,11 +537,10 @@ export class iXREvent extends iXRBase
 /// <typeparam name="T">Type of object being contained.</typeparam>
 /// <typeparam name="T_CONTAINS">Type of object inside T that also has to be on its own for when Python makes it an object instead of an array in the JSON.</typeparam>
 /// <typeparam name="bWantTimeStamp">Want timestamp when dumping JSON for backend.</typeparam>
-export class iXRXXXContainer<T extends iXRBase, T_CONTAINS, bTWantTimestamp extends boolean> extends iXRBase
+export class iXRXXXContainer<T extends DataObjectBase, T_CONTAINS, bTWantTimestamp extends boolean> extends iXRBase
 {
-	//public m_tIXRXXX:		T_CONTAINS = Factory.Create(T_CONTAINS);	// This is here to catch the data when Python is representing it as an object rather than array.
-	public m_tIXRXXX:		T_CONTAINS = {} as T_CONTAINS;	// This is here to catch the data when Python is representing it as an object rather than array.
-	public m_dspIXRXXXs:	DbSet<T> = new DbSet<T>(T);		// The main data.
+	public m_tIXRXXX:		T_CONTAINS;	// This is here to catch the data when Python is representing it as an object rather than array.
+	public m_dspIXRXXXs:	DbSet<T>;	// The main data.
 	// ---
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
 		super.m_mapProperties.m_rfp,
@@ -553,9 +553,11 @@ export class iXRXXXContainer<T extends iXRBase, T_CONTAINS, bTWantTimestamp exte
 		return iXRXXXContainer.m_mapProperties;
 	}
 	// ---
-	constructor(public bWantTimestamp: bTWantTimestamp = false as bTWantTimestamp)
+	constructor(tTypeOfT: any, tTypeOfT_CONTAINS: any, public bWantTimestamp: bTWantTimestamp = false as bTWantTimestamp)
 	{
 		super();
+		this.m_tIXRXXX = new tTypeOfT_CONTAINS();
+		this.m_dspIXRXXXs = new DbSet<T>(tTypeOfT);
 	}
 	public ShouldDump(szFieldName: string, eJsonFieldType: JsonFieldType, eDumpCategory: DumpCategory) : boolean // virtual
 	{
@@ -612,8 +614,13 @@ export class iXRXXXScalarContainer<T extends iXRBase> extends iXRBase
 	// ---
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
 		super.m_mapProperties.m_rfp,
-		{m_tIXRXXX: new FieldProperties("data")}));
+		{m_tIXRXXX: new FieldProperties("data", FieldPropertyFlags.bfChild)}));
 	// ---
+	constructor(tTypeOfT: any)
+	{
+		super();
+		this.m_tIXRXXX = new tTypeOfT();
+	}
 	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
 	{
 		return iXRXXXScalarContainer.m_mapProperties;
@@ -683,6 +690,10 @@ export class iXRStorageData extends iXRBase
 /// </summary>
 export class StorageContainer extends iXRXXXContainer<iXRStorageData, PythonDictStrings, true>
 {
+	constructor()
+	{
+		super(iXRStorageData, PythonDictStrings, true);
+	}
 	FinalizeParse() : void // virtual
 	{
 		if (this.m_dspIXRXXXs.empty())
@@ -703,7 +714,7 @@ export class iXRStorage extends iXRBase
 	m_szOrigin:		string = "";			// Optional, but if not blank, must be "system" or "user"
 	m_bSessionData:	boolean = false;
 	m_lszTags:		StringList = new StringList();
-	// ---	
+	// ---
 	constructor()
 	{
 		super();
@@ -765,11 +776,11 @@ export class DbSetStorage extends DbSet<iXRStorage>
 	public static DEFAULTNAME:	string = "state";
 	// ---
 	// Default name 'state'
-	public GetEntry0(): iXRStorage|null
+	public GetEntry0(): iXRStorage | null
 	{
 		return this.GetEntry1(DEFAULTNAME);
 	}
-	public GetEntry1(szName: string): iXRStorage|null
+	public GetEntry1(szName: string): iXRStorage | null
 	{
 		for (let ixd of this.values())
 		{
@@ -1089,7 +1100,7 @@ export class iXRDbContext extends DbContext
 	{
 		this.LoadStorageEntriesIfNecessary();
 		// ---
-		return (this.m_dsIXRStorage as DbSetStorage).SetEntry1(szName, szData, bKeepLatest, szOrigin, bSessionData);
+		return (this.m_dsIXRStorage as DbSetStorage).SetEntry3(szName, szData, bKeepLatest, szOrigin, bSessionData);
 	}
 	// Default name 'state'
 	public async StorageSetEntry2(dictData: PythonDictStrings, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): Promise<iXRResult>
@@ -1105,23 +1116,23 @@ export class iXRDbContext extends DbContext
 		return (this.m_dsIXRStorage as DbSetStorage).SetEntry1(szName, dictData, bKeepLatest, szOrigin, bSessionData);
 	}
 	// Default name 'state'
-	public StorageRemoveEntry0(): iXRResult
+	public async StorageRemoveEntry0(): Promise<iXRResult>
 	{
 		this.LoadStorageEntriesIfNecessary();
 		// ---
-		return (this.m_dsIXRStorage as DbSetStorage).RemoveEntry0(this);
+		return await(this.m_dsIXRStorage as DbSetStorage).RemoveEntry0(this);
 	}
-	public StorageRemoveEntry1(szName: string): iXRResult
+	public async StorageRemoveEntry1(szName: string): Promise<iXRResult>
 	{
 		this.LoadStorageEntriesIfNecessary();
 		// ---
-		return (this.m_dsIXRStorage as DbSetStorage).RemoveEntry1(this, szName);
+		return await(this.m_dsIXRStorage as DbSetStorage).RemoveEntry1(this, szName);
 	}
-	public StorageRemoveMultipleEntries(bSessionOnly: boolean): iXRResult
+	public async StorageRemoveMultipleEntries(bSessionOnly: boolean): Promise<iXRResult>
 	{
 		this.LoadStorageEntriesIfNecessary();
 		// ---
-		return (this.m_dsIXRStorage as DbSetStorage).RemoveMultipleEntries(this, bSessionOnly);
+		return await(this.m_dsIXRStorage as DbSetStorage).RemoveMultipleEntries(this, bSessionOnly);
 	}
 	// --- END Functions supporting adding/changing/deleting iXRStorage objects.
 	private ConstructGuts(): void

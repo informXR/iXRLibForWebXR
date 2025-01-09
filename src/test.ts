@@ -28,7 +28,7 @@ if (typeof window === 'undefined') {
 
 // ---
 
-class TestChild extends iXRBase
+class TestChild extends DataObjectBase
 {
 	public m_nGardenWall:	number = 3.4;
 	public m_szDingALing:	string = "My ding a ling.";
@@ -44,7 +44,7 @@ class TestChild extends iXRBase
 	}
 }
 
-class TestListChild extends iXRBase
+class TestListChild extends DataObjectBase
 {
 	public m_szDemented:	string = "Ghastly Gary";
 	public m_nBartSimpson:	number = 3.1415926535897932384626433;
@@ -60,7 +60,7 @@ class TestListChild extends iXRBase
 	}
 }
 
-class TestData extends iXRBase
+class TestData extends DataObjectBase
 {
 	public m_nStrictlyCommercial:	number = 1.2;
 	public m_szSomeString:			string = "with a lead filled snowshoe."
@@ -100,11 +100,35 @@ class TestData extends iXRBase
 	}
 }
 
-class DbSetsOfStuff extends iXRBase
+class DbSetsOfStuff extends DataObjectBase
 {
 	public m_listTestDatas:		DbSet<TestData> = new DbSet<TestData>(TestData);
 	public m_listTestChildren:	DbSet<TestChild> = new DbSet<TestChild>(TestChild);
 }
+
+function CreateNew(o: any)
+{
+	return new o();
+}
+
+export class iXRXXXTestScalarContainer<T extends DataObjectBase> extends iXRBase
+{
+	public m_tIXRXXX:	T = {} as T;
+	// ---
+	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
+		super.m_mapProperties.m_rfp,
+		{m_tIXRXXX: new FieldProperties("data", FieldPropertyFlags.bfChild)}));
+	// ---
+	//constructor(tTypeOfT: any)
+	//{
+	//	super();
+	//	this.m_tIXRXXX = new tTypeOfT();
+	//}
+	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
+	{
+		return iXRXXXTestScalarContainer.m_mapProperties;
+	}
+};
 
 function TestJson()
 {
@@ -114,7 +138,14 @@ function TestJson()
 	var obj:			DbSetsOfStuff = new DbSetsOfStuff();
 	var pdsIXRXXX:		any = null;
 	var tsTest:			TimeSpan = TimeSpan.Parse("12:34:56");
+	var objTestScalarContainer:	iXRXXXTestScalarContainer<TestData> = new iXRXXXTestScalarContainer<TestData>();
 
+	var objDbSetsOfStuff:	DbSetsOfStuff = CreateNew(DbSetsOfStuff);
+	console.log(DbSetsOfStuff);
+	if (typeof(DbSetsOfStuff) === "function")
+	{
+		console.log("It is a function");
+	}
 	for (const [szField, objField] of Object.entries(obj))
 	{
 		console.log(szField, " ", typeof(objField));

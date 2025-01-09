@@ -14,13 +14,13 @@ export class Base64
 }
 
 // MJPQ:  Another attempt to evade the type used as value bollocks.
-export class Factory
-{
-	public static Create<T>(T: new () => T): T
-	{
-		return new T();
-	}
-}
+//export class Factory
+//{
+//	public static Create<T>(T: new () => T): T
+//	{
+//		return new T();
+//	}
+//}
 
 export type time_t = number;
 
@@ -54,11 +54,11 @@ export class ScopeThreadBlock
 	// ---
 	public Enter(): void
 	{
-		Atomics.wait(this.m_cs, 0, 0, 0);
+		// Atomics.wait(this.m_cs, 0, 0, 0);
 	}
 	public Leave(): void
 	{
-		this.m_cs.unlock();
+		// this.m_cs.unlock();
 	}
 }
 

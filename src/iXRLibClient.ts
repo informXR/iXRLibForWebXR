@@ -282,14 +282,15 @@ export class iXRLibClient
 	/// <typeparam name="iXRLibAnalytics">Pass in iXRLibAnalytics where this is instantiated... resolves forward-referencing catch-22.</typeparam>
 	/// <typeparam name="iXRLibConfiguration">Pass in iXRLibConfiguration where this is instantiated... resolves forward-referencing catch-22.</typeparam>
 	/// <param name="listpXXXs">List of pointers to Ts to be JSONed and POSTed.</param>
+	/// <(type)param name="tTypeOfT">Type of object to be deleted as an any due to TypeScript's screwiness w.r.t. generics.</typeparam>
 	/// <param name="szRESTEndpoint">Backend REST endpoint that receives the POST.</param>
 	/// <param name="szResponse">Response from backend... either success JSON or failure JSON.</param>
 	/// <returns>iXRResult status code.</returns>
-	public static async PostIXRXXXs<T extends iXRBase>(listpXXXs: DbSet<T>, bOneAtATime: boolean, refparam: {szResponse: string}): Promise<iXRResult>
+	public static async PostIXRXXXs<T extends iXRBase>(listpXXXs: DbSet<T>, tTypeOfT: any, bOneAtATime: boolean, refparam: {szResponse: string}): Promise<iXRResult>
 	{
 		try
 		{
-			var	ixrXXXContainer:	iXRXXXContainer<T, number, false> = new iXRXXXContainer<T, number, false>();
+			var	ixrXXXContainer:	iXRXXXContainer<T, number, false> = new iXRXXXContainer<T, number, false>(tTypeOfT, false);
 			var	eTestCurlRet:		boolean,
 				eCurlRet:			boolean = true;
 			var	eJsonRet:			JsonResult;
@@ -301,7 +302,7 @@ export class iXRLibClient
 
 			if (bOneAtATime)
 			{
-				var	list1pXXXs:	DbSet<T> = new DbSet<T>(T);
+				var	list1pXXXs:	DbSet<T> = new DbSet<T>(tTypeOfT);
 
 				// list1pXXXs.push(null);
 				for (let pT of listpXXXs.values())
@@ -381,7 +382,7 @@ export class iXRLibClient
 		return iXRResult.eOk;
 	}
 	// TODO:  Summary this when dust has settled.
-	public static async GetIXRXXXs<T extends DataObjectBase>(vpszQueryParameters: Array<[string, string]>, /*OUT*/ ptContainedResponse: iXRXXXContainer<T, PythonDictStrings, false>, /*OUT*/ ptResponse: T | null): Promise<iXRResult>
+	public static async GetIXRXXXs<T extends DataObjectBase>(vpszQueryParameters: Array<[string, string]>, /*OUT*/ ptContainedResponse: iXRXXXContainer<T, PythonDictStrings, false> | null, /*OUT*/ ptResponse: T | null): Promise<iXRResult>
 	{
 		try
 		{
@@ -572,27 +573,27 @@ export class iXRLibClient
 	// ---
 	public static async PostIXREvents(listpEvents: DbSet<iXREvent>, bOneAtATime: boolean, refparam: {szResponse: string}): Promise<iXRResult>
 	{
-		return await iXRLibClient.PostIXRXXXs<iXREvent>(listpEvents, bOneAtATime, {szResponse: ""});
+		return await iXRLibClient.PostIXRXXXs<iXREvent>(listpEvents, iXREvent, bOneAtATime, {szResponse: ""});
 	}
 	public static async PostIXRAIProxyObjects(listpAIProxyObjects: DbSet<iXRAIProxy>, bOneAtATime: boolean, refparam: {szResponse: string}): Promise<iXRResult>
 	{
-		return await iXRLibClient.PostIXRXXXs<iXRAIProxy>(listpAIProxyObjects, bOneAtATime, {szResponse: ""});
+		return await iXRLibClient.PostIXRXXXs<iXRAIProxy>(listpAIProxyObjects, iXRAIProxy, bOneAtATime, {szResponse: ""});
 	}
 	public static async PostIXRLogs(listpLogs: DbSet<iXRLog>, bOneAtATime: boolean, refparam: {szResponse: string}): Promise<iXRResult>
 	{
-		return await iXRLibClient.PostIXRXXXs<iXRLog>(listpLogs, bOneAtATime, {szResponse: ""});
+		return await iXRLibClient.PostIXRXXXs<iXRLog>(listpLogs, iXRLog, bOneAtATime, {szResponse: ""});
 	}
 	public static async PostIXRTelemetry(listpTelemetry: DbSet<iXRTelemetry>, bOneAtATime: boolean, refparam: {szResponse: string}): Promise<iXRResult>
 	{
-		return await iXRLibClient.PostIXRXXXs<iXRTelemetry>(listpTelemetry, bOneAtATime, {szResponse: ""});
+		return await iXRLibClient.PostIXRXXXs<iXRTelemetry>(listpTelemetry, iXRTelemetry, bOneAtATime, {szResponse: ""});
 	}
 	public static async PostIXRAIProxy(listpAIProxy: DbSet<iXRAIProxy>, bOneAtATime: boolean, refparam: {szResponse: string}): Promise<iXRResult>
 	{
-		return await iXRLibClient.PostIXRXXXs<iXRAIProxy>(listpAIProxy, bOneAtATime, {szResponse: ""});
+		return await iXRLibClient.PostIXRXXXs<iXRAIProxy>(listpAIProxy, iXRAIProxy, bOneAtATime, {szResponse: ""});
 	}
 	public static async PostIXRStorage(listpStorage: DbSet<iXRStorage>, bOneAtATime: boolean, refparam: {szResponse: string}): Promise<iXRResult>
 	{
-		return await iXRLibClient.PostIXRXXXs<iXRStorage>(listpStorage, bOneAtATime, {szResponse: ""});
+		return await iXRLibClient.PostIXRXXXs<iXRStorage>(listpStorage, iXRStorage, bOneAtATime, {szResponse: ""});
 	}
 	// ---
 	/// <summary>

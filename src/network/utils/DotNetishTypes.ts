@@ -436,6 +436,12 @@ export class TimeSpan
 	{
 		return new Date(this.m_dtDate.getTime()) as DateTime;
 	}
+	public FromUnixTime(nTime: number): TimeSpan
+	{
+		this.m_dtDate = new Date(nTime * 1000.0);
+		// ---
+		return this;
+	}
 };
 
 /// <summary>
