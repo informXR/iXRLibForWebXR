@@ -38,7 +38,7 @@ export class JsonScalarArrayElement<T> extends DataObjectBase
 	}
 }
 
-export function Sleep(nMilliseconds: number)
+export function Sleep(nMilliseconds: number): Promise<void>
 {
 	return new Promise(resolve => setTimeout(resolve, nMilliseconds));
 }

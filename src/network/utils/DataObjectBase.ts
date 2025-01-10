@@ -446,7 +446,7 @@ export function GenerateJsonList(l: DbSet<DataObjectBase>, eDumpCategory: DumpCa
 	return szJSON;
 }
 
-export function LoadFromJson(o: DataObjectBase, szJSON: string): JsonResult
+export function LoadFromJson(o: DataObjectBase | null, szJSON: string): JsonResult
 {
 	return JsonResult.eOk;
 }

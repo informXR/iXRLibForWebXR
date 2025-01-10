@@ -4,7 +4,7 @@
 
 import { iXRLibAnalytics, iXRLibInit } from "./iXRLibAnalytics";
 import { iXRAIProxy, iXRBase, iXREvent, iXRLibConfiguration, iXRLog, iXRStorage, iXRTelemetry, iXRXXXContainer, RESTEndpointFromType } from "./iXRLibCoreModel";
-import { CurlHttp, JsonScalarArrayElement, SUID, time_t } from "./network/types";
+import { CurlHttp, EnsureSingleEndingCharacter, JsonScalarArrayElement, SUID, time_t } from "./network/types";
 import { DataObjectBase, DbSet, DumpCategory, FieldProperties, FieldPropertiesRecordContainer, FieldPropertyFlags, GenerateJson, GenerateJsonAlternate, GenerateJsonList, LoadFromJson } from "./network/utils/DataObjectBase";
 import { iXRResult, JsonResult, PythonDictStrings, StringList } from "./network/utils/DotNetishTypes";
 
@@ -58,9 +58,9 @@ export class AuthTokenRequest extends DataObjectBase
 	m_szUnityVersion:		string = "";
 	m_szDeviceModel:		string = "";
 	m_szUserId:				string = "";
-	m_lszTags:				StringList = new StringList();
-	m_dictGeoLocation:		PythonDictStrings = new PythonDictStrings();
-	m_dictAuthMechanism:	PythonDictStrings = new PythonDictStrings();
+	m_lszTags:				StringList;
+	m_dictGeoLocation:		PythonDictStrings;
+	m_dictAuthMechanism:	PythonDictStrings;
 	// ---
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
 		super.m_mapProperties.m_rfp,
@@ -90,6 +90,11 @@ export class AuthTokenRequest extends DataObjectBase
 	constructor()
 	{
 		super();
+		// ---
+		this.m_lszTags = new StringList();
+		this.m_dictGeoLocation = new PythonDictStrings();
+		this.m_dictAuthMechanism = new PythonDictStrings();
+		// ---
 		this.RefreshSessionId();
 	}
 	public RefreshSessionId(): void
@@ -183,7 +188,7 @@ export class PostObjectsResponseFailure extends DataObjectBase
 /// </summary>
 export class AuthTokenResponseFailureDetail extends DataObjectBase
 {
-	public m_lszLoc:	DbSet<JsonScalarArrayElement<string>> = new DbSet<JsonScalarArrayElement<string>>(JsonScalarArrayElement<string>);
+	public m_lszLoc:	DbSet<JsonScalarArrayElement<string>>;
 	public m_szMsg:		string = "";
 	public m_szType:	string = "";
 	public m_szInput:	string = "";
@@ -198,6 +203,12 @@ export class AuthTokenResponseFailureDetail extends DataObjectBase
 		// ---
 	 	{m_lszLoc: new FieldProperties("loc", FieldPropertyFlags.bfChildList)}));
 	// ---
+	constructor()
+	{
+		super();
+		// ---
+		this.m_lszLoc = new DbSet<JsonScalarArrayElement<string>>(JsonScalarArrayElement<string>);
+	}
 	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
 	{
 		return AuthTokenResponseFailureDetail.m_mapProperties;
@@ -210,7 +221,7 @@ export class AuthTokenResponseFailureDetail extends DataObjectBase
 export class AuthTokenResponseFailure extends DataObjectBase
 {
 	public m_szMessage:		string = "";	// This is for failures in the LMS/AuthMechanism flow where we get e.g. {"message": "Invalid assessment pin or the assessment is already active."}
-	public m_listDetail:	DbSet<AuthTokenResponseFailureDetail> = new DbSet<AuthTokenResponseFailureDetail>(AuthTokenResponseFailureDetail);	// This is for more general case when we get one of those "detail": "<list of details dump>" error structures.
+	public m_listDetail:	DbSet<AuthTokenResponseFailureDetail>;	// This is for more general case when we get one of those "detail": "<list of details dump>" error structures.
 	// ^^^ Both of these are simply unioned and it will find and parse whichever is present.
 	// ---
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
@@ -219,6 +230,12 @@ export class AuthTokenResponseFailure extends DataObjectBase
 		// ---
 	 	{m_listDetail: new FieldProperties("detail", FieldPropertyFlags.bfChildList)}));
 	// ---
+	constructor()
+	{
+		super();
+		// ---
+		this.m_listDetail = new DbSet<AuthTokenResponseFailureDetail>(AuthTokenResponseFailureDetail);
+	}
 	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
 	{
 		return AuthTokenResponseFailure.m_mapProperties;
@@ -603,15 +620,15 @@ export class iXRLibClient
 	public static WriteLine(szLine: string): void
 	{
 		// https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/preprocessor-directives
-		// szLine.EnsureSingleEndingCharacter('\n');
+		 szLine = EnsureSingleEndingCharacter(szLine, '\n');
 		// if (Platform.IsWindows())
 		// {
-		// 	OutputDebugStringA(szLine);
+		 	console.log(szLine);
 		// }
 		// else
 		// {
 		// 	OutputDebugStringA(szLine);
 		// }
-		// iXRLibAnalytics.DiagnosticWriteLine(szLine);
+		 iXRLibAnalytics.DiagnosticWriteLine(szLine);
 	}
 };

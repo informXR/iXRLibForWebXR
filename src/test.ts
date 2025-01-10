@@ -1,8 +1,10 @@
 import { iXRInit, iXRInstance, ResultOptions, InteractionType } from './iXR';
-import { iXRBase, iXRDbContext } from './iXRLibCoreModel';
-import { AuthenticationRequestSchema } from './network/types';
+import { iXRLibAnalytics, iXRLibInit } from './iXRLibAnalytics';
+import { iXRLibAsync } from './iXRLibAsync';
+import { iXRBase, iXRDbContext, iXRLibConfiguration } from './iXRLibCoreModel';
+import { AuthenticationRequestSchema, Sleep } from './network/types';
 import { DataObjectBase, DbSet, DumpCategory, FieldProperties, FieldPropertiesRecordContainer, FieldPropertyFlags, GenerateJson } from './network/utils/DataObjectBase';
-import { PythonDictStrings, StringList, TimeSpan } from './network/utils/DotNetishTypes';
+import { iXRResult, PythonDictStrings, StringList, TimeSpan } from './network/utils/DotNetishTypes';
 import { logError, logInfo } from './network/utils/logger';
 
 export { iXRInit, iXRInstance, AuthenticationRequestSchema };
@@ -106,15 +108,15 @@ class DbSetsOfStuff extends DataObjectBase
 	public m_listTestChildren:	DbSet<TestChild> = new DbSet<TestChild>(TestChild);
 }
 
-function CreateNew(o: any)
-{
-	return new o();
-}
-
 export class iXRXXXTestScalarContainer<T extends DataObjectBase> extends iXRBase
 {
 	public m_tIXRXXX:	T = {} as T;
 	// ---
+	constructor(tTypeOfT: any)
+	{
+		super();
+		this.m_tIXRXXX = new tTypeOfT();
+	}
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
 		super.m_mapProperties.m_rfp,
 		{m_tIXRXXX: new FieldProperties("data", FieldPropertyFlags.bfChild)}));
@@ -130,7 +132,7 @@ export class iXRXXXTestScalarContainer<T extends DataObjectBase> extends iXRBase
 	}
 };
 
-function TestJson()
+async function TestJson(): Promise<void>
 {
 	var objTestData:	TestData = new TestData();
 	var szJSON:			string = "";
@@ -138,31 +140,41 @@ function TestJson()
 	var obj:			DbSetsOfStuff = new DbSetsOfStuff();
 	var pdsIXRXXX:		any = null;
 	var tsTest:			TimeSpan = TimeSpan.Parse("12:34:56");
-	var objTestScalarContainer:	iXRXXXTestScalarContainer<TestData> = new iXRXXXTestScalarContainer<TestData>();
+	var objTestScalarContainer:	iXRXXXTestScalarContainer<TestData> = new iXRXXXTestScalarContainer<TestData>(TestData);
 
-	var objDbSetsOfStuff:	DbSetsOfStuff = CreateNew(DbSetsOfStuff);
-	console.log(DbSetsOfStuff);
-	if (typeof(DbSetsOfStuff) === "function")
+	try
 	{
-		console.log("It is a function");
-	}
-	for (const [szField, objField] of Object.entries(obj))
-	{
-		console.log(szField, " ", typeof(objField));
-		if (objField instanceof DbSet)
+		iXRLibAnalytics.m_ixrLibAsync.AddTask(async (o: any): Promise<iXRResult> => { console.log("Sleeping..."); await Sleep(3000); console.log("Never shoot no dear."); return iXRResult.eOk; }, objTestData, (o: any):void => { console.log("It's just flooded I'll be ok."); });
+		// ---
+		console.log(DbSetsOfStuff);
+		iXRLibInit.Start();
+		if (typeof(DbSetsOfStuff) === "function")
 		{
-			if (objField.ContainedType() === TestData)
+			console.log("It is a function");
+		}
+		await Sleep(4000);
+		for (const [szField, objField] of Object.entries(obj))
+		{
+			console.log(szField, " ", typeof(objField));
+			if (objField instanceof DbSet)
 			{
-				console.log("Found it: ", szField);
-				pdsIXRXXX = objField;
-				break;
+				if (objField.ContainedType() === TestData)
+				{
+					console.log("Found it: ", szField);
+					pdsIXRXXX = objField;
+					break;
+				}
 			}
 		}
+		szJSON = GenerateJson(objTestData, DumpCategory.eDumpingJsonForBackend);
+		console.log(szJSON);
+		szJSON = JSON.stringify(objTestData, TestData.m_mapProperties.replacer);
+		console.log(szJSON);
 	}
-	szJSON = GenerateJson(objTestData, DumpCategory.eDumpingJsonForBackend);
-	console.log(szJSON);
-	szJSON = JSON.stringify(objTestData, TestData.m_mapProperties.replacer);
-	console.log(szJSON);
+	catch (e)
+	{
+		logError("TestJson", e);
+	}
 }
 
 async function main(): Promise<void> {
@@ -175,7 +187,7 @@ async function main(): Promise<void> {
       xrdm_authsecret: 'authSecret'
     });
 
-	TestJson();
+	await TestJson();
     // Set the URL for testing
     window.history.pushState({}, '', `${window.location.pathname}?${urlParams.toString()}`);
     console.log('Set URL:', window.location.href);

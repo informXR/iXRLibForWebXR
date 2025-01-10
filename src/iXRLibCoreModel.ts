@@ -12,19 +12,24 @@ import { HTTP_URL, URLParser } from "./network/utils/URLParser";
 /// </summary>
 export class iXRBase extends DataObjectBase
 {
-	protected static m_bUseCapturedTimeStamp:	boolean = false;
-	protected static m_nCapturedTimeStamp:		number = DATEMAXVALUE;
+	protected static m_bUseCapturedTimeStamp:	boolean;
+	protected static m_nCapturedTimeStamp:		number;
 	// ---
-	public m_guidId:			SUID = new SUID();
-	public m_guidParentId:		SUID = new SUID();
+	public static InitStatics()
+	{
+		this.m_bUseCapturedTimeStamp = false;
+		this.m_nCapturedTimeStamp = DATEMAXVALUE;
+	}
+	public m_guidId:			SUID;
+	public m_guidParentId:		SUID;
 	// "Standard" timestamp... gets transmitted as text, subject to vagaries, should not be used for grouping objects that depend on precise comparison.
-	public m_dtTimeStamp:		DateTime = new DateTime().FromUnixTime(DATEMAXVALUE);
+	public m_dtTimeStamp:		DateTime;
 	// A precise version of the timestamp that is declared as integer so it will only be subject to precise integer operations rather than time calculations which can introduce imprecisions.
 	// Note how this is not strictly Unix time... Unix time is seconds.  In order for this to guarantee the precision we want, it needs to be same resolution as the clock from which it is converted.
 	// This field is motivated by the backend grouping objects by timestamp, which is reckless when using the m_dtTimeStamp due to the adulterations to which it can be subject when converted back
 	// and forth from string etc.  The fact that it is not a standards-compliant timestamp is irrelevant as this field is really more of a poor-man's-guid for grouping objects that is based on timestamp.
-	public m_nTimeStamp:		number = DATEMAXVALUE;
-	public m_bSyncedWithCloud:	boolean = false;	// On the cloud db, this is always true.  On the device, false indicates exists only in device-local SQLite db... needs update or create in cloud db to sync.
+	public m_nTimeStamp:		number;
+	public m_bSyncedWithCloud:	boolean;	// On the cloud db, this is always true.  On the device, false indicates exists only in device-local SQLite db... needs update or create in cloud db to sync.
 	// ---
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
 		super.m_mapProperties.m_rfp,
@@ -39,14 +44,16 @@ export class iXRBase extends DataObjectBase
 		return iXRBase.m_mapProperties;
 	}
 	// ---
-	// MJPQ:  attempt at getting around the type used as value bollocks.
-	//public static construct<T extends iXRBase>(ixrT: new () => T): T
-	//{
-	//	return new ixrT();
-	//}
 	constructor()
 	{
 		super();
+		// ---
+		this.m_guidId = new SUID();
+		this.m_guidParentId = new SUID();
+		this.m_dtTimeStamp = new DateTime().FromUnixTime(DATEMAXVALUE);
+		this.m_nTimeStamp = DATEMAXVALUE;
+		this.m_bSyncedWithCloud = false;	// On the cloud db, this is always true.  On the device, false indicates exists only in device-local SQLite db... needs update or create in cloud db to sync.
+		// ---
 		if (iXRBase.m_bUseCapturedTimeStamp)
 		{
 			this.m_dtTimeStamp.FromInt64(iXRBase.m_nCapturedTimeStamp);
@@ -109,36 +116,54 @@ export class CaptureTimeStampLifetime
 /// iXRLibClient.h so it needs to be here.
 export class iXRLibConfiguration extends DataObjectBase
 {
-	protected m_szRestUrl:						string = "";				// |_Would be cool to use __declspec(property) but that does not port to Linux.
-	protected m_urlRestUrl:						HTTP_URL = new HTTP_URL();	// | Using accessor instead.
+	protected m_szRestUrl:						string;		// |_Would be cool to use __declspec(property) but that does not port to Linux.
+	protected m_urlRestUrl:						HTTP_URL;	// | Using accessor instead.
 	// ---
-	public m_nSendRetriesOnFailure:				number = 3;
-	public m_tsSendRetryInterval:				TimeSpan = TimeSpan.Parse("00:00:03");
-	public m_tsSendNextBatchWait:				TimeSpan = TimeSpan.Parse("00:00:30");
-	public m_tsStragglerTimeout:				TimeSpan = TimeSpan.Parse("00:00:15");
-	public m_nEventsPerSendAttempt:				number = 16;
-	public m_nLogsPerSendAttempt:				number = 16;
-	public m_nTelemetryEntriesPerSendAttempt:	number = 16;
-	public m_nStorageEntriesPerSendAttempt:		number = 16;
-	public m_tsPruneSentItemsOlderThan:			TimeSpan = TimeSpan.Parse("1.00:00:00");
-	public m_nMaximumCachedItems:				number = 1024;
-	public m_bRetainLocalAfterSent:				boolean = false;
+	public m_nSendRetriesOnFailure:				number;
+	public m_tsSendRetryInterval:				TimeSpan;
+	public m_tsSendNextBatchWait:				TimeSpan;
+	public m_tsStragglerTimeout:				TimeSpan;
+	public m_nEventsPerSendAttempt:				number;
+	public m_nLogsPerSendAttempt:				number;
+	public m_nTelemetryEntriesPerSendAttempt:	number;
+	public m_nStorageEntriesPerSendAttempt:		number;
+	public m_tsPruneSentItemsOlderThan:			TimeSpan;
+	public m_nMaximumCachedItems:				number;
+	public m_bRetainLocalAfterSent:				boolean;
 	// Thread will wake up periodically and if this is configured and the token expiration is looming, it will
 	// preemptively reauthenticate rather than waiting for auth error to prompt relogin.
-	public m_bReAuthenticateBeforeTokenExpires: boolean = true;
+	public m_bReAuthenticateBeforeTokenExpires: boolean;
 	// Slimey hack to get us past first release.  Hopefully I'll take it out completely after we solve (hopefully) the
 	// file issues (App.config, SQLite) on Android.  When false, this is a "limp along" mode that sends everything
 	// immediately without cacheing to db.  Upon further contemplation, it is actually a good feature, but still,
 	// hopefully default true will be an option someday; now I am saying default false is the slimey hack.
-	public m_bUseDatabase:						boolean = false;
+	public m_bUseDatabase:						boolean;
 	// Extra data that (if not empty from backend after first auth) has to be requested from the user to be submitted
 	// in a followup call to auth by being copied into the auth environment/session property of the same name after
 	// being filled in.  Scorm interactionid is the initial motivation.
-	public m_dictAuthMechanism:					PythonDictStrings = new PythonDictStrings();
+	public m_dictAuthMechanism:					PythonDictStrings;
 	// ---
 	constructor()
 	{
 		super();
+		// ---
+		this.m_szRestUrl = "";				// |_Would be cool to use __declspec(property) but that does not port to Linux.
+		this.m_urlRestUrl = new HTTP_URL();	// | Using accessor instead.
+		this.m_nSendRetriesOnFailure = 3;
+		this.m_tsSendRetryInterval = TimeSpan.Parse("00:00:03");
+		this.m_tsSendNextBatchWait = TimeSpan.Parse("00:00:30");
+		this.m_tsStragglerTimeout = TimeSpan.Parse("00:00:15");
+		this.m_nEventsPerSendAttempt = 16;
+		this.m_nLogsPerSendAttempt = 16;
+		this.m_nTelemetryEntriesPerSendAttempt = 16;
+		this.m_nStorageEntriesPerSendAttempt = 16;
+		this.m_tsPruneSentItemsOlderThan = TimeSpan.Parse("1.00:00:00");
+		this.m_nMaximumCachedItems = 1024;
+		this.m_bRetainLocalAfterSent = false;
+		this.m_bReAuthenticateBeforeTokenExpires = true;
+		this.m_bUseDatabase = false;
+		this.m_dictAuthMechanism = new PythonDictStrings();
+		// ---
 		// Default URL... can be overriden by App.config or accessors in C# and C++.
 		this.SetRestUrl("https://libapi.informxr.io/");
 	}
@@ -210,7 +235,7 @@ export class iXRLibConfiguration extends DataObjectBase
 		}
 		catch (error)
 		{
-			// iXRLibClient.WriteLine($"Error: {ex.Message}\nStackTrace: {ex.StackTrace}");
+			console.log("Error: ", error);
 			// ---
 			return false;
 		}
@@ -228,11 +253,11 @@ export class iXRLibConfiguration extends DataObjectBase
 /// </summary>
 export class iXRApplication extends iXRBase
 {
-	public m_szAppId:			string = "";
-	public m_szDeviceUserId:	string = "";
-	public m_szDeviceId:		string = "";
-	public m_szLogLevel:		string = "";
-	public m_szData:			string = "";
+	public m_szAppId:			string;
+	public m_szDeviceUserId:	string;
+	public m_szDeviceId:		string;
+	public m_szLogLevel:		string;
+	public m_szData:			string;
 	// ---
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
 		super.m_mapProperties.m_rfp,
@@ -242,6 +267,16 @@ export class iXRApplication extends iXRBase
 		{m_szLogLevel: new FieldProperties("logLevel")},
 		{m_szData: new FieldProperties("data")}));
 	// ---
+	constructor()
+	{
+		super();
+		// ---
+		this.m_szAppId = "";
+		this.m_szDeviceUserId = "";
+		this.m_szDeviceId = "";
+		this.m_szLogLevel = "";
+		this.m_szData = "";
+	}
 	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
 	{
 		return iXRBase.m_mapProperties;
@@ -259,10 +294,18 @@ export class iXRApplication extends iXRBase
 /// </summary>
 export class iXRLocationData extends iXRBase
 {
-	public m_dX:	number = 0.0;
-	public m_dY:	number = 0.0;
-	public m_dZ:	number = 0.0;
+	public m_dX:	number;
+	public m_dY:	number;
+	public m_dZ:	number;
 	// ---
+	constructor()
+	{
+		super();
+		// ---
+		this.m_dX = 0.0;
+		this.m_dY = 0.0;
+		this.m_dZ = 0.0;
+	}
 	Construct(dX: number, dY: number, dZ: number): iXRLocationData
 	{
 		this.m_dX = dX;
@@ -359,8 +402,8 @@ export function StringToLogLevel(szLogLevel: string): LogLevel
 /// </summary>
 export class iXRLog extends iXRBase
 {
-	public m_szLogLevel:	string = "";
-	public m_szText:		string = "";
+	public m_szLogLevel:	string;
+	public m_szText:		string;
 	// ---
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
 		super.m_mapProperties.m_rfp,
@@ -372,6 +415,13 @@ export class iXRLog extends iXRBase
 		return iXRLog.m_mapProperties;
 	}
 	// ---
+	constructor()
+	{
+		super();
+		// ---
+		this.m_szLogLevel = "";
+		this.m_szText = "";
+	}
 	public Construct(eLogLevel: LogLevel, szText: string): iXRLog
 	{
 		this.m_szLogLevel = LogLevelToString(eLogLevel);
@@ -394,10 +444,18 @@ export class iXRLog extends iXRBase
 /// </summary>
 export class iXRTelemetry extends iXRBase
 {
-	public m_szName:			string = "";									// Consider the x, y, z case vvv ... (x, y, z) of what?  This is the "what"... can be empty when self-evident like battery level.
-	public m_dictData:			PythonDictStrings = new PythonDictStrings();	// General purpose... could be {"batteryLevel": "67.0"}, {"x":"34", "y":"67", "z":"26"}...
-	public m_objInAppLocation:	iXRLocationData = new iXRLocationData();
+	public m_szName:			string;				// Consider the x, y, z case vvv ... (x, y, z) of what?  This is the "what"... can be empty when self-evident like battery level.
+	public m_dictData:			PythonDictStrings;	// General purpose... could be {"batteryLevel": "67.0"}, {"x":"34", "y":"67", "z":"26"}...
+	public m_objInAppLocation:	iXRLocationData;
 	// ---
+	constructor()
+	{
+		super();
+		// ---
+		this.m_szName = "";
+		this.m_dictData = new PythonDictStrings();
+		this.m_objInAppLocation = new iXRLocationData();
+	}
 	public Construct(szName: string, dictData: PythonDictStrings): iXRTelemetry
 	{
 		this.m_szName = szName;
@@ -433,10 +491,18 @@ export class iXRTelemetry extends iXRBase
 /// </summary>
 export class iXRAIProxy extends iXRBase
 {
-	public m_szPrompt:			string = "";									// String type value.
-	public m_dictPastMessages:	PythonDictStrings = new PythonDictStrings();	// The history of chat (if needed).
-	public m_szLLMProvider:		string = "";									// (Optional) a string type value that can be used to choose a specific pre-defined chatbot.
+	public m_szPrompt:			string;				// String type value.
+	public m_dictPastMessages:	PythonDictStrings;	// The history of chat (if needed).
+	public m_szLLMProvider:		string;				// (Optional) a string type value that can be used to choose a specific pre-defined chatbot.
 	// ---
+	constructor()
+	{
+		super();
+		// ---
+		this.m_szPrompt = "";
+		this.m_dictPastMessages = new PythonDictStrings();
+		this.m_szLLMProvider = "";
+	}
 	/// <summary>
 	/// For passing past messages in as comma-separated list.
 	/// </summary>
@@ -493,15 +559,32 @@ export class iXRAIProxy extends iXRBase
 export class iXREvent extends iXRBase
 {
 	// static std.recursive_mutex				m_csDictProtect;
-	public static m_dictAssessmentStartTimes:	Dictionary<string, DateTime> = new Dictionary<string, DateTime>;
-	public static m_dictObjectiveStartTimes:	Dictionary<string, DateTime> = new Dictionary<string, DateTime>;
-	public static m_dictInteractionStartTimes:	Dictionary<string, DateTime> = new Dictionary<string, DateTime>;
-	public static m_dictLevelStartTimes:		Dictionary<string, DateTime> = new Dictionary<string, DateTime>;
+	// MJPQ:  This is a massive pain if I have to do this in the constructor to avoid that "cannot read property of undefined" error.
+	public static m_dictAssessmentStartTimes:	Dictionary<string, DateTime>;
+	public static m_dictObjectiveStartTimes:	Dictionary<string, DateTime>;
+	public static m_dictInteractionStartTimes:	Dictionary<string, DateTime>;
+	public static m_dictLevelStartTimes:		Dictionary<string, DateTime>;
 	// ---
-	m_szName:			string = "";
-	m_dictMeta:			PythonDictStrings = new PythonDictStrings();
-	m_szEnvironment:	string = "";
+	public static InitStatics()
+	{
+		iXREvent.m_dictAssessmentStartTimes = new Dictionary<string, DateTime>();
+		iXREvent.m_dictObjectiveStartTimes = new Dictionary<string, DateTime>();
+		iXREvent.m_dictInteractionStartTimes = new Dictionary<string, DateTime>();
+		iXREvent.m_dictLevelStartTimes = new Dictionary<string, DateTime>();
+	}
 	// ---
+	m_szName:			string;
+	m_dictMeta:			PythonDictStrings;
+	m_szEnvironment:	string;
+	// ---
+	constructor()
+	{
+		super();
+		// ---
+		this.m_szName = "";
+		this.m_dictMeta = new PythonDictStrings();
+		this.m_szEnvironment = "";
+	}
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
 		super.m_mapProperties.m_rfp,
 	 	{m_szName: new FieldProperties("name")},
@@ -649,8 +732,14 @@ export class iXRXXXScalarContainer<T extends iXRBase> extends iXRBase
 /// </summary>
 export class iXRStorageData extends iXRBase
 {
-	public m_cdictData:	PythonDictStrings = new PythonDictStrings();
+	public m_cdictData:	PythonDictStrings;
 	// ---
+	constructor()
+	{
+		super();
+		// ---
+		this.m_cdictData = new PythonDictStrings();
+	}
 	public Construct0(dictData: PythonDictStrings) : iXRStorageData
 	{
 		this.m_cdictData = dictData;
@@ -708,17 +797,22 @@ export class StorageContainer extends iXRXXXContainer<iXRStorageData, PythonDict
 /// </summary>
 export class iXRStorage extends iXRBase
 {
-	m_szKeepPolicy:	string = "";			// "keepLatest" or "appendHistory"
-	m_szName:		string = "";
-	m_dsData:		DbSet<StorageContainer> = new DbSet<StorageContainer>(StorageContainer);	// Accommodates backend wanting this nested... on this end, always exactly one item in it.
-	m_szOrigin:		string = "";			// Optional, but if not blank, must be "system" or "user"
-	m_bSessionData:	boolean = false;
-	m_lszTags:		StringList = new StringList();
+	public m_szKeepPolicy:	string;						// "keepLatest" or "appendHistory"
+	public m_szName:		string;
+	public m_dsData:		DbSet<StorageContainer>;	// Accommodates backend wanting this nested... on this end, always exactly one item in it.
+	public m_szOrigin:		string;						// Optional, but if not blank, must be "system" or "user"
+	public m_bSessionData:	boolean;
+	public m_lszTags:		StringList;
 	// ---
 	constructor()
 	{
 		super();
 		this.m_szKeepPolicy = "appendHistory";
+		this.m_szName = "";
+		this.m_dsData = new DbSet<StorageContainer>(StorageContainer);
+		this.m_szOrigin = "";
+		this.m_bSessionData = false;
+		this.m_lszTags = new StringList();
 	}
 	Construct0(bKeepLatest: boolean, szName: string, dictData: PythonDictStrings, szOrigin: string, bSessionData: boolean) : iXRStorage
 	{
@@ -773,8 +867,12 @@ export class iXRStorage extends iXRBase
 /// </summary>
 export class DbSetStorage extends DbSet<iXRStorage>
 {
-	public static DEFAULTNAME:	string = "state";
+	public static DEFAULTNAME:	string;
 	// ---
+	public static InitStatics()
+	{
+		this.DEFAULTNAME = "state";
+	}
 	// Default name 'state'
 	public GetEntry0(): iXRStorage | null
 	{
@@ -934,7 +1032,14 @@ export class DbSetStorage extends DbSet<iXRStorage>
 /// </summary>
 export class iXRErrors extends iXRBase
 {
-	m_szErrorString:	string = "";
+	m_szErrorString:	string;
+	// ---
+	constructor()
+	{
+		super();
+		// ---
+		this.m_szErrorString = "";
+	}
 	// ---
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
 		super.m_mapProperties.m_rfp,
@@ -951,12 +1056,12 @@ export class iXRErrors extends iXRBase
 /// </summary>
 export class iXRDbContext extends DbContext
 {
-	m_dsIXRApplications:	DbSet<iXRApplication> = new DbSet<iXRApplication>(iXRApplication);
-	m_dsIXRLogs:			DbSet<iXRLog> = new DbSet<iXRLog>(iXRLog);
-	m_dsIXRTelemetry:		DbSet<iXRTelemetry> = new DbSet<iXRTelemetry>(iXRTelemetry);
-	m_dsIXREvents:			DbSet<iXREvent> = new DbSet<iXREvent>(iXREvent);		// Table name IXREvents.
-	m_dsIXRStorage:			DbSet<iXRStorage> = new DbSet<iXRStorage>(iXRStorage);	// State info, etc.
-	m_szDbPath:				string = "";
+	m_dsIXRApplications:	DbSet<iXRApplication>;
+	m_dsIXRLogs:			DbSet<iXRLog>;
+	m_dsIXRTelemetry:		DbSet<iXRTelemetry>;
+	m_dsIXREvents:			DbSet<iXREvent>;	// Table name IXREvents.
+	m_dsIXRStorage:			DbSet<iXRStorage>;	// State info, etc.
+	m_szDbPath:				string;
 	// ---
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
 		super.m_mapProperties.m_rfp,
@@ -974,6 +1079,14 @@ export class iXRDbContext extends DbContext
 	constructor(bDeleteIfExists: boolean)
 	{
 		super();
+		// ---
+		this.m_dsIXRApplications = new DbSet<iXRApplication>(iXRApplication);
+		this.m_dsIXRLogs = new DbSet<iXRLog>(iXRLog);
+		this.m_dsIXRTelemetry = new DbSet<iXRTelemetry>(iXRTelemetry);
+		this.m_dsIXREvents = new DbSet<iXREvent>(iXREvent);
+		this.m_dsIXRStorage = new DbSet<iXRStorage>(iXRStorage);
+		this.m_szDbPath = "";
+		// ---
 	// 	m_szDbPath = NormalizePath("InformXR.db").c_str();
 	// 	if (bDeleteIfExists)
 	// 	{

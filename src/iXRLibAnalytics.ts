@@ -1,6 +1,6 @@
 import { iXRLibAsync } from './iXRLibAsync';
 import { AuthTokenDecodedJWT, AuthTokenRequest, AuthTokenResponseFailure, AuthTokenResponseSuccess, iXRLibClient, Partner, PartnerToString, PostObjectsResponseFailure, PostObjectsResponseSuccess } from './iXRLibClient';
-import { iXRAIProxy, iXRBase, iXRDbContext, iXRLog, iXREvent, iXRStorage, iXRTelemetry } from './iXRLibCoreModel';
+import { iXRAIProxy, iXRBase, iXRDbContext, iXRLog, iXREvent, iXRStorage, iXRTelemetry, iXRLibConfiguration } from './iXRLibCoreModel';
 import { iXRLibStorage } from './iXRLibStorage';
 import { Base64, CurlHttp, DATEMAXVALUE, Sleep } from './network/types';
 import { crc32 } from './network/utils/crc32';
@@ -15,22 +15,25 @@ import { JWTDecode } from './network/utils/JWT';
 /// </summary>
 class Authentication
 {
-	public m_szApiToken:		string = "";	    // JWT token obtained by authentication phase.  Goes into "Authentication:  Bearer" header.
-	public m_szApiSecret:		string = "";	    // Secret obtained by authentication phase.  Gets incorporated into SHA256 hash in X-iXRLib-Hash.
-	public m_szSessionId:		string = "";	    // Current session-id to be re-used on re-login.
-	public m_dtTokenExpiration:	DateTime = new DateTime();
+	public m_szApiToken:		string = "";	    	// JWT token obtained by authentication phase.  Goes into "Authentication:  Bearer" header.
+	public m_szApiSecret:		string = "";	    	// Secret obtained by authentication phase.  Gets incorporated into SHA256 hash in X-iXRLib-Hash.
+	public m_szSessionId:		string = "";	    	// Current session-id to be re-used on re-login.
+	public m_dtTokenExpiration:	DateTime;
 	public m_szAppID:			string = "";
 	public m_szOrgID:			string = "";
-	public m_ePartner:			Partner = Partner.eNone;
+	public m_ePartner:			Partner;
+	// ---
+	public m_szAuthSecret:			string = "";		// Not exposed via properties or anything else, only available to iXRLibInit for use in 2-stage authentication (dictAuthMechanism flows)... in C++, no friend classes in TypeScript so public.
+	// ---
+	public m_objAuthTokenRequest:	AuthTokenRequest;	// For setting the environment/session members of AuthTokenRequest as global properties that then get incorporated into the specific auth request on Authenticate().
 	// ---
 	public constructor()
 	{
+		this.m_dtTokenExpiration = new DateTime();
 		this.m_dtTokenExpiration.setFullYear(DATEMAXVALUE);
+		this.m_ePartner = Partner.eNone;
+		this.m_objAuthTokenRequest = new AuthTokenRequest();
 	}
-	// ---
-	public m_szAuthSecret:			string = "";	// Not exposed via properties or anything else, only available to iXRLibInit for use in 2-stage authentication (dictAuthMechanism flows)... in C++, no friend classes in TypeScript so public.
-	// ---
-	public m_objAuthTokenRequest:	AuthTokenRequest = new AuthTokenRequest();	// For setting the environment/session members of AuthTokenRequest as global properties that then get incorporated into the specific auth request on Authenticate().
 	// ---
 	// Cat these together, then checksum then timestamp and hash it.
 	// Headers for Hash, Timestamp, ApiToken, HardwareID.  Alternately or in addition to... JWT token?
@@ -73,8 +76,12 @@ export class iXRLibInit
 {
 	//friend struct iXRLibAnalyticsTests;
 	// ---
-	public static m_ixrLibAuthentication: Authentication = new Authentication();
+	public static m_ixrLibAuthentication:	Authentication;
 	// ---
+	public static InitStatics()
+	{
+		this.m_ixrLibAuthentication = new Authentication();
+	}
 	// --- Initialization and its ancillaries.
 	// Upon init/inclusion of the library we need to set the class variables.
 	// Once we have the currentId set, we will also call GetAllData() so that its ready in cache right away.
@@ -316,19 +323,32 @@ type iXRLibDiagnosticCallback = (szDiagnostic: string) => void;
 // ---
 export class iXRLibAnalytics
 {
-	public static m_ixrLibAsync:					iXRLibAsync = new iXRLibAsync();
-	public static m_listErrors:						StringList = new StringList();
-	public static m_dtLastSuccessfulSend:			DateTime = new DateTime();	// State variable... for knowing when to wake up and send stragglers.
-	public static m_bCheckForStragglers:			boolean;					// State variable... flip flops on send-main-chunks / send-stragglers.
+	public static m_ixrLibAsync:					iXRLibAsync;
+	public static m_listErrors:						StringList;
+	public static m_dtLastSuccessfulSend:			DateTime;						// State variable... for knowing when to wake up and send stragglers.
+	public static m_bCheckForStragglers:			boolean;						// State variable... flip flops on send-main-chunks / send-stragglers.
 	// Not C# callback mechanism.  Placeholder for now until we figure out how this is going to work with TypeScript.
-	public static m_pfnGetAuthSecretCallback:		iXRLibGetAuthSecretCallback = iXRLibAnalytics.DefaultGetAuthSecretCallback;	// Give the client a hook for (re)authenticating... the call returns new authSecret that then gets used by (re)Authenticate() to auth with current (appId, orgId, deviceId, authSecret).
-	public static m_pvGetAuthSecretCallbackData:	object | null = null;			// User data that gets passed to m_pfnAuthSecretCallback.
+	public static m_pfnGetAuthSecretCallback:		iXRLibGetAuthSecretCallback;	// Give the client a hook for (re)authenticating... the call returns new authSecret that then gets used by (re)Authenticate() to auth with current (appId, orgId, deviceId, authSecret).
+	public static m_pvGetAuthSecretCallbackData:	object | null;					// User data that gets passed to m_pfnAuthSecretCallback.
 	// --- App.Config entries.
 	// --- Information for encoding auth into HTTP headers.
     // --- Will be either userId or deviceId and currentId aliases whichever it is.  This is current global... snapshot in each IXREvent as well.
 	private static m_szUserId:						string;
 	private static m_szDeviceId:					string;
-	private static m_dssCurrentData:				PythonDictStrings = new PythonDictStrings();   // where we will store the current data in memory for quick access.  MJP:  may already have implemented this as IXRAnalytics.allEvents.
+	private static m_dssCurrentData:				PythonDictStrings;  			 // where we will store the current data in memory for quick access.  MJP:  may already have implemented this as IXRAnalytics.allEvents.
+	// ---
+	public static InitStatics()
+	{
+		iXRLibAnalytics.m_ixrLibAsync = new iXRLibAsync();
+		iXRLibAnalytics.m_listErrors = new StringList();
+		iXRLibAnalytics.m_dtLastSuccessfulSend = new DateTime();
+		iXRLibAnalytics.m_bCheckForStragglers = false;
+		iXRLibAnalytics.m_pfnGetAuthSecretCallback = iXRLibAnalytics.DefaultGetAuthSecretCallback;
+		iXRLibAnalytics.m_pvGetAuthSecretCallbackData = null;
+		iXRLibAnalytics.m_szUserId = "";
+		iXRLibAnalytics.m_szDeviceId = "";
+		iXRLibAnalytics.m_dssCurrentData = new PythonDictStrings();
+	}
 	//private static					m_dsbAllEvents = new Dictionary<mstringb, bool>;
 	public static get_UserId(): string { return iXRLibAnalytics.m_szUserId; }
 	public static set_UserId(value: string): void { iXRLibAnalytics.m_szUserId = value; }

@@ -268,31 +268,34 @@ export function JsonResultToString(eRet: JsonResult): string
 /// </summary>
 export class ConfigurationManager
 {
+	public static m_szAppConfig:	string = "";
+	// ---
 	public static AppSettings(szFieldName: string, szDefaultValue: string): string
 	{
-		var szAppConfig:	string = "";
+		var szAppConfig:	string = ConfigurationManager.m_szAppConfig;
 
 		// if (szAppConfig.LoadFromFile("App.config"))
-		// {
-		// 	csrstringb	csrszRegex;
-		// 	// ---
-		// 	csrszRegex.Format(/<add[\s]+key[\s]*=[\s]*"%s"[\s]+value[\s]*=[\s]*".*"[\s]*[/]?[\s]*>/, szFieldName);
-		// 	// ---
-		// 	std::vector<mstringb>	vszMatches;
+		if (szAppConfig.length > 0)
+		{
+			var csrszRegex:	string = "";
+			// ---
+			csrszRegex = `/<add[\s]+key[\s]*=[\s]*"${szFieldName}"[\s]+value[\s]*=[\s]*".*"[\s]*[/]?[\s]*>/`;
+			// ---
+			var vszMatches:	string[] = [];
 
-		// 	// Filter out any HTML comments.
-		// 	Regex.ProgressiveMatch(szAppConfig, { /<\!\-\-.*\-\->/ }, { { true, /.*/ } }, vszMatches);
-		// 	for (const mstringb& sz : vszMatches)
-		// 	{
-		// 		szAppConfig.Replace(sz, "");
-		// 	}
-		// 	// Now do the "real" match.
-		// 	Regex.DeepMatch(szAppConfig, { csrszRegex, /value[\s]*=[\s]*".*"[\s]*[/]?[\s]*>/ }, /value[\s]*=[\s]*"/, /"[\s]*[/]?[\s]*>/, vszMatches);
-		// 	if (vszMatches.size() > 0)
-		// 	{
-		// 		return vszMatches[0];
-		// 	}
-		// }
+			// Filter out any HTML comments.
+			vszMatches = Regex.ProgressiveMatch(szAppConfig, [ /<\!\-\-.*\-\->/i ], [ [ true, /.*/i ] ]);
+			for (const mstringb& sz : vszMatches)
+			{
+				szAppConfig.Replace(sz, "");
+			}
+			// Now do the "real" match.
+			vszMatches = Regex.DeepMatch(szAppConfig, [ csrszRegex, /value[\s]*=[\s]*".*"[\s]*[/]?[\s]*>/ ], /value[\s]*=[\s]*"/, /"[\s]*[/]?[\s]*>/);
+			if (vszMatches.size() > 0)
+			{
+				return vszMatches[0];
+			}
+		}
 		// ---
 		return szDefaultValue;
 	}

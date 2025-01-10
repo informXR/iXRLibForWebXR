@@ -61,8 +61,12 @@ export class iXRLibAsync
 {
 // protected:
 	// ---
-	public static m_nCallbackPeriodicity:	number = 500;	// Half second.
-	// // ---
+	public static m_nCallbackPeriodicity:	number;
+	// ---
+	public static InitStatics()
+	{
+		iXRLibAsync.m_nCallbackPeriodicity = 500;	// Half second.
+	}
 	// std::recursive_mutex	m_cs;
 	// std::thread				m_tWorkerThread;
 	// bool					m_bKeepRunning = true;
@@ -84,12 +88,12 @@ export class iXRLibAsync
 	// 	Dispose();
 	// }
 	// Client thread.
-	public AddTask(pfnTask: (o: any) => iXRResult, pObject: any, pfnCleanup: (o: any) => void): iXRResult
+	public async AddTask(pfnTask: (o: any) => Promise<iXRResult>, pObject: any, pfnCleanup: (o: any) => void): Promise<iXRResult>
 	{
 		var objPromise:	Promise<iXRResult> = new Promise(
-			(resolve, reject) =>
+			async (resolve, reject) =>
 			{
-				var eRet:	iXRResult = pfnTask(pObject);
+				var eRet:	iXRResult = await pfnTask(pObject);
 
 				pfnCleanup(pObject);
 				resolve(eRet);

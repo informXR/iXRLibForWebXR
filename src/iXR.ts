@@ -9,8 +9,28 @@ import { createServicesController } from './network/controllers/services';
 import { createStorageController } from './network/controllers/storage';
 import { logError, logInfo } from './network/utils/logger';
 import { defaultConfig } from './network/config';
+import { iXRLibAnalytics, iXRLibInit } from './iXRLibAnalytics';
+import { iXRLibAsync } from './iXRLibAsync';
+import { DbSetStorage, iXRBase, iXREvent, iXRStorage } from './iXRLibCoreModel';
+import { iXRLibStorage } from './iXRLibStorage';
 
 declare const window: Window & typeof globalThis;
+
+export class iXRInitAllStatics
+{
+	public static InitStatics()
+	{
+		iXRLibInit.InitStatics();
+		iXRLibAnalytics.InitStatics();
+		iXRLibAsync.InitStatics();
+		iXRBase.InitStatics();
+		iXREvent.InitStatics();
+		DbSetStorage.InitStatics();
+		iXRLibStorage.InitStatics();
+	}
+}
+
+iXRInitAllStatics.InitStatics();
 
 export interface AuthDataWithRequiredAppId {
   appId: string;

@@ -282,27 +282,27 @@ export class iXRLibSend
 	{
 		iXRLibAnalytics.DiagnosticWriteLine("Going to call AddLog().");
 		// Notice the = capture... so pfnStatusCallback propagates by copy into the thread. <- Comment from C++... irrelevant here but leaving it to document that this is a port from C++.
-		return iXRLibAnalytics.m_ixrLibAsync.AddTask((pObject: any): iXRResult => { return iXRLibAnalytics.AddXXXTask<iXRLog>(pObject as iXRLog, "IXRLogs", iXRLibClient.PostIXRLogs, false, bNoCallbackOnSuccess, pfnStatusCallback as iXRLibAnalyticsLogCallback | null); },
+		return iXRLibAnalytics.m_ixrLibAsync.AddTask((pObject: any): iXRResult => { return iXRLibAnalytics.AddXXXTask<iXRLog>(pObject as iXRLog, iXRLog, "IXRLogs", iXRLibClient.PostIXRLogs, false, bNoCallbackOnSuccess, pfnStatusCallback as iXRLibAnalyticsLogCallback | null); },
 			ixrLog,
 			(pObject: any): void => { /*delete (iXRLog*)pObject;*/ });
 	}
 	// ---
 	public static async EventSynchronousCore(ixrEvent: iXREvent): Promise<iXRResult>
 	{
-		return await iXRLibAnalytics.AddXXXTask<iXREvent>(ixrEvent, "IXREvents", iXRLibClient.PostIXREvents, false, false, null);
+		return await iXRLibAnalytics.AddXXXTask<iXREvent>(ixrEvent, iXREvent, "IXREvents", iXRLibClient.PostIXREvents, false, false, null);
 	}
 	public static EventCore(ixrEvent: iXREvent, bNoCallbackOnSuccess: boolean, pfnStatusCallback?: iXRLibAnalyticsEventCallback | null): iXRResult
 	{
 		iXRLibAnalytics.DiagnosticWriteLine("Going to call iXRLibSend.Event().");
 		// Notice the = capture... so pfnStatusCallback propagates by copy into the thread. <- Comment from C++... irrelevant here but leaving it to document that this is a port from C++.
-		return iXRLibAnalytics.m_ixrLibAsync.AddTask((pObject: any): iXRResult => { return iXRLibAnalytics.AddXXXTask<iXREvent>(pObject as iXREvent, "IXREvents", iXRLibClient.PostIXREvents, false, bNoCallbackOnSuccess, pfnStatusCallback as iXRLibAnalyticsEventCallback | null); },
+		return iXRLibAnalytics.m_ixrLibAsync.AddTask((pObject: any): iXRResult => { return iXRLibAnalytics.AddXXXTask<iXREvent>(pObject as iXREvent, iXREvent, "IXREvents", iXRLibClient.PostIXREvents, false, bNoCallbackOnSuccess, pfnStatusCallback as iXRLibAnalyticsEventCallback | null); },
 			ixrEvent,
 			(pObject: any): void => { /*delete (iXREvent*)pObject;*/ });
 	}
 	// ---
 	public static async AddTelemetryEntrySynchronousCore(ixrTelemetry: iXRTelemetry): Promise<iXRResult>
 	{
-		return await iXRLibAnalytics.AddXXXTask<iXRTelemetry>(ixrTelemetry, "IXRTelemetry", iXRLibClient.PostIXRTelemetry, false, false, null);
+		return await iXRLibAnalytics.AddXXXTask<iXRTelemetry>(ixrTelemetry, iXRTelemetry, "IXRTelemetry", iXRLibClient.PostIXRTelemetry, false, false, null);
 	}
 	public static AddTelemetryEntryCore(ixrTelemetry: iXRTelemetry, bNoCallbackOnSuccess: boolean, pfnStatusCallback?: iXRLibAnalyticsTelemetryCallback | null): iXRResult
 	{
