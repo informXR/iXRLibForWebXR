@@ -63,7 +63,7 @@ export class iXRLibAsync
 	// ---
 	public static m_nCallbackPeriodicity:	number;
 	// ---
-	public static InitStatics()
+	public static InitStatics(): void
 	{
 		iXRLibAsync.m_nCallbackPeriodicity = 500;	// Half second.
 	}

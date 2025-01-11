@@ -277,21 +277,21 @@ export class ConfigurationManager
 		// if (szAppConfig.LoadFromFile("App.config"))
 		if (szAppConfig.length > 0)
 		{
-			var csrszRegex:	string = "";
+			var csrszRegex:	RegExp;
 			// ---
-			csrszRegex = `/<add[\s]+key[\s]*=[\s]*"${szFieldName}"[\s]+value[\s]*=[\s]*".*"[\s]*[/]?[\s]*>/`;
+			csrszRegex = new RegExp(`<add[\s]+key[\s]*=[\s]*"${szFieldName}"[\s]+value[\s]*=[\s]*".*"[\s]*[/]?[\s]*>`);
 			// ---
 			var vszMatches:	string[] = [];
 
 			// Filter out any HTML comments.
 			vszMatches = Regex.ProgressiveMatch(szAppConfig, [ /<\!\-\-.*\-\->/i ], [ [ true, /.*/i ] ]);
-			for (const mstringb& sz : vszMatches)
+			for (const sz of vszMatches)
 			{
-				szAppConfig.Replace(sz, "");
+				szAppConfig = szAppConfig.replace(sz, "");
 			}
 			// Now do the "real" match.
 			vszMatches = Regex.DeepMatch(szAppConfig, [ csrszRegex, /value[\s]*=[\s]*".*"[\s]*[/]?[\s]*>/ ], /value[\s]*=[\s]*"/, /"[\s]*[/]?[\s]*>/);
-			if (vszMatches.size() > 0)
+			if (vszMatches.length > 0)
 			{
 				return vszMatches[0];
 			}

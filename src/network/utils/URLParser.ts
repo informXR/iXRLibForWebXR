@@ -14,7 +14,7 @@ import { atoi } from "../types";
 //		memcpy(&temp_st, &st, sizeof(temp_st));
 
 //		st = input_url.find(delim, before);
-//		if (st == std::string::npos)
+//		if (st === std::string::npos)
 //		{
 //			st = temp_st;
 //			return false;
@@ -64,14 +64,14 @@ export class HTTP_URL
 	{
 		if (this.m_szScheme.length === 0)
 		{
-			if (this.m_szPort.length == 0)
+			if (this.m_szPort.length === 0)
 			{
 				this.m_szScheme = "http";
 				this.m_szPort = "80";
 			}
 			else
 			{
-				this.m_szScheme = (this.m_szPort == "443") ? "https" : "http";
+				this.m_szScheme = (this.m_szPort === "443") ? "https" : "http";
 			}
 		}
 		if (this.m_szPort.length === 0)

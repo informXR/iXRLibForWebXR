@@ -18,7 +18,7 @@ declare const window: Window & typeof globalThis;
 
 export class iXRInitAllStatics
 {
-	public static InitStatics()
+	public static InitStatics(): void
 	{
 		iXRLibInit.InitStatics();
 		iXRLibAnalytics.InitStatics();

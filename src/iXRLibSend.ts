@@ -21,7 +21,7 @@ export class iXRLibSend
 
 		return await iXRLibSend.AddLogSynchronous(ixrLog);
 	}
-	private static Log(eLogLevel: LogLevel, szText: string): iXRResult
+	private static Log(eLogLevel: LogLevel, szText: string): Promise<iXRResult>
 	{
 		var	ixrLog:	iXRLog = new iXRLog().Construct(eLogLevel, szText);
 
@@ -32,7 +32,7 @@ export class iXRLibSend
 	{
 		return await iXRLibSend.LogSynchronous(LogLevel.eDebug, szText);
 	}
-	public static LogDebug(szText: string): iXRResult
+	public static LogDebug(szText: string): Promise<iXRResult>
 	{
 		return iXRLibSend.Log(LogLevel.eDebug, szText);
 	}
@@ -40,7 +40,7 @@ export class iXRLibSend
 	{
 		return await iXRLibSend.LogSynchronous(LogLevel.eInfo, szText);
 	}
-	public static LogInfo(szText: string): iXRResult
+	public static LogInfo(szText: string): Promise<iXRResult>
 	{
 		return iXRLibSend.Log(LogLevel.eInfo, szText);
 	}
@@ -48,7 +48,7 @@ export class iXRLibSend
 	{
 		return await iXRLibSend.LogSynchronous(LogLevel.eWarn, szText);
 	}
-	public static LogWarn(szText: string): iXRResult
+	public static LogWarn(szText: string): Promise<iXRResult>
 	{
 		return iXRLibSend.Log(LogLevel.eWarn, szText);
 	}
@@ -56,7 +56,7 @@ export class iXRLibSend
 	{
 		return await iXRLibSend.LogSynchronous(LogLevel.eError, szText);
 	}
-	public static LogError(szText: string): iXRResult
+	public static LogError(szText: string): Promise<iXRResult>
 	{
 		return iXRLibSend.Log(LogLevel.eError, szText);
 	}
@@ -64,7 +64,7 @@ export class iXRLibSend
 	{
 		return await iXRLibSend.LogSynchronous(LogLevel.eCritical, szText);
 	}
-	public static LogCritical(szText: string): iXRResult
+	public static LogCritical(szText: string): Promise<iXRResult>
 	{
 		return iXRLibSend.Log(LogLevel.eCritical, szText);
 	}
@@ -206,7 +206,7 @@ export class iXRLibSend
 		}
 		// Add assessment_name if there's only one iXREvent.m_dictAssessmentStartTimes value.
 		//iXREvent.m_csDictProtect.lock();
-		if (iXREvent.m_dictAssessmentStartTimes.Count() == 1)
+		if (iXREvent.m_dictAssessmentStartTimes.Count() === 1)
 		{
 			dictMeta.set("assessment_name", iXREvent.m_dictAssessmentStartTimes.entries().next().value.vRet.ToString());
 		}
@@ -263,7 +263,7 @@ export class iXRLibSend
 
 		return await iXRLibSend.AddTelemetryEntrySynchronousCore(ixrTelemetryEntry);
 	}
-	public static AddTelemetryEntry(szName: string, dictData: PythonDictStrings): iXRResult
+	public static AddTelemetryEntry(szName: string, dictData: PythonDictStrings): Promise<iXRResult>
 	{
 		var	ixrTelemetryEntry:	iXRTelemetry = new iXRTelemetry().Construct(szName, dictData);
 
@@ -278,11 +278,11 @@ export class iXRLibSend
 	{
 		return await iXRLibAnalytics.AddXXXTask<iXRLog>(ixrLog, iXRLog, "IXRLogs", iXRLibClient.PostIXRLogs, false, false, null);
 	}
-	public static AddLog(ixrLog: iXRLog, bNoCallbackOnSuccess: boolean, pfnStatusCallback?: iXRLibAnalyticsLogCallback | null): iXRResult
+	public static AddLog(ixrLog: iXRLog, bNoCallbackOnSuccess: boolean, pfnStatusCallback?: iXRLibAnalyticsLogCallback | null): Promise<iXRResult>
 	{
 		iXRLibAnalytics.DiagnosticWriteLine("Going to call AddLog().");
 		// Notice the = capture... so pfnStatusCallback propagates by copy into the thread. <- Comment from C++... irrelevant here but leaving it to document that this is a port from C++.
-		return iXRLibAnalytics.m_ixrLibAsync.AddTask((pObject: any): iXRResult => { return iXRLibAnalytics.AddXXXTask<iXRLog>(pObject as iXRLog, iXRLog, "IXRLogs", iXRLibClient.PostIXRLogs, false, bNoCallbackOnSuccess, pfnStatusCallback as iXRLibAnalyticsLogCallback | null); },
+		return iXRLibAnalytics.m_ixrLibAsync.AddTask((pObject: any): Promise<iXRResult> => { return iXRLibAnalytics.AddXXXTask<iXRLog>(pObject as iXRLog, iXRLog, "IXRLogs", iXRLibClient.PostIXRLogs, false, bNoCallbackOnSuccess, pfnStatusCallback as iXRLibAnalyticsLogCallback | null).then((eRet: iXRResult) => { return eRet; }).catch((eRet: iXRResult) => { return eRet; }); },
 			ixrLog,
 			(pObject: any): void => { /*delete (iXRLog*)pObject;*/ });
 	}
@@ -291,11 +291,11 @@ export class iXRLibSend
 	{
 		return await iXRLibAnalytics.AddXXXTask<iXREvent>(ixrEvent, iXREvent, "IXREvents", iXRLibClient.PostIXREvents, false, false, null);
 	}
-	public static EventCore(ixrEvent: iXREvent, bNoCallbackOnSuccess: boolean, pfnStatusCallback?: iXRLibAnalyticsEventCallback | null): iXRResult
+	public static EventCore(ixrEvent: iXREvent, bNoCallbackOnSuccess: boolean, pfnStatusCallback?: iXRLibAnalyticsEventCallback | null): Promise<iXRResult>
 	{
 		iXRLibAnalytics.DiagnosticWriteLine("Going to call iXRLibSend.Event().");
 		// Notice the = capture... so pfnStatusCallback propagates by copy into the thread. <- Comment from C++... irrelevant here but leaving it to document that this is a port from C++.
-		return iXRLibAnalytics.m_ixrLibAsync.AddTask((pObject: any): iXRResult => { return iXRLibAnalytics.AddXXXTask<iXREvent>(pObject as iXREvent, iXREvent, "IXREvents", iXRLibClient.PostIXREvents, false, bNoCallbackOnSuccess, pfnStatusCallback as iXRLibAnalyticsEventCallback | null); },
+		return iXRLibAnalytics.m_ixrLibAsync.AddTask((pObject: any): Promise<iXRResult> => { return iXRLibAnalytics.AddXXXTask<iXREvent>(pObject as iXREvent, iXREvent, "IXREvents", iXRLibClient.PostIXREvents, false, bNoCallbackOnSuccess, pfnStatusCallback as iXRLibAnalyticsEventCallback | null).then((eRet: iXRResult) => { return eRet; }).catch((eRet: iXRResult) => { return eRet; }); },
 			ixrEvent,
 			(pObject: any): void => { /*delete (iXREvent*)pObject;*/ });
 	}
@@ -304,12 +304,12 @@ export class iXRLibSend
 	{
 		return await iXRLibAnalytics.AddXXXTask<iXRTelemetry>(ixrTelemetry, iXRTelemetry, "IXRTelemetry", iXRLibClient.PostIXRTelemetry, false, false, null);
 	}
-	public static AddTelemetryEntryCore(ixrTelemetry: iXRTelemetry, bNoCallbackOnSuccess: boolean, pfnStatusCallback?: iXRLibAnalyticsTelemetryCallback | null): iXRResult
+	public static AddTelemetryEntryCore(ixrTelemetry: iXRTelemetry, bNoCallbackOnSuccess: boolean, pfnStatusCallback?: iXRLibAnalyticsTelemetryCallback | null): Promise<iXRResult>
 	{
 		iXRLibAnalytics.DiagnosticWriteLine("Going to call AddTelemetry().");
 		//DebugMessage.WriteLine("Adding telemetry entry named ", ixrTelemetry.m_szName, " at time ", new DateTime().ToLocalTimeString());
 		// Notice the = capture... so pfnStatusCallback propagates by copy into the thread. <- Comment from C++... irrelevant here but leaving it to document that this is a port from C++.
-		return iXRLibAnalytics.m_ixrLibAsync.AddTask((pObject: object): iXRResult => { return iXRLibAnalytics.AddXXXTask<iXRTelemetry>(pObject as iXRTelemetry, "IXRTelemetry", iXRLibClient.PostIXRTelemetry, false, bNoCallbackOnSuccess, pfnStatusCallback as iXRLibAnalyticsTelemetryCallback | null); },
+		return iXRLibAnalytics.m_ixrLibAsync.AddTask((pObject: object): Promise<iXRResult> => { return iXRLibAnalytics.AddXXXTask<iXRTelemetry>(pObject as iXRTelemetry, iXRTelemetry, "IXRTelemetry", iXRLibClient.PostIXRTelemetry, false, bNoCallbackOnSuccess, pfnStatusCallback as iXRLibAnalyticsTelemetryCallback | null).then((eRet: iXRResult) => { return eRet; }).catch((eRet: iXRResult) => { return eRet; }); },
 			ixrTelemetry,
 			(pObject: any): void => { /*delete (iXRTelemetry*)pObject;*/ });
 	}

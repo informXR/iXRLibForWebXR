@@ -268,7 +268,7 @@ export class SUID
 	// ---
 	// bool operator==(const SUID& o) const
 	// {
-	// 	return (*m_pnData == *o.m_pnData && m_pnData[1] == o.m_pnData[1]);
+	// 	return (*m_pnData === *o.m_pnData && m_pnData[1] === o.m_pnData[1]);
 	// }
 	// bool operator!=(const SUID& o) const
 	// {
@@ -296,7 +296,7 @@ export class SUID
 	// 	// Filter out non-hex and normalize to capital.
 	// 	for (p = szHex, d = szFiltered; *p && d < &szFiltered[32]; p++)
 	// 	{
-	// 		c = (sizeof(CHAR) == 1) ? (CHAR)toupper(*(const CHAR*)p) : (CHAR)towupper(*(const CHAR*)p);
+	// 		c = (sizeof(CHAR) === 1) ? (CHAR)toupper(*(const CHAR*)p) : (CHAR)towupper(*(const CHAR*)p);
 	// 		if ((c >= CHAR('0') && c <= CHAR('9')) || (c >= CHAR('A') && c <= CHAR('F')))
 	// 		{
 	// 			*d++ = c;
@@ -342,23 +342,23 @@ export class SUID
 
 	// 	if (!bJustHex)
 	// 	{
-	// 		szRet = (sizeof(CHAR) == 1) ? (CHAR*)"{" : (CHAR*)L"{";
+	// 		szRet = (sizeof(CHAR) === 1) ? (CHAR*)"{" : (CHAR*)L"{";
 	// 	}
 	// 	for (const intptr_t nOffset : pnOffsets)
 	// 	{
 	// 		if (nOffset >= 0)
 	// 		{
-	// 			(sizeof(CHAR) == 1) ? sprintf_s<cardinalityof(szHex)>((char(&)[4])szHex, "%02X", pThis[nOffset]) : swprintf_s<cardinalityof(szHex)>((wchar_t(&)[4])szHex, L"%02X", pThis[nOffset]);
+	// 			(sizeof(CHAR) === 1) ? sprintf_s<cardinalityof(szHex)>((char(&)[4])szHex, "%02X", pThis[nOffset]) : swprintf_s<cardinalityof(szHex)>((wchar_t(&)[4])szHex, L"%02X", pThis[nOffset]);
 	// 			szRet += szHex;
 	// 		}
 	// 		else if (!bJustHex)
 	// 		{
-	// 			szRet += (sizeof(CHAR) == 1) ? (CHAR*)"-" : (CHAR*)L"-";
+	// 			szRet += (sizeof(CHAR) === 1) ? (CHAR*)"-" : (CHAR*)L"-";
 	// 		}
 	// 	}
 	// 	if (!bJustHex)
 	// 	{
-	// 		szRet += (sizeof(CHAR) == 1) ? (CHAR*)"}" : (CHAR*)L"}";
+	// 		szRet += (sizeof(CHAR) === 1) ? (CHAR*)"}" : (CHAR*)L"}";
 	// 	}
 	// 	// ---
 	// 	return szRet;

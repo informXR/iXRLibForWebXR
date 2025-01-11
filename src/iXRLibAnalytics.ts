@@ -78,7 +78,7 @@ export class iXRLibInit
 	// ---
 	public static m_ixrLibAuthentication:	Authentication;
 	// ---
-	public static InitStatics()
+	public static InitStatics(): void
 	{
 		this.m_ixrLibAuthentication = new Authentication();
 	}
@@ -337,7 +337,7 @@ export class iXRLibAnalytics
 	private static m_szDeviceId:					string;
 	private static m_dssCurrentData:				PythonDictStrings;  			 // where we will store the current data in memory for quick access.  MJP:  may already have implemented this as IXRAnalytics.allEvents.
 	// ---
-	public static InitStatics()
+	public static InitStatics(): void
 	{
 		iXRLibAnalytics.m_ixrLibAsync = new iXRLibAsync();
 		iXRLibAnalytics.m_listErrors = new StringList();
@@ -942,19 +942,19 @@ export class iXRLibAnalytics
 
 		return await iXRLibAnalytics.AddAIProxySynchronous(ixrAIProxy);
 	}
-	public static AddAIProxy0(szPrompt: string, szLMMProvider: string): iXRResult
+	public static AddAIProxy0(szPrompt: string, szLMMProvider: string): Promise<iXRResult>
 	{
 		var	ixrAIProxy:	iXRAIProxy = new iXRAIProxy().Construct0(szPrompt, "", szLMMProvider);
 
 		return iXRLibAnalytics.AddAIProxy(ixrAIProxy, true, null);
 	}
-	public static AddAIProxy1(szPrompt: string, szPastMessages: string, szLMMProvider: string): iXRResult
+	public static AddAIProxy1(szPrompt: string, szPastMessages: string, szLMMProvider: string): Promise<iXRResult>
 	{
 		var	ixrAIProxy:	iXRAIProxy = new iXRAIProxy().Construct0(szPrompt, szPastMessages, szLMMProvider);
 
 		return iXRLibAnalytics.AddAIProxy(ixrAIProxy, true, null);
 	}
-	public static AddAIProxy2(szPrompt: string, dictPastMessages: PythonDictStrings, szLMMProvider: string): iXRResult
+	public static AddAIProxy2(szPrompt: string, dictPastMessages: PythonDictStrings, szLMMProvider: string): Promise<iXRResult>
 	{
 		var	ixrAIProxy:	iXRAIProxy = new iXRAIProxy().Construct1(szPrompt, dictPastMessages, szLMMProvider);
 
@@ -965,11 +965,11 @@ export class iXRLibAnalytics
 	{
 		return await iXRLibAnalytics.AddXXXNoDbTask<iXRAIProxy>(ixrAIProxy, iXRAIProxy, iXRLibClient.PostIXRAIProxyObjects, false, false, null);
 	}
-	public static AddAIProxy(ixrAIProxy: iXRAIProxy, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsAIProxyCallback | null): iXRResult
+	public static AddAIProxy(ixrAIProxy: iXRAIProxy, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsAIProxyCallback | null): Promise<iXRResult>
 	{
 		iXRLibAnalytics.DiagnosticWriteLine("Going to call AddAIProxy().");
 		// Notice the = capture... so pfnStatusCallback propagates by copy into the thread.  Notice it is not needed in the typescript port colon paren.
-		return iXRLibAnalytics.m_ixrLibAsync.AddTask((pObject: any): iXRResult => { return iXRLibAnalytics.AddXXXNoDbTask<iXRAIProxy>(pObject as iXRAIProxy, iXRAIProxy, iXRLibClient.PostIXRAIProxyObjects, false, bNoCallbackOnSuccess, pfnStatusCallback).then((eRet: iXRResult) => { return eRet; }).catch((eRet: iXRResult) => { return eRet; }); },
+		return iXRLibAnalytics.m_ixrLibAsync.AddTask((pObject: any): Promise<iXRResult> => { return iXRLibAnalytics.AddXXXNoDbTask<iXRAIProxy>(pObject as iXRAIProxy, iXRAIProxy, iXRLibClient.PostIXRAIProxyObjects, false, bNoCallbackOnSuccess, pfnStatusCallback).then((eRet: iXRResult) => { return eRet; }).catch((eRet: iXRResult) => { return eRet; }); },
 			ixrAIProxy,
 			(pObject: any): void => { /*delete (iXRAIProxy*)pObject;*/ }
 		);
@@ -979,11 +979,11 @@ export class iXRLibAnalytics
 	{
 		return await iXRLibAnalytics.AddXXXTask<iXRAIProxy>(ixrAIProxy, iXRAIProxy, "IXRAIProxy", iXRLibClient.PostIXRAIProxy, false, false, null);
 	}
-	public static AddAIProxyEntry(ixrAIProxy: iXRAIProxy, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsAIProxyCallback): iXRResult
+	public static AddAIProxyEntry(ixrAIProxy: iXRAIProxy, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsAIProxyCallback): Promise<iXRResult>
 	{
 		iXRLibAnalytics.DiagnosticWriteLine("Going to call AddAIProxy().");
 		// Notice the = capture... so pfnStatusCallback propagates by copy into the thread.  Notice it is not needed in the typescript port colon paren.
-		return iXRLibAnalytics.m_ixrLibAsync.AddTask((pObject: any): iXRResult => { return iXRLibAnalytics.AddXXXTask<iXRAIProxy>(pObject as iXRAIProxy, iXRAIProxy, "IXRAIProxy", iXRLibClient.PostIXRAIProxy, false, bNoCallbackOnSuccess, pfnStatusCallback).then((eRet: iXRResult) => { return eRet; }).catch((eRet: iXRResult) => { return eRet; }); },
+		return iXRLibAnalytics.m_ixrLibAsync.AddTask((pObject: any): Promise<iXRResult> => { return iXRLibAnalytics.AddXXXTask<iXRAIProxy>(pObject as iXRAIProxy, iXRAIProxy, "IXRAIProxy", iXRLibClient.PostIXRAIProxy, false, bNoCallbackOnSuccess, pfnStatusCallback).then((eRet: iXRResult) => { return eRet; }).catch((eRet: iXRResult) => { return eRet; }); },
 			ixrAIProxy,
 			(pObject: any): void => { /*delete (iXRAIProxy*)pObject;*/ });
 	}

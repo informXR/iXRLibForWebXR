@@ -100,7 +100,7 @@ export class TimeSpan
     {
         if (milliseconds != undefined)
         {
-            return this.fromTimeStartingFromDays(daysOrHours, hoursOrMinutes, minutesOrSeconds, seconds, milliseconds);
+            return this.fromTimeStartingFromDays(daysOrHours, hoursOrMinutes, minutesOrSeconds, (seconds) ? seconds : 0, (milliseconds) ? milliseconds : 0);
         }
         else
         {

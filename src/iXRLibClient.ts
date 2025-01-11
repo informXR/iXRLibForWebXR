@@ -360,7 +360,7 @@ export class iXRLibClient
 			if (eCurlRet)
 			{
 				eJsonRet = LoadFromJson(objResponseSuccess, refparam.szResponse);
-				if (eJsonRet == JsonResult.eOk)
+				if (eJsonRet === JsonResult.eOk)
 				{
 					return iXRResult.eOk;
 				}
@@ -368,7 +368,7 @@ export class iXRLibClient
 				{
 					// Did not get success, does failure parse?
 					eJsonRet = LoadFromJson(objResponseFailure, refparam.szResponse);
-					if (eJsonRet == JsonResult.eOk)
+					if (eJsonRet === JsonResult.eOk)
 					{
 						// Failure parses, probably auth error.
 						eReauthResult = await iXRLibInit.ReAuthenticate(true);
@@ -423,7 +423,7 @@ export class iXRLibClient
 				{
 					eJsonRet = LoadFromJson(ptContainedResponse, szResponse);
 				}
-				if (eJsonRet == JsonResult.eOk)
+				if (eJsonRet === JsonResult.eOk)
 				{
 					return iXRResult.eOk;
 				}
@@ -431,7 +431,7 @@ export class iXRLibClient
 				{
 					// Did not get success, does failure parse?
 					eJsonRet = LoadFromJson(objResponseFailure, szResponse);
-					if (eJsonRet == JsonResult.eOk)
+					if (eJsonRet === JsonResult.eOk)
 					{
 						// Failure parses, probably auth error.
 						eReauthResult = await iXRLibInit.ReAuthenticate(true);
@@ -479,7 +479,7 @@ export class iXRLibClient
 			if (eCurlRet)
 			{
 				eJsonRet = LoadFromJson(objResponseSuccess, refparam.szResponse);
-				if (eJsonRet == JsonResult.eOk)
+				if (eJsonRet === JsonResult.eOk)
 				{
 					return iXRResult.eOk;
 				}
@@ -487,7 +487,7 @@ export class iXRLibClient
 				{
 					// Did not get success, does failure parse?
 					eJsonRet = LoadFromJson(objResponseFailure, refparam.szResponse);
-					if (eJsonRet == JsonResult.eOk)
+					if (eJsonRet === JsonResult.eOk)
 					{
 						// Failure parses, probably auth error.
 						eReauthResult = await iXRLibInit.ReAuthenticate(true);

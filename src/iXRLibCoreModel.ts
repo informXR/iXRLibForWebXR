@@ -15,7 +15,7 @@ export class iXRBase extends DataObjectBase
 	protected static m_bUseCapturedTimeStamp:	boolean;
 	protected static m_nCapturedTimeStamp:		number;
 	// ---
-	public static InitStatics()
+	public static InitStatics(): void
 	{
 		this.m_bUseCapturedTimeStamp = false;
 		this.m_nCapturedTimeStamp = DATEMAXVALUE;
@@ -565,7 +565,7 @@ export class iXREvent extends iXRBase
 	public static m_dictInteractionStartTimes:	Dictionary<string, DateTime>;
 	public static m_dictLevelStartTimes:		Dictionary<string, DateTime>;
 	// ---
-	public static InitStatics()
+	public static InitStatics(): void
 	{
 		iXREvent.m_dictAssessmentStartTimes = new Dictionary<string, DateTime>();
 		iXREvent.m_dictObjectiveStartTimes = new Dictionary<string, DateTime>();
@@ -869,7 +869,7 @@ export class DbSetStorage extends DbSet<iXRStorage>
 {
 	public static DEFAULTNAME:	string;
 	// ---
-	public static InitStatics()
+	public static InitStatics(): void
 	{
 		this.DEFAULTNAME = "state";
 	}
@@ -957,7 +957,7 @@ export class DbSetStorage extends DbSet<iXRStorage>
 		// Delete from backend.
 		eRet = await iXRLibClient.DeleteIXRStorageEntry(szName, {szResponse: ""});
 		// ---
-		if (eRet == iXRResult.eOk)
+		if (eRet === iXRResult.eOk)
 		{
 			// Reflect what we just did on backend in device-local db.
 			for (let it of this.values())
@@ -995,7 +995,7 @@ export class DbSetStorage extends DbSet<iXRStorage>
 		// Delete from backend.
 		eRet = await iXRLibClient.DeleteMultipleIXRStorageEntries(bSessionOnly, {szResponse});
 		// ---
-		if (eRet == iXRResult.eOk)
+		if (eRet === iXRResult.eOk)
 		{
 			// Reflect what we just did on backend in device-local db.
 			for (let it of this.values())
@@ -1148,7 +1148,7 @@ export class iXRDbContext extends DbContext
 	// }
 	public LoadStorageEntriesIfNecessary(): DatabaseResult
 	{
-	// 	if (m_dsIXRStorage.Count() == 0)
+	// 	if (m_dsIXRStorage.Count() === 0)
 	// 	{
 	// 		return ExecuteSqlSelect(m_db, "iXRStorage", "SELECT %s FROM %s", {}, m_dsIXRStorage);
 	// 	}
@@ -1250,7 +1250,7 @@ export class iXRDbContext extends DbContext
 	// --- END Functions supporting adding/changing/deleting iXRStorage objects.
 	private ConstructGuts(): void
 	{
-		// if (m_db.ConnectSQLite(m_szDbPath) == DatabaseResult.eOk)
+		// if (m_db.ConnectSQLite(m_szDbPath) === DatabaseResult.eOk)
 		// {
 		// 	if (!m_db.HasSchema())
 		// 	{

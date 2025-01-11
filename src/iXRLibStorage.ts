@@ -11,7 +11,7 @@ export class iXRLibStorage
 {
 	public static m_ixrLibConfiguration:	iXRLibConfiguration;
 	// ---
-	public static InitStatics()
+	public static InitStatics(): void
 	{
 		this.m_ixrLibConfiguration = new iXRLibConfiguration();
 		console.log("InitStatics()ed the van-damn thing.");
@@ -190,7 +190,7 @@ export class iXRLibStorage
 	{
 		iXRLibAnalytics.DiagnosticWriteLine("Going to call DeleteStorage().");
 		// Notice the = capture... so pfnStatusCallback propagates by copy into the thread.
-		return iXRLibAnalytics.m_ixrLibAsync.AddTask((pObject: any): iXRResult => { return iXRLibAnalytics.AddXXXTask<iXRStorage>(pObject, iXRStorage, "IXRStorage", iXRLibClient.PostIXRStorage, true, bNoCallbackOnSuccess, pfnStatusCallback).then((eRet: iXRResult) => { return eRet; }).catch((eRet: iXRResult) => { return eRet; }); },
+		return iXRLibAnalytics.m_ixrLibAsync.AddTask((pObject: any): Promise<iXRResult> => { return iXRLibAnalytics.AddXXXTask<iXRStorage>(pObject, iXRStorage, "IXRStorage", iXRLibClient.PostIXRStorage, true, bNoCallbackOnSuccess, pfnStatusCallback).then((eRet: iXRResult) => { return eRet; }).catch((eRet: iXRResult) => { return eRet; }); },
 			ixrStorage,
 			(pObject: any) => void { /*delete (iXRStorage*)pObject;*/ });
 	}

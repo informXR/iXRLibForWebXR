@@ -34,7 +34,8 @@ export enum FieldPropertyFlags
 	bfNoEscapeJson			= 0x00000008,
 	bfStringOnly			= 0x00000010,
 	bfChild					= 0x00000020,
-	bfChildList				= 0x00000040
+	bfChildList				= 0x00000040,
+	bfExclude				= 0x00000080
 }
 
 export class FieldProperties
@@ -108,7 +109,7 @@ export class FieldPropertiesRecordContainer
 		}
 		else
 		{
-			var fpNode:	FieldProperties|null = null;
+			var fpNode:	FieldProperties | null = null;
 
 			Object.entries(this.m_rfp).forEach(([fKey, fValue]) =>
 				{
@@ -118,13 +119,20 @@ export class FieldPropertiesRecordContainer
 						return;
 					}
 				});
-			if (fpNode && fpNode.m_fFlags)
+			if (fpNode && (fpNode as FieldProperties).m_fFlags)
 			{
-				if (fpNode.m_fFlags & FieldPropertyFlags.bfExclude)
+				// We know fpNode is not null at this point since we're in an if(fpNode) block.  We being the AI and us obsolete humans, but NOT apparently TypeScript.
+				// MJP:  Yes I am kind of pissed at this.  I'm not sure why I'm doing this.  I'm not sure why I'm not just using fpNode.  You said it AI (last bit autocompleted).
+				// CCW action... it was cool with this including when I was running tests and now it has whimsically decided to bitch about fpNode and fpNode.m_fFlags being null.
+				// Even with the null check on both.  Guess we need some gratuitous friction right at the end of getting it to build without errors.
+				const fpNodeThatBloodyWellIsNotNull:	FieldProperties = (fpNode) ? fpNode as FieldProperties : new FieldProperties("", FieldPropertyFlags.bfNull);
+				const fFlags:							FieldPropertyFlags = (fpNodeThatBloodyWellIsNotNull.m_fFlags) ? fpNodeThatBloodyWellIsNotNull.m_fFlags : FieldPropertyFlags.bfNull;
+
+				if (fFlags & FieldPropertyFlags.bfExclude)
 				{
 					return undefined;
 				}
-				else if (fpNode.m_fFlags & FieldPropertyFlags.bfChild)
+				else if (fFlags & FieldPropertyFlags.bfChild)
 				{
 					if (!this.m_aszAlreadySeen.find(sz => sz === key))
 					{
@@ -137,7 +145,7 @@ export class FieldPropertiesRecordContainer
 						return szState;
 					}
 				}
-				else if (fpNode.m_fFlags & FieldPropertyFlags.bfChildList)
+				else if (fFlags & FieldPropertyFlags.bfChildList)
 				{
 					if (!this.m_aszAlreadySeen.find(sz => sz === key))
 					{
@@ -318,7 +326,7 @@ export class DbSet<T extends DataObjectBase> extends Array<T>
 			{
 				t.m_bFlaggedForDelete = true;
 				nFirst--;
-				if (nFirst == 0)
+				if (nFirst === 0)
 				{
 					break;
 				}
@@ -347,7 +355,7 @@ export class DbSet<T extends DataObjectBase> extends Array<T>
 						t.m_bAlreadyTaken = true;
 					}
 					nCount--;
-					if (nCount == 0)
+					if (nCount === 0)
 					{
 						break;
 					}
