@@ -4,7 +4,7 @@ import { iXRLibAsync } from './iXRLibAsync';
 import { iXRBase, iXRDbContext, iXRLibConfiguration } from './iXRLibCoreModel';
 import { AuthenticationRequestSchema, Sleep } from './network/types';
 import { DataObjectBase, DbSet, DumpCategory, FieldProperties, FieldPropertiesRecordContainer, FieldPropertyFlags, GenerateJson } from './network/utils/DataObjectBase';
-import { iXRResult, PythonDictStrings, StringList, TimeSpan } from './network/utils/DotNetishTypes';
+import { ConfigurationManager, iXRResult, PythonDictStrings, StringList, TimeSpan } from './network/utils/DotNetishTypes';
 import { logError, logInfo } from './network/utils/logger';
 
 export { iXRInit, iXRInstance, AuthenticationRequestSchema };
@@ -132,6 +132,34 @@ export class iXRXXXTestScalarContainer<T extends DataObjectBase> extends iXRBase
 	}
 };
 
+function DebugSetAppConfig(): void
+{
+	var szAppConfig:	string = '<?xml version="1.0" encoding="utf-8" ?>' +
+		'<configuration>' +
+			'<appSettings>' +
+				'<add key="REST_URL" value="http://192.168.5.17:9000/"/>' +
+				'<!--<add key="REST_URL" value="http://192.168.5.2:19080/"/>-->' +
+				'<add key="SendRetriesOnFailure" value="3"/>' +
+				'<!-- Bandwidth config parameters. -->' +
+				'<add key="SendRetryInterval" value="00:00:03"/>' +
+				'<add key="SendNextBatchWait" value="00:00:30"/>' +
+				'<!-- 0 = infinite, i.e. never send remainders = always send exactly EventsPerSendAttempt. -->' +
+				'<add key="StragglerTimeout" value="00:00:15"/>' +
+				'<!-- 0 = Send all not-already-sent. -->' +
+				'<add key="EventsPerSendAttempt" value="4"/>' +
+				'<add key="LogsPerSendAttempt" value="4"/>' +
+				'<add key="TelemetryEntriesPerSendAttempt" value="4"/>' +
+				'<add key="StorageEntriesPerSendAttempt" value="4"/>' +
+				'<!-- 0 = infinite, i.e. never prune. -->' +
+				'<add key="PruneSentItemsOlderThan" value="12:00:00"/>' +
+				'<add key="MaximumCachedItems" value="1024"/>' +
+				'<add key="RetainLocalAfterSent" value="false"/>' +
+			'</appSettings>' +
+		'</configuration>';
+
+	ConfigurationManager.DebugSetAppConfig(szAppConfig);
+}
+
 async function TestJson(): Promise<void>
 {
 	var objTestData:	TestData = new TestData();
@@ -144,6 +172,7 @@ async function TestJson(): Promise<void>
 
 	try
 	{
+		DebugSetAppConfig();
 		iXRLibAnalytics.m_ixrLibAsync.AddTask(async (o: any): Promise<iXRResult> => { console.log("Sleeping..."); await Sleep(3000); console.log("Never shoot no dear."); return iXRResult.eOk; }, objTestData, (o: any):void => { console.log("It's just flooded I'll be ok."); });
 		// ---
 		console.log(DbSetsOfStuff);

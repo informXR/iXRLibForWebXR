@@ -270,6 +270,10 @@ export class ConfigurationManager
 {
 	public static m_szAppConfig:	string = "";
 	// ---
+	public static DebugSetAppConfig(szAppConfig: string): void
+	{
+		ConfigurationManager.m_szAppConfig = szAppConfig;
+	}
 	public static AppSettings(szFieldName: string, szDefaultValue: string): string
 	{
 		var szAppConfig:	string = ConfigurationManager.m_szAppConfig;
@@ -279,7 +283,7 @@ export class ConfigurationManager
 		{
 			var csrszRegex:	RegExp;
 			// ---
-			csrszRegex = new RegExp(`<add[\s]+key[\s]*=[\s]*"${szFieldName}"[\s]+value[\s]*=[\s]*".*"[\s]*[/]?[\s]*>`);
+			csrszRegex = new RegExp(`<add[\\s]+key[\\s]*=[\\s]*"${szFieldName}"[\\s]+value[\\s]*=[\\s]*".*"[\\s]*[/]?[\\s]*>`);
 			// ---
 			var vszMatches:	string[] = [];
 
