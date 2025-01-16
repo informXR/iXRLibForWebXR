@@ -10,7 +10,7 @@ export const DEFAULTNAME = "state";
 export class Base64
 {
     public static Decode = (str: string):Buffer => Buffer.from(str, 'base64');
-    public static Encode = (buf: Buffer):string => buf.toString('base64');
+    public static Encode = (buf: Buffer):string => Buffer.from(buf).toString('base64');
 }
 
 // MJPQ:  Another attempt to evade the type used as value bollocks.
@@ -41,6 +41,11 @@ export class JsonScalarArrayElement<T> extends DataObjectBase
 export function Sleep(nMilliseconds: number): Promise<void>
 {
 	return new Promise(resolve => setTimeout(resolve, nMilliseconds));
+}
+
+export function IsClass(value: unknown): value is (new () => any)
+{
+	return typeof value === 'function' && value.prototype !== undefined;
 }
 
 export class ScopeThreadBlock
@@ -79,11 +84,18 @@ export enum Verb
 /// </summary>
 export class CurlHttp
 {
-	public m_objRequestHeaders:	Headers = new Headers();
-	public m_objRequest:		Request = new Request("");
-	public m_objResponse:		Response = new Response();
-	public m_szLastError:		string = "";
+	public m_objRequestHeaders:	Headers;
+	public m_objRequest:		Request;
+	public m_objResponse:		Response;
+	public m_szLastError:		string;
 	// ---
+	constructor()
+	{
+		this.m_objRequestHeaders = new Headers();
+		// this.m_objRequest = new Request("");
+		this.m_objResponse = new Response();
+		this.m_szLastError = "";
+	}
 	public AddHttpHeader(szName: string, szValue: string) : void
 	{
 		this.m_objRequestHeaders.append(szName, szValue);
@@ -366,7 +378,7 @@ export class SUID
 	public ToString(): string
 	{
 		// return ToStringGuts<CHAR>(false);
-		return "";
+		return this.m_guid.toString();
 	}
 	public ToStringPureHex(): string
 	{

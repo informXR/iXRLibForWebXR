@@ -348,6 +348,7 @@ export class iXRLibClient
 				var	objRequest: CurlHttp = new CurlHttp();
 
 				szJSON = GenerateJsonAlternate(ixrXXXContainer, DumpCategory.eDumpingJsonForBackend, [ ["data", () => { return GenerateJsonList(listpXXXs, DumpCategory.eDumpingJsonForBackend); } ] ]);
+console.log(szJSON);
 				mbBodyContent = Buffer.from(szJSON);
 				// OUTPUTDEBUGSTRING(szJSON, "\n");
 				iXRLibAnalytics.SetHeadersFromCurrentState(objRequest, Buffer.from(szJSON), true, true);
@@ -391,7 +392,7 @@ export class iXRLibClient
 		}
 		catch (error)
 		{
-			//WriteLine($"Error: {ex.Message}\nStackTrace: {ex.StackTrace}");
+			console.log(error);
 			// ---
 			return iXRResult.ePostObjectsFailed;
 		}

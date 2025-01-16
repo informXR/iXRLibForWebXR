@@ -214,7 +214,7 @@ export function FakeUpSomeRandomCrapStorage(obj: iXRStorage): void
 	obj.m_dsData.clear();
 	//m_dsData.Add(ixrData);
 	obj.m_dsData.emplace_front().m_dspIXRXXXs.emplace_front().m_cdictData.Add("Rock", "Roll");
-	obj.m_dsData.begin().m_dspIXRXXXs.begin().m_cdictData.Add("Lemon", "Custard");
+	obj.m_dsData[0].m_dspIXRXXXs[0].m_cdictData.Add("Lemon", "Custard");
 	// ---
 	obj.m_szOrigin = pszOrigins[rnd.Next(pszOrigins.length)];
 	obj.m_bSessionData = (rnd.Next(3) == 0);
@@ -233,32 +233,32 @@ export function FakeUpSomeRandomCrapDbContext(obj: iXRDbContext): void
 
 	for (i = 0; i < 8; i++)
 	{
-		iXRApplication	&objApplication = m_dsIXRApplications.emplace_back();
+		var objApplication:	iXRApplication = obj.m_dsIXRApplications.emplace_back();
 
-		objApplication.FakeUpSomeRandomCrap();
+		FakeUpSomeRandomCrapApplication(objApplication);
 	}
 	for (i = 0; i < 16; i++)
 	{
-		iXRLog	&objLog = m_dsIXRLogs.emplace_back();
+		var objLog:	iXRLog = obj.m_dsIXRLogs.emplace_back();
 
-		objLog.FakeUpSomeRandomCrap();
+		FakeUpSomeRandomCrapLog(objLog);
 	}
 	for (i = 0; i < 16; i++)
 	{
-		iXREvent	&objEvent = m_dsIXREvents.emplace_back();
+		var objEvent:	iXREvent = obj.m_dsIXREvents.emplace_back();
 
-		objEvent.FakeUpSomeRandomCrap();
+		FakeUpSomeRandomCrapEvent(objEvent, true);
 	}
 	for (i = 0; i < 13; i++)
 	{
-		iXRTelemetry	&objTelemetry = m_dsIXRTelemetry.emplace_back();
+		var objTelemetry:	iXRTelemetry = obj.m_dsIXRTelemetry.emplace_back();
 
-		objTelemetry.FakeUpSomeRandomCrap();
+		FakeUpSomeRandomCrapTelemetry(objTelemetry);
 	}
 	for (i = 0; i < 8; i++)
 	{
-		iXRStorage	&objStorage = m_dsIXRStorage.emplace_back();
+		var objStorage:	iXRStorage = obj.m_dsIXRStorage.emplace_back();
 
-		objStorage.FakeUpSomeRandomCrap();
+		FakeUpSomeRandomCrapStorage(objStorage);
 	}
 }

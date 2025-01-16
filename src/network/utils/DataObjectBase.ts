@@ -2,7 +2,7 @@
 /// Allows for several categories of object dumping each with rules for which fields to dump or filter.
 
 import { SUID } from "../types";
-import { iXRResult, JsonResult, PythonDictStrings } from "./DotNetishTypes";
+import { DateTime, iXRResult, JsonResult, PythonDictStrings } from "./DotNetishTypes";
 import { DatabaseResult } from "./iXRLibSQLite";
 
 /// </summary>
@@ -65,6 +65,7 @@ export class FieldProperties
 
 export class FieldPropertiesRecordContainer
 {
+	public m_objCurrentObject:	any = null;
 	public m_rfp:				Record<string, FieldProperties>;
 	public m_nState:			number = 0;
 	public m_aszAlreadySeen:	Array<string> = new Array<string>();	// Prevents re-entrancy stackfault.
@@ -75,8 +76,9 @@ export class FieldPropertiesRecordContainer
 	{
 		this.m_rfp = rfp;
 	}
-	public Reset(): void
+	public Reset(objCurrentObject: any): void
 	{
+		this.m_objCurrentObject = objCurrentObject;
 		this.m_nState = 0;
 		this.m_aszAlreadySeen = new Array<string>();
 		this.m_atpChildren = new Array<[string, object]>();
@@ -94,11 +96,19 @@ export class FieldPropertiesRecordContainer
 				const fpNode:	FieldProperties = this.m_rfp[oldKey];
 				const newKey:	string = fpNode ? fpNode.m_szName : oldKey;
 
-				 if (val instanceof PythonDictStrings)
+				if (val instanceof PythonDictStrings)
 				{
 					const szInnerJson:	string = (val as PythonDictStrings).JSONstringify();
 
 					result[newKey] = JSON.parse(szInnerJson);
+				}
+				else if (val instanceof SUID)
+				{
+					result[newKey] = val.ToString();
+				}
+				else if (val instanceof DateTime)
+				{
+					result[newKey] = val.ToString();
 				}
 				else
 				{
@@ -128,8 +138,9 @@ export class FieldPropertiesRecordContainer
 				const fpNodeThatBloodyWellIsNotNull:	FieldProperties = (fpNode) ? fpNode as FieldProperties : new FieldProperties("", FieldPropertyFlags.bfNull);
 				const fFlags:							FieldPropertyFlags = (fpNodeThatBloodyWellIsNotNull.m_fFlags) ? fpNodeThatBloodyWellIsNotNull.m_fFlags : FieldPropertyFlags.bfNull;
 
-				if (fFlags & FieldPropertyFlags.bfExclude)
+				if ((fFlags & FieldPropertyFlags.bfExclude) || (this.m_objCurrentObject && !this.m_objCurrentObject.ShouldDump(key, JsonFieldType.eField, DumpCategory.eDumpingJsonForBackend)))
 				{
+console.log("Excluding field", key);
 					return undefined;
 				}
 				else if (fFlags & FieldPropertyFlags.bfChild)
@@ -282,6 +293,27 @@ export class DbSet<T extends DataObjectBase> extends Array<T>
 		super.splice(super.indexOf(o), 1);
 	}
 	// --- C#ish from C# port to C++.
+	public emplace_back(): T
+	{
+		var o:	T = new this.m_tTypeCompare();
+		super.push(o);
+		// ---
+		return o;
+	}
+	public emplace_back_object(o: T): T
+	{
+		super.push(o);
+		// ---
+		return o;
+	}
+	public emplace_front(): T
+	{
+		var o:	T = new this.m_tTypeCompare();
+
+		super.unshift(o);
+		// ---
+		return o;
+	}
 	public Add(o: T): T
 	{
 		super.push(o);
@@ -371,7 +403,7 @@ export function GenerateJsonAlternate(o: DataObjectBase, eDumpCategory: DumpCate
 {
 	var szJSON:	string = "";
 
-	o.GetMapProperties().Reset();
+	o.GetMapProperties().Reset(o);
 	// Dump just this object's fields (replacer will filter the children).
 	szJSON = JSON.stringify(o, o.GetMapProperties().replacer);
 	// Replace the placeholders.

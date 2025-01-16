@@ -451,6 +451,11 @@ export class TimeSpan
 	}
 };
 
+function FixedDigits(n: number, nDigits: number): string
+{
+	return n.toString().padStart(nDigits, '0');
+}
+
 /// <summary>
 /// Datatype that makes it easy to port C# DateTime.
 /// </summary>
@@ -515,7 +520,7 @@ export class DateTime extends Date
 	}
 	public ToString(): string
 	{
-		return this.ToUtcTimeString();
+		return `${FixedDigits(this.getUTCFullYear(), 4)}-${FixedDigits(this.getUTCMonth() + 1, 2)}-${FixedDigits(this.getUTCDate(), 2)} ${FixedDigits(this.getUTCHours(), 2)}:${FixedDigits(this.getUTCMinutes(), 2)}:${FixedDigits(this.getUTCSeconds(), 2)}.${FixedDigits(this.getUTCMilliseconds(), 3)}`;
 	}
 	public ToUnixTime(): number
 	{
@@ -704,6 +709,21 @@ export class StringList extends Array<string>
 	constructor()
 	{
 		super();
+	}
+	// --- C#ish from C# port to C++.
+	public emplace_back(sz: string): string
+	{
+		super.push(sz);
+		// ---
+		return sz;
+	}
+	public emplace_front(): string
+	{
+		var sz:	string = "";
+
+		super.unshift(sz);
+		// ---
+		return sz;
 	}
 	FromCommaSeparatedList(szCommaSeparatedList: string): void
 	{

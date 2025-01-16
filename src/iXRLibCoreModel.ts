@@ -3,7 +3,7 @@
 
 import { iXRLibClient } from "./iXRLibClient";
 import { iXRLibStorage } from "./iXRLibStorage";
-import { atobool, atol, DATEMAXVALUE, DEFAULTNAME, EnsureSingleEndingCharacter, /*Factory,MJPQ*/ SUID } from "./network/types";
+import { atobool, atol, DATEMAXVALUE, DEFAULTNAME, EnsureSingleEndingCharacter, IsClass, /*Factory,MJPQ*/ SUID } from "./network/types";
 import { DataObjectBase, DbContext, DbSet, DumpCategory, FieldProperties, FieldPropertiesRecordContainer, FieldPropertyFlags, JsonFieldType } from "./network/utils/DataObjectBase";
 import { ConfigurationManager, DateTime, Dictionary, iXRResult, PythonDictStrings, StringList, TimeSpan } from "./network/utils/DotNetishTypes";
 import { DatabaseResult, DbSuccess } from "./network/utils/iXRLibSQLite";
@@ -36,7 +36,7 @@ export class iXRBase extends DataObjectBase
 		{m_guidId: new FieldProperties("Id", FieldPropertyFlags.bfPrimaryKey)},
 		{m_guidParentId: new FieldProperties("parentId", FieldPropertyFlags.bfParentKey)},
 		{m_dtTimeStamp: new FieldProperties("timestamp")},
-		{m_dtTimeStamp: new FieldProperties("preciseTimestamp")},
+		{m_nTimeStamp: new FieldProperties("preciseTimestamp")},
 		{m_bSyncedWithCloud: new FieldProperties("syncedWithCloud")}));
 	// ---
 	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
@@ -639,7 +639,14 @@ export class iXRXXXContainer<T extends DataObjectBase, T_CONTAINS, bTWantTimesta
 	constructor(tTypeOfT: any, tTypeOfT_CONTAINS: any, public bWantTimestamp: bTWantTimestamp = false as bTWantTimestamp)
 	{
 		super();
-		this.m_tIXRXXX = new tTypeOfT_CONTAINS();
+		if (IsClass(tTypeOfT_CONTAINS))
+		{
+			this.m_tIXRXXX = new tTypeOfT_CONTAINS();
+		}
+		else
+		{
+			this.m_tIXRXXX = tTypeOfT_CONTAINS;
+		}
 		this.m_dspIXRXXXs = new DbSet<T>(tTypeOfT);
 	}
 	public ShouldDump(szFieldName: string, eJsonFieldType: JsonFieldType, eDumpCategory: DumpCategory) : boolean // virtual
@@ -1162,7 +1169,7 @@ export class iXRDbContext extends DbContext
 		this.LoadStorageEntriesIfNecessary();
 		pixrs = (this.m_dsIXRStorage as DbSetStorage).GetEntry0();
 		// ---
-		return (pixrs != null && pixrs != undefined && !pixrs.m_dsData.empty() && !pixrs.m_dsData[0].m_dspIXRXXXs.empty()) ? pixrs.m_dsData[0].m_dspIXRXXXs[0].m_cdictData : null;
+		return (pixrs && !pixrs.m_dsData.empty() && !pixrs.m_dsData[0].m_dspIXRXXXs.empty()) ? pixrs.m_dsData[0].m_dspIXRXXXs[0].m_cdictData : null;
 	}
 	public StorageGetEntry1(szName: string): PythonDictStrings | null
 	{
@@ -1171,7 +1178,7 @@ export class iXRDbContext extends DbContext
 		this.LoadStorageEntriesIfNecessary();
 		pixrs = (this.m_dsIXRStorage as DbSetStorage).GetEntry1(szName);
 		// ---
-		return (pixrs != null && pixrs != undefined && !pixrs.m_dsData.empty() && !pixrs.m_dsData[0].m_dspIXRXXXs.empty()) ? pixrs.m_dsData[0].m_dspIXRXXXs[0].m_cdictData : null;
+		return (pixrs && !pixrs.m_dsData.empty() && !pixrs.m_dsData[0].m_dspIXRXXXs.empty()) ? pixrs.m_dsData[0].m_dspIXRXXXs[0].m_cdictData : null;
 	}
 	// Default name 'state'
 	public StorageGetEntryAsString0(): string
@@ -1181,7 +1188,7 @@ export class iXRDbContext extends DbContext
 
 		this.LoadStorageEntriesIfNecessary();
 		pixrs = (this.m_dsIXRStorage as DbSetStorage).GetEntry0();
-		if (pixrs != null && pixrs != undefined && !pixrs.m_dsData.empty() && !pixrs.m_dsData[0].m_dspIXRXXXs.empty())
+		if (pixrs && !pixrs.m_dsData.empty() && !pixrs.m_dsData[0].m_dspIXRXXXs.empty())
 		{
 			szRet = pixrs.m_dsData[0].m_dspIXRXXXs[0].m_cdictData.ToString();
 		}
@@ -1195,7 +1202,7 @@ export class iXRDbContext extends DbContext
 
 		this.LoadStorageEntriesIfNecessary();
 		pixrs = (this.m_dsIXRStorage as DbSetStorage).GetEntry1(szName);
-		if (pixrs != null && pixrs != undefined && !pixrs.m_dsData.empty() && !pixrs.m_dsData[0].m_dspIXRXXXs.empty())
+		if (pixrs && !pixrs.m_dsData.empty() && !pixrs.m_dsData[0].m_dspIXRXXXs.empty())
 		{
 			szRet = pixrs.m_dsData[0].m_dspIXRXXXs[0].m_cdictData.ToString();
 		}

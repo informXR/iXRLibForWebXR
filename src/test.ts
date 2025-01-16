@@ -1,11 +1,14 @@
 import { iXRInit, iXRInstance, ResultOptions, InteractionType } from './iXR';
 import { iXRLibAnalytics, iXRLibInit } from './iXRLibAnalytics';
 import { iXRLibAsync } from './iXRLibAsync';
-import { iXRBase, iXRDbContext, iXRLibConfiguration } from './iXRLibCoreModel';
-import { AuthenticationRequestSchema, Sleep } from './network/types';
+import { iXRBase, iXRDbContext, iXREvent, iXRLibConfiguration } from './iXRLibCoreModel';
+import { iXRLibSend } from './iXRLibSend';
+import { AuthenticationRequestSchema, Base64, Sleep, SUID } from './network/types';
+import { SHA256 } from './network/utils/cryptoUtils';
 import { DataObjectBase, DbSet, DumpCategory, FieldProperties, FieldPropertiesRecordContainer, FieldPropertyFlags, GenerateJson } from './network/utils/DataObjectBase';
 import { ConfigurationManager, iXRResult, PythonDictStrings, StringList, TimeSpan } from './network/utils/DotNetishTypes';
 import { logError, logInfo } from './network/utils/logger';
+import { FakeUpSomeCrapEvent } from './test/iXRCoreModelTests';
 
 export { iXRInit, iXRInstance, AuthenticationRequestSchema };
 
@@ -137,8 +140,8 @@ function DebugSetAppConfig(): void
 	var szAppConfig:	string = '<?xml version="1.0" encoding="utf-8" ?>' +
 		'<configuration>' +
 			'<appSettings>' +
-				'<add key="REST_URL" value="http://192.168.5.17:9000/"/>' +
-				'<!--<add key="REST_URL" value="http://192.168.5.2:19080/"/>-->' +
+				'<!--<add key="REST_URL" value="http://192.168.5.17:9000/"/>-->' +
+				'<add key="REST_URL" value="http://192.168.5.2:19080/"/>' +
 				'<add key="SendRetriesOnFailure" value="3"/>' +
 				'<!-- Bandwidth config parameters. -->' +
 				'<add key="SendRetryInterval" value="00:00:03"/>' +
@@ -168,11 +171,26 @@ async function TestJson(): Promise<void>
 	var obj:			DbSetsOfStuff = new DbSetsOfStuff();
 	var pdsIXRXXX:		any = null;
 	var tsTest:			TimeSpan = TimeSpan.Parse("12:34:56");
+	var ixrEvent:		iXREvent = new iXREvent();
+	var suidTest:		SUID = new SUID();
+	var bufferTest:		Buffer = Buffer.from([23, 56, 26, 78, 45, 12, 89, 54]);
 	var objTestScalarContainer:	iXRXXXTestScalarContainer<TestData> = new iXRXXXTestScalarContainer<TestData>(TestData);
 
 	try
 	{
+		bufferTest = await SHA256("Hello, world!");
+		try
+		{
+			console.log(Base64.Encode(bufferTest));
+		}
+		catch (e)
+		{
+			console.log(e);
+		}
+		console.log(suidTest.ToString());
 		DebugSetAppConfig();
+		FakeUpSomeCrapEvent(ixrEvent);
+		iXRLibSend.EventSynchronousCore(ixrEvent);
 		iXRLibAnalytics.m_ixrLibAsync.AddTask(async (o: any): Promise<iXRResult> => { console.log("Sleeping..."); await Sleep(3000); console.log("Never shoot no dear."); return iXRResult.eOk; }, objTestData, (o: any):void => { console.log("It's just flooded I'll be ok."); });
 		// ---
 		console.log(DbSetsOfStuff);

@@ -41,7 +41,7 @@ class Authentication
 	{
 		try
 		{
-			const dtNow:		DateTime = new DateTime(DateTime.Now());
+			const dtNow:		DateTime = new DateTime();
 			var szHashSource:	string = this.m_szApiToken + this.m_szApiSecret + dtNow.toISOString();
 			var szHash:			string = "";
 			var nCrc32:			number;
@@ -60,7 +60,7 @@ class Authentication
 		}
 		catch (error)
 		{
-			// iXRLibClient.WriteLine($"Error: {ex.Message}\nStackTrace: {ex.StackTrace}");
+			console.log(error);
 		}
 	}
 	public TokenExpirationImminent(): boolean
@@ -441,7 +441,7 @@ export class iXRLibAnalytics
 	{
 		var	nTrimCount:		number;
 		var	dtNow:			DateTime = DateTime.ConvertUnixTime(DateTime.Now()),
-			dtOlderThan:	DateTime = DateTime.ConvertUnixTime(dtNow.ToUnixTime() - iXRLibStorage.m_ixrLibConfiguration.m_tsPruneSentItemsOlderThan.ToDateTime().ToUnixTime());
+			dtOlderThan:	DateTime = DateTime.ConvertUnixTime(dtNow.ToUnixTime() - iXRLibStorage.m_ixrLibConfiguration.m_tsPruneSentItemsOlderThan.ToInt64());
 		var	pdsIXRXXX:		DbSet<T> | null | undefined = null;
 		var	eDb:			DatabaseResult;
 		var	eRet:			iXRResult = iXRResult.eOk;
@@ -450,7 +450,7 @@ export class iXRLibAnalytics
 		{
 			var ixrDbContext:	iXRDbContext = new iXRDbContext(false);
 
-			for (const [szField, objField] of Object.entries(iXRDbContext))
+			for (const [szField, objField] of Object.entries(ixrDbContext))
 			{
 				if (objField instanceof DbSet)
 				{
@@ -467,10 +467,10 @@ export class iXRLibAnalytics
 			// 	ScopeThreadBlock	cs(m_csDB);
 
 				pdsIXRXXX?.Add(ixrT);
-				if (iXRLibStorage.m_ixrLibConfiguration.m_bUseDatabase)
-				{
-					eDb = ixrDbContext.SaveChanges();
-				}
+				// if (iXRLibStorage.m_ixrLibConfiguration.m_bUseDatabase)
+				// {
+				// 	eDb = ixrDbContext.SaveChanges();
+				// }
 			// }
 			// If the un-pushed exceeds the limits (0 = ∞), trim out oldest necessary to get it under the limits.
 			if (iXRLibStorage.m_ixrLibConfiguration.m_nMaximumCachedItems > 0)
@@ -516,12 +516,12 @@ export class iXRLibAnalytics
 			}
 			eRet = await iXRLibAnalytics.SendUnsentXXXs<T>(ixrDbContext, pdsIXRXXX, tTypeOfT, szTableName, pfnPostIXRXXX, bOneAtATime, iXRLibStorage.m_ixrLibConfiguration.m_nEventsPerSendAttempt, false);
 			// ---
-			if (iXRLibStorage.m_ixrLibConfiguration.m_bUseDatabase)
-			{
-				// ScopeThreadBlock	cs(m_csDB);
+			// if (iXRLibStorage.m_ixrLibConfiguration.m_bUseDatabase)
+			// {
+			// 	// ScopeThreadBlock	cs(m_csDB);
 
-				eDb = ixrDbContext.SaveChanges();
-			}
+			// 	eDb = ixrDbContext.SaveChanges();
+			// }
 		}
 		catch (error)
 		{
@@ -558,7 +558,7 @@ export class iXRLibAnalytics
 		{
 			var ixrDbContext:	iXRDbContext = new iXRDbContext(false);
 
-			for (const [szField, objField] of Object.entries(iXRDbContext))
+			for (const [szField, objField] of Object.entries(ixrDbContext))
 			{
 				if (objField instanceof DbSet)
 				{

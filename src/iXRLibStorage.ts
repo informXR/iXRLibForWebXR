@@ -14,7 +14,6 @@ export class iXRLibStorage
 	public static InitStatics(): void
 	{
 		this.m_ixrLibConfiguration = new iXRLibConfiguration();
-		console.log("InitStatics()ed the van-damn thing.");
 	}
 	// MJP:  Retaining this in comments to remind myself of this approach which may come in handy for something else though I am standardizing on InitStatics() for all statics.
 	//public static get m_ixrLibConfiguration(): iXRLibConfiguration {if (!iXRLibStorage.v_ixrLibConfiguration) {iXRLibStorage.v_ixrLibConfiguration = new iXRLibConfiguration();} return iXRLibStorage.v_ixrLibConfiguration;}
