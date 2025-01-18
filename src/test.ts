@@ -8,7 +8,7 @@ import { SHA256 } from './network/utils/cryptoUtils';
 import { DataObjectBase, DbSet, DumpCategory, FieldProperties, FieldPropertiesRecordContainer, FieldPropertyFlags, GenerateJson } from './network/utils/DataObjectBase';
 import { ConfigurationManager, iXRResult, PythonDictStrings, StringList, TimeSpan } from './network/utils/DotNetishTypes';
 import { logError, logInfo } from './network/utils/logger';
-import { FakeUpSomeCrapEvent } from './test/iXRCoreModelTests';
+import { FakeUpSomeCrapEvent, FakeUpSomeRandomCrapEvent } from './test/iXRCoreModelTests';
 
 export { iXRInit, iXRInstance, AuthenticationRequestSchema };
 
@@ -189,7 +189,7 @@ async function TestJson(): Promise<void>
 		}
 		console.log(suidTest.ToString());
 		DebugSetAppConfig();
-		FakeUpSomeCrapEvent(ixrEvent);
+		FakeUpSomeRandomCrapEvent(ixrEvent, true);
 		iXRLibSend.EventSynchronousCore(ixrEvent);
 		iXRLibAnalytics.m_ixrLibAsync.AddTask(async (o: any): Promise<iXRResult> => { console.log("Sleeping..."); await Sleep(3000); console.log("Never shoot no dear."); return iXRResult.eOk; }, objTestData, (o: any):void => { console.log("It's just flooded I'll be ok."); });
 		// ---

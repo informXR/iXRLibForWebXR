@@ -42,7 +42,7 @@ class Authentication
 		try
 		{
 			const dtNow:		DateTime = new DateTime();
-			var szHashSource:	string = this.m_szApiToken + this.m_szApiSecret + dtNow.toISOString();
+			var szHashSource:	string = this.m_szApiToken + this.m_szApiSecret + dtNow.ToString();
 			var szHash:			string = "";
 			var nCrc32:			number;
 
@@ -56,11 +56,11 @@ class Authentication
 			// ---
 			objRequest.AddHttpAuthHeader("Bearer", this.m_szApiToken);
 			objRequest.AddHttpHeader("X-iXRLib-Hash", szHash);
-			objRequest.AddHttpHeader("X-iXRLib-Timestamp", dtNow.toISOString());
+			objRequest.AddHttpHeader("X-iXRLib-Timestamp", dtNow.ToString());
 		}
 		catch (error)
 		{
-			console.log(error);
+			console.log("Error: ", error);
 		}
 	}
 	public TokenExpirationImminent(): boolean
@@ -525,6 +525,7 @@ export class iXRLibAnalytics
 		}
 		catch (error)
 		{
+			console.log("Error: ", error);
 			//iXRLibClient.WriteLine($"Error: {ex.Message}\nStackTrace: {ex.StackTrace}");
 			// ---
 			return iXRLibAnalytics.TaskErrorReturnT<T>(iXRResult.eSendEventFailed, ixrT, bNoCallbackOnSuccess, pfnStatusCallback, "Caught exception.");
@@ -613,6 +614,7 @@ export class iXRLibAnalytics
 		}
 		catch (error)
 		{
+			console.log("Error: ", error);
 			//iXRLibClient.WriteLine($"Error: {ex.Message}\nStackTrace: {ex.StackTrace}");
 			// ---
 			return iXRLibAnalytics.TaskErrorReturnT<T>(iXRResult.eSendEventFailed, ixrT, bNoCallbackOnSuccess, pfnStatusCallback, "Caught exception.");
@@ -857,7 +859,7 @@ export class iXRLibAnalytics
 		}
 		catch (error)
 		{
-			return iXRLibAnalytics.TaskErrorReturnT<T>(iXRResult.eSendEventFailed, ixrT, bNoCallbackOnSuccess, pfnStatusCallback, "Caught exception.");
+			return iXRLibAnalytics.TaskErrorReturnT<T>(iXRResult.eSendEventFailed, ixrT, bNoCallbackOnSuccess, pfnStatusCallback, `Caught exception: '${error}'.`);
 		}
 		// ---
 		return iXRLibAnalytics.TaskErrorReturnT<T>(eRet, ixrT, bNoCallbackOnSuccess, pfnStatusCallback, "");
@@ -926,7 +928,7 @@ export class iXRLibAnalytics
 		}
 		catch (error)
 		{
-			//iXRLibClient.WriteLine($"Error: {ex.Message}\nStackTrace: {ex.StackTrace}");
+			console.log("Error: ", error);
 		}
 	}
 	// --- API (C++ dll and C# dll) versions of AddAIProxy().

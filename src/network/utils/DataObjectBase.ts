@@ -2,7 +2,7 @@
 /// Allows for several categories of object dumping each with rules for which fields to dump or filter.
 
 import { SUID } from "../types";
-import { DateTime, iXRResult, JsonResult, PythonDictStrings } from "./DotNetishTypes";
+import { DateTime, iXRResult, JsonResult, PythonDictStrings, StringList } from "./DotNetishTypes";
 import { DatabaseResult } from "./iXRLibSQLite";
 
 /// </summary>
@@ -65,12 +65,14 @@ export class FieldProperties
 
 export class FieldPropertiesRecordContainer
 {
-	public m_objCurrentObject:	any = null;
-	public m_rfp:				Record<string, FieldProperties>;
-	public m_nState:			number = 0;
-	public m_aszAlreadySeen:	Array<string> = new Array<string>();	// Prevents re-entrancy stackfault.
-	public m_atpChildren:		Array<[string, object]> = new Array<[string, object]>()
-	public m_atpListChildren:	Array<[string, object]> = new Array<[string, object]>()
+	public m_objCurrentObject:				any = null;								// The object being dumped.
+	public m_rfp:							Record<string, FieldProperties>;		// The (static/constant) field properties.
+	public m_nState:						number = 0;								// For generating unique names for objects and lists.
+	public m_aszAlreadySeen:				Array<string> = new Array<string>();	// Prevents re-entrancy stackfault.
+	public m_aszExcludedFields:				Array<string> = new Array<string>();	// Fields to exclude from the dump... extra fields that are not in the map m_rfp.
+	public m_bExcludedFieldsInitialized:	boolean = false;						// True if m_aszExcludedFields has been initialized.
+	public m_atpChildren:					Array<[string, object]> = new Array<[string, object]>();	// Objects that are children of the current object, accrued during the replacer function.
+	public m_atpListChildren:				Array<[string, object]> = new Array<[string, object]>();	// Lists that are children of the current object, accrued during the replacer function.
 	// ---
 	constructor(rfp: Record<string, FieldProperties>)
 	{
@@ -83,6 +85,18 @@ export class FieldPropertiesRecordContainer
 		this.m_aszAlreadySeen = new Array<string>();
 		this.m_atpChildren = new Array<[string, object]>();
 		this.m_atpListChildren = new Array<[string, object]>();
+		if (!this.m_bExcludedFieldsInitialized)
+		{
+			this.m_aszExcludedFields = new Array<string>();
+			this.m_bExcludedFieldsInitialized = true;
+			for (const szKey in objCurrentObject)
+			{
+				if (this.m_rfp[szKey] === undefined)
+				{
+					this.m_aszExcludedFields.push(szKey);
+				}
+			}
+		}
 	}
 	public replacer = (key: string, value: any): any =>
 	{
@@ -94,11 +108,24 @@ export class FieldPropertiesRecordContainer
 			for (const [oldKey, val] of Object.entries(value))
 			{
 				const fpNode:	FieldProperties = this.m_rfp[oldKey];
-				const newKey:	string = fpNode ? fpNode.m_szName : oldKey;
+				const newKey:	string = (fpNode) ? fpNode.m_szName : oldKey;
+				const fFlags:	FieldPropertyFlags = (fpNode && fpNode.m_fFlags) ? fpNode.m_fFlags : FieldPropertyFlags.bfNull;
+				const bExclude:	boolean = (fFlags & FieldPropertyFlags.bfExclude) !== 0;
+				const bChild:	boolean = ((fFlags & (FieldPropertyFlags.bfChild | FieldPropertyFlags.bfChildList)) !== 0);
 
-				if (val instanceof PythonDictStrings)
+				if (bExclude || (!bChild && this.m_objCurrentObject && !this.m_objCurrentObject.ShouldDump(newKey, JsonFieldType.eField, DumpCategory.eDumpingJsonForBackend)))
+				{
+					result[newKey] = undefined;
+				}
+				else if (val instanceof PythonDictStrings)
 				{
 					const szInnerJson:	string = (val as PythonDictStrings).JSONstringify();
+
+					result[newKey] = JSON.parse(szInnerJson);
+				}
+				else if (val instanceof StringList)
+				{
+					const szInnerJson:	string = (val as StringList).JSONstringify();
 
 					result[newKey] = JSON.parse(szInnerJson);
 				}
@@ -129,46 +156,52 @@ export class FieldPropertiesRecordContainer
 						return;
 					}
 				});
-			if (fpNode && (fpNode as FieldProperties).m_fFlags)
+			if (fpNode)
 			{
-				// We know fpNode is not null at this point since we're in an if(fpNode) block.  We being the AI and us obsolete humans, but NOT apparently TypeScript.
-				// MJP:  Yes I am kind of pissed at this.  I'm not sure why I'm doing this.  I'm not sure why I'm not just using fpNode.  You said it AI (last bit autocompleted).
-				// CCW action... it was cool with this including when I was running tests and now it has whimsically decided to bitch about fpNode and fpNode.m_fFlags being null.
-				// Even with the null check on both.  Guess we need some gratuitous friction right at the end of getting it to build without errors.
-				const fpNodeThatBloodyWellIsNotNull:	FieldProperties = (fpNode) ? fpNode as FieldProperties : new FieldProperties("", FieldPropertyFlags.bfNull);
-				const fFlags:							FieldPropertyFlags = (fpNodeThatBloodyWellIsNotNull.m_fFlags) ? fpNodeThatBloodyWellIsNotNull.m_fFlags : FieldPropertyFlags.bfNull;
+				if ((fpNode as FieldProperties).m_fFlags)
+				{
+					// We know fpNode is not null at this point since we're in an if(fpNode) block.  We being the AI and us obsolete humans, but NOT apparently TypeScript.
+					// MJP:  Yes I am kind of pissed at this.  I'm not sure why I'm doing this.  I'm not sure why I'm not just using fpNode.  You said it AI (last bit autocompleted).
+					// CCW action... it was cool with this including when I was running tests and now it has whimsically decided to bitch about fpNode and fpNode.m_fFlags being null.
+					// Even with the null check on both.  Guess we need some gratuitous friction right at the end of getting it to build without errors.
+					const fpNodeThatBloodyWellIsNotNull:	FieldProperties = (fpNode) ? fpNode as FieldProperties : new FieldProperties("", FieldPropertyFlags.bfNull);
+					const fFlags:							FieldPropertyFlags = (fpNodeThatBloodyWellIsNotNull.m_fFlags) ? fpNodeThatBloodyWellIsNotNull.m_fFlags : FieldPropertyFlags.bfNull;
+					const bExclude:							boolean = (fFlags & FieldPropertyFlags.bfExclude) !== 0;
+					const bChild:							boolean = ((fFlags & (FieldPropertyFlags.bfChild | FieldPropertyFlags.bfChildList)) !== 0);
 
-				if ((fFlags & FieldPropertyFlags.bfExclude) || (this.m_objCurrentObject && !this.m_objCurrentObject.ShouldDump(key, JsonFieldType.eField, DumpCategory.eDumpingJsonForBackend)))
-				{
-console.log("Excluding field", key);
-					return undefined;
-				}
-				else if (fFlags & FieldPropertyFlags.bfChild)
-				{
-					if (!this.m_aszAlreadySeen.find(sz => sz === key))
+					if (bExclude || (!bChild && this.m_objCurrentObject && !this.m_objCurrentObject.ShouldDump(key, JsonFieldType.eField, DumpCategory.eDumpingJsonForBackend)))
 					{
-						const result:	any = {};
-						const szState:	string = "ГосударственныйОбъект" + this.m_nState++;
+						return undefined;
+					}
+					else if (fFlags & FieldPropertyFlags.bfChild)
+					{
+						if (!this.m_aszAlreadySeen.find(sz => sz === key))
+						{
+							const szState:	string = "ГосударственныйОбъект" + this.m_nState++;
 
-						this.m_aszAlreadySeen.push(key);
-						this.m_atpChildren.push([szState, value]);
-						// ---
-						return szState;
+							this.m_aszAlreadySeen.push(key);
+							this.m_atpChildren.push([szState, value]);
+							// ---
+							return szState;
+						}
+					}
+					else if (fFlags & FieldPropertyFlags.bfChildList)
+					{
+						if (!this.m_aszAlreadySeen.find(sz => sz === key))
+						{
+							const szState:	string = "ГосударственныйОбъект" + this.m_nState++;
+
+							this.m_aszAlreadySeen.push(key);
+							this.m_atpListChildren.push([szState, value]);
+							// ---
+							return szState;
+						}
 					}
 				}
-				else if (fFlags & FieldPropertyFlags.bfChildList)
-				{
-					if (!this.m_aszAlreadySeen.find(sz => sz === key))
-					{
-						const result:	any = {};
-						const szState:	string = "ГосударственныйОбъект" + this.m_nState++;
-
-						this.m_aszAlreadySeen.push(key);
-						this.m_atpListChildren.push([szState, value]);
-						// ---
-						return szState;
-					}
-				}
+			}
+			else
+			{
+				return (this.m_aszExcludedFields.find(sz => sz === key)) ? undefined : value;
 			}
 		}
 		return value;
@@ -404,7 +437,7 @@ export function GenerateJsonAlternate(o: DataObjectBase, eDumpCategory: DumpCate
 	var szJSON:	string = "";
 
 	o.GetMapProperties().Reset(o);
-	// Dump just this object's fields (replacer will filter the children).
+	// Dump just this object's fields (replacer will filter the children and put objects in m_atpChildren and lists in m_atpListChildren).
 	szJSON = JSON.stringify(o, o.GetMapProperties().replacer);
 	// Replace the placeholders.
 	for (const [szName, oChildObject] of o.GetMapProperties().m_atpChildren)
@@ -429,16 +462,17 @@ export function GenerateJsonAlternate(o: DataObjectBase, eDumpCategory: DumpCate
 	{
 		if (o.ShouldDump(szName, JsonFieldType.eObjectList, eDumpCategory))
 		{
-			var szObjectListJSON:			string = "[";
+			var szObjectListJSON:			string = "";
 			var bDidOne:					boolean = false;
 			const fnGenerateJsonAlternate:	(() => string) | undefined = mpfnGenerateJsonAlternate.find(([szName, fn]) => szName === szName)?.[1];
 
 			if (fnGenerateJsonAlternate)
 			{
-				szObjectListJSON += fnGenerateJsonAlternate();
+				szObjectListJSON = fnGenerateJsonAlternate();
 			}
 			else
 			{
+				szObjectListJSON = "[";
 				for (const o of oChildObjectList as DbSet<DataObjectBase>)
 				{
 					const szInnerJson:  string = GenerateJson(o, eDumpCategory);
@@ -450,8 +484,8 @@ export function GenerateJsonAlternate(o: DataObjectBase, eDumpCategory: DumpCate
 					bDidOne = true;
 					szObjectListJSON += szInnerJson;
 				}
+				szObjectListJSON += "]";
 			}
-			szObjectListJSON += "]";
 			szJSON = szJSON.replace(szName, szObjectListJSON);
 		}
 	}

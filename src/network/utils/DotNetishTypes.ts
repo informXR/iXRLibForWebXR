@@ -434,7 +434,6 @@ export class TimeSpan
 	{
 		var	szRet:	string = "";
 
-		// szRet = this.m_dtDate.toISOString();
 		szRet = (this.m_dtDate.getMilliseconds() * 1000).toString();
 		// ---
 		return szRet;
@@ -516,11 +515,11 @@ export class DateTime extends Date
 	}
 	public ToUtcTimeString(): string
 	{
-		return super.toUTCString();
+		return `${FixedDigits(this.getUTCFullYear(), 4)}-${FixedDigits(this.getUTCMonth() + 1, 2)}-${FixedDigits(this.getUTCDate(), 2)} ${FixedDigits(this.getUTCHours(), 2)}:${FixedDigits(this.getUTCMinutes(), 2)}:${FixedDigits(this.getUTCSeconds(), 2)}.${FixedDigits(this.getUTCMilliseconds(), 3)}`;
 	}
 	public ToString(): string
 	{
-		return `${FixedDigits(this.getUTCFullYear(), 4)}-${FixedDigits(this.getUTCMonth() + 1, 2)}-${FixedDigits(this.getUTCDate(), 2)} ${FixedDigits(this.getUTCHours(), 2)}:${FixedDigits(this.getUTCMinutes(), 2)}:${FixedDigits(this.getUTCSeconds(), 2)}.${FixedDigits(this.getUTCMilliseconds(), 3)}`;
+		return this.ToUtcTimeString();
 	}
 	public ToUnixTime(): number
 	{
@@ -730,6 +729,10 @@ export class StringList extends Array<string>
 		this.CommaSeparatedStringToStringList(szCommaSeparatedList);
 	}
 	// ---
+	public JSONstringify(): string
+	{
+		return JSON.stringify(this);
+	}
 	LoadFromJson(): JsonResult
 	{
 		var	eRet = JsonResult.eOk,

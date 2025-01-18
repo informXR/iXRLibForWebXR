@@ -653,20 +653,23 @@ export class iXRXXXContainer<T extends DataObjectBase, T_CONTAINS, bTWantTimesta
 	{
 		//const bWantTimestamp:	bTWantTimestamp;
 
-		if (eJsonFieldType === JsonFieldType.eField && szFieldName === "data")
+		if (eJsonFieldType === JsonFieldType.eField)
 		{
-			return false;
-		}
-		switch (eDumpCategory)
-		{
-		case DumpCategory.eDumpingJsonForBackend:
-			if (szFieldName === "timestamp")
+			if (szFieldName === "data")
 			{
-				return this.bWantTimestamp;
+				return false;
 			}
-			break;
-		default:
-			break;
+			switch (eDumpCategory)
+			{
+			case DumpCategory.eDumpingJsonForBackend:
+				if (szFieldName === "timestamp")
+				{
+					return this.bWantTimestamp;
+				}
+				break;
+			default:
+				break;
+			}
 		}
 		return super.ShouldDump(szFieldName, eJsonFieldType, eDumpCategory);
 	}

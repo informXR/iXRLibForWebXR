@@ -392,7 +392,7 @@ console.log(szJSON);
 		}
 		catch (error)
 		{
-			console.log(error);
+			console.log("Error: ", error);
 			// ---
 			return iXRResult.ePostObjectsFailed;
 		}
@@ -455,6 +455,7 @@ console.log(szJSON);
 		}
 		catch (error)
 		{
+			console.log("Error: ", error);
 			//WriteLine($"Error: {ex.Message}\nStackTrace: {ex.StackTrace}");
 			// ---
 			return iXRResult.ePostObjectsFailed;
@@ -511,6 +512,7 @@ console.log(szJSON);
 		}
 		catch (error)
 		{
+			console.log("Error: ", error);
 			//WriteLine($"Error: {ex.Message}\nStackTrace: {ex.StackTrace}");
 			// ---
 			return iXRResult.eDeleteObjectsFailed;
@@ -542,6 +544,7 @@ console.log(szJSON);
 		}
 		catch (error)
 		{
+			console.log("Error: ", error);
 			//WriteLine($"Error: {ex.Message}\nStackTrace: {ex.StackTrace}");
 			return iXRResult.eAuthenticateFailed;
 		}
