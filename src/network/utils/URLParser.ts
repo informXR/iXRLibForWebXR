@@ -94,8 +94,6 @@ export class URLParser
 	{
 		let http_url:	HTTP_URL = new HTTP_URL();
 		const objURL:	URL = new URL(input_url);
-		let st:			number = 0;
-		let before:		number = 0;
 
 		http_url.m_szScheme = objURL.protocol;
 		http_url.m_szHost = objURL.hostname;

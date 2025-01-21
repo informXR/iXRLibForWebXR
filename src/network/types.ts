@@ -92,7 +92,7 @@ export class CurlHttp
 	constructor()
 	{
 		this.m_objRequestHeaders = new Headers();
-		// this.m_objRequest = new Request("");
+		this.m_objRequest = new Request("https://www.google.com");
 		this.m_objResponse = new Response();
 		this.m_szLastError = "";
 	}
@@ -193,6 +193,10 @@ export class CurlHttp
 		{
 			if (this.Initialize(szUrl, vpszQueryParameters, Verb.ePost, mbBodyContent, {szResponse: refparam.szResponse}))
 			{
+this.m_objRequestHeaders.forEach((szValue, szName) =>
+{
+	console.log(szName, szValue);
+});
 				const objResponse:	Response = await fetch(this.m_objRequest);
 
 				refparam.szResponse = await objResponse.text();
@@ -410,39 +414,53 @@ export class Regex
 	///		Then take the non-empty leaf node(s) and chew through using pbrxszRegexes, tossing the ones with false in the pair, accruing the ones with true in the pair.
 	/// </summary>
 	/// <param name="szData">String in which to search for matches</param>
-	/// <param name="vrxszRegexLevels">Regular expressions to drill down into desired matches... i.e. first level acquires set of matches, second level matches into those, third level matches into second level...</param>
+	/// <param name="vrxszRegexLevels">Regular expressions to drill down into desired matches... i.e. first level acquires set of matches, second level matches into those, third level matches into second level...
+	///									^^^ Suggest making any regex that looks for anything enclosed by open-whatever desired-match close-whatever non-greedy.
+	///									That is, "open-whatever.*?close-whatever" not "open-whatever.*close-whatever".  Cost alot of debug time in TypeScript
+	///									due to plenty of other McGuffins.</param>
 	/// <param name="pbrxszRegexes">pairs of <bool, regex-string> to chew through the matches from vrxszRegexLevels... keep the true ones, discard the false ones</param>
 	/// <param name="vszMatches">Matches from the true pbrxszRegexes</param>
 	/// <returns>true if there are matches, false if empty set</returns>
-	static ProgressiveMatch(szData: string, vrxszRegexLevels: RegExp[], pbrxszFilterRegexes: Array<[boolean, RegExp]>): string[]
+	public static ProgressiveMatch(szData: string, vrxszRegexLevels: RegExp[], pbrxszFilterRegexes: Array<[boolean, RegExp]>): string[]
 	{
-		let vszCurrentMatches = [szData];
-		const vszMatches:	string[] = [];
+		let vszCurrentMatches:	string[] = [szData];
+		const vszMatches:		string[] = [];
 
 		// Drill down through regex levels.
-		for (const regex of vrxszRegexLevels)
+		for (var regex of vrxszRegexLevels)
 		{
+			const vszNextMatches:	string[] = [];
+
+			regex.lastIndex = 0;
 			if (vszCurrentMatches.length === 0)
 			{
 				break;
 			}
-			const vszNextMatches: string[] = [];
-			for (const text of vszCurrentMatches)
+			for (const szText of vszCurrentMatches)
 			{
-				const found = text.match(new RegExp(regex, 'g')) || [];
-				vszNextMatches.push(...found);
+				var raMatch:	RegExpMatchArray | null = null;
+				var szScratch:	string = szText;
+
+				while (raMatch = szScratch.match(regex))
+				{
+					vszNextMatches.push(raMatch[0]);
+					if (raMatch.index !== undefined)
+					{
+						szScratch = szScratch.slice(raMatch.index + raMatch[0].length);
+					}
+				}
 			}
 			vszCurrentMatches = vszNextMatches;
 		}
 		// Process final matches through filter regexes.
 		for (const szText of vszCurrentMatches)
 		{
-			let szCurrentText = szText;
-			let bAllMatched = true;
+			let szCurrentText:	string = szText;
+			let bAllMatched:	boolean = true;
 
 			for (const [bKeep, rxRegex] of pbrxszFilterRegexes)
 			{
-				const szrMatch = this.FirstMatch(szCurrentText, rxRegex);
+				const szrMatch:	{match: string, range: [number, number]} | null = this.FirstMatch(szCurrentText, rxRegex);
 
 				if (!szrMatch)
 				{

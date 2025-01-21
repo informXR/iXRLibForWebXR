@@ -283,12 +283,12 @@ export class ConfigurationManager
 		{
 			var csrszRegex:	RegExp;
 			// ---
-			csrszRegex = new RegExp(`<add[\\s]+key[\\s]*=[\\s]*"${szFieldName}"[\\s]+value[\\s]*=[\\s]*".*"[\\s]*[/]?[\\s]*>`);
+			csrszRegex = new RegExp(`<add[\\s]+key[\\s]*=[\\s]*"${szFieldName}"[\\s]+value[\\s]*=[\\s]*".*?"[\\s]*[/]?[\\s]*>`);
 			// ---
 			var vszMatches:	string[] = [];
 
-			// Filter out any HTML comments.
-			vszMatches = Regex.ProgressiveMatch(szAppConfig, [ /<\!\-\-.*\-\->/i ], [ [ true, /.*/i ] ]);
+			// Filter out any HTML comments.  Note the non-greedy .*? which was not necessary in the C++ code.  Maybe back-port to C++ for consistency?
+			vszMatches = Regex.ProgressiveMatch(szAppConfig, [ /<\!\-\-.*?\-\->/i ], [ [ true, /.*/i ] ]);
 			for (const sz of vszMatches)
 			{
 				szAppConfig = szAppConfig.replace(sz, "");

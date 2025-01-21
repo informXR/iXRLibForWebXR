@@ -1290,31 +1290,29 @@ export class iXRDbContext extends DbContext
 /// <typeparam name="T">Type being POSTed.</typeparam>
 /// <typeparam name="iXRLibConfiguration">Pass in iXRLibConfiguration where this is instantiated... resolves forward-referencing catch-22.</typeparam>
 /// <returns>REST endpoint string const.</returns>
-export function RESTEndpointFromType<T>() : string
+export function RESTEndpointFromType<T>(tDraft: any) : string
 {
-	const tDraft = {} as T;
-
-	if (tDraft instanceof iXREvent)
+	if (tDraft === iXREvent)
 	{
 		return "collect/event";
 	}
-	else if (tDraft instanceof iXRLog)
+	else if (tDraft === iXRLog)
 	{
 		return "collect/log";
 	}
-	else if (tDraft instanceof iXRTelemetry)
+	else if (tDraft === iXRTelemetry)
 	{
 		return "collect/telemetry";
 	}
-	else if (tDraft instanceof iXRAIProxy)
+	else if (tDraft === iXRAIProxy)
 	{
 		return "services/llm";
 	}
-	else if (tDraft instanceof iXRLibConfiguration)
+	else if (tDraft === iXRLibConfiguration)
 	{
 		return "storage/config";
 	}
-	else if (tDraft instanceof iXRStorage)
+	else if (tDraft === iXRStorage)
 	{
 		return "storage";
 	}
@@ -1322,7 +1320,7 @@ export function RESTEndpointFromType<T>() : string
 }
 
 // The AI suggests these and since this seems to have to be revisited ad infinitum, going to document them with comments.
-// function RESTEndpointFromType<T>(): string
+// export function RESTEndpointFromType<T>(): string
 // {
 // 	// Map types to their REST endpoints
 // 	if ((T as any) === iXREvent) return "events";
@@ -1333,7 +1331,7 @@ export function RESTEndpointFromType<T>() : string
 // 	return "";
 // }
 
-// function RESTEndpointFromType<T extends iXRBase>(): string
+// export function RESTEndpointFromType<T extends iXRBase>(): string
 // {
 // 	switch (T.name)
 // 	{

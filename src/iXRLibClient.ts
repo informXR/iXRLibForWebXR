@@ -335,7 +335,7 @@ export class iXRLibClient
 					mbBodyContent = Buffer.from(szJSON);
 					// OUTPUTDEBUGSTRING(szJSON, "\n");
 					iXRLibAnalytics.SetHeadersFromCurrentState(objRequest, Buffer.from(szJSON), true, true);
-					eTestCurlRet = await objRequest.Post(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T>()), [], mbBodyContent, {szResponse: ""});
+					eTestCurlRet = await objRequest.Post(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T>(tTypeOfT)), [], mbBodyContent, {szResponse: ""});
 					// OUTPUTDEBUGSTRING(szResponse, "\n");
 					if (!eTestCurlRet)
 					{
@@ -351,8 +351,12 @@ export class iXRLibClient
 console.log(szJSON);
 				mbBodyContent = Buffer.from(szJSON);
 				// OUTPUTDEBUGSTRING(szJSON, "\n");
-				iXRLibAnalytics.SetHeadersFromCurrentState(objRequest, Buffer.from(szJSON), true, true);
-				eCurlRet = await objRequest.Post(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T>()), [], mbBodyContent, {szResponse: ""});
+				await iXRLibAnalytics.SetHeadersFromCurrentState(objRequest, Buffer.from(szJSON), true, true);
+objRequest.m_objRequestHeaders.forEach((szValue, szName) =>
+{
+	console.log(szName, szValue);
+});
+				eCurlRet = await objRequest.Post(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T>(tTypeOfT)), [], mbBodyContent, {szResponse: ""});
 				// OUTPUTDEBUGSTRING(szJSON, "\n\nRESPONSE:\n\n", szResponse);
 			}
 			// Judgment call here... if (bOneAtATime) then szResponse will be the last response and this will react to that.
@@ -400,7 +404,7 @@ console.log(szJSON);
 		return iXRResult.eOk;
 	}
 	// TODO:  Summary this when dust has settled.
-	public static async GetIXRXXXs<T extends DataObjectBase>(vpszQueryParameters: Array<[string, string]>, /*OUT*/ ptContainedResponse: iXRXXXContainer<T, PythonDictStrings, false> | null, /*OUT*/ ptResponse: T | null): Promise<iXRResult>
+	public static async GetIXRXXXs<T extends DataObjectBase>(tTypeOfT: any, vpszQueryParameters: Array<[string, string]>, /*OUT*/ ptContainedResponse: iXRXXXContainer<T, PythonDictStrings, false> | null, /*OUT*/ ptResponse: T | null): Promise<iXRResult>
 	{
 		try
 		{
@@ -412,7 +416,7 @@ console.log(szJSON);
 			var	objResponseFailure:	PostObjectsResponseFailure = new PostObjectsResponseFailure();	// e.g. {"detail":"Invalid Login - Hash"}
 
 			iXRLibAnalytics.SetHeadersFromCurrentState(objRequest, Buffer.from(""), false, true);
-			eCurlRet = await objRequest.Get(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T>()), vpszQueryParameters, {szResponse: ""});
+			eCurlRet = await objRequest.Get(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T>(tTypeOfT)), vpszQueryParameters, {szResponse: ""});
 			// OUTPUTDEBUGSTRING("RESPONSE:\n", szResponse, "\n");
 			if (eCurlRet)
 			{
@@ -464,7 +468,7 @@ console.log(szJSON);
 		return iXRResult.eOk;
 	}
 	// TODO:  Summary this when dust has settled.
-	public static async DeleteIXRXXX<T extends iXRBase>(vpszQueryParameters: Array<[string, string]>, refparam: {szResponse: string}): Promise<iXRResult>
+	public static async DeleteIXRXXX<T extends iXRBase>(tTypeOfT: any, vpszQueryParameters: Array<[string, string]>, refparam: {szResponse: string}): Promise<iXRResult>
 	{
 		try
 		{
@@ -476,7 +480,7 @@ console.log(szJSON);
 			var	objResponseFailure:	PostObjectsResponseFailure = new PostObjectsResponseFailure();	// e.g. {"detail":"Invalid Login - Hash"}
 
 			// iXRLibAnalytics.SetHeadersFromCurrentState(objRequest, "", false, true);
-			eCurlRet = await objRequest.Delete(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T>()), vpszQueryParameters, {szResponse: ""});
+			eCurlRet = await objRequest.Delete(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T>(tTypeOfT)), vpszQueryParameters, {szResponse: ""});
 			// OUTPUTDEBUGSTRING(szResponse, "\n");
 			if (eCurlRet)
 			{
@@ -555,7 +559,7 @@ console.log(szJSON);
 	public static async GetIXRConfig(/*OUT*/ ixrConfiguration: iXRLibConfiguration): Promise<iXRResult>
 	{
 		var	szRestUrl:	string = ixrConfiguration.GetRestUrl();
-		var	eRet:		iXRResult = await iXRLibClient.GetIXRXXXs<iXRLibConfiguration>([], null, ixrConfiguration);
+		var	eRet:		iXRResult = await iXRLibClient.GetIXRXXXs<iXRLibConfiguration>(iXRLibConfiguration, [], null, ixrConfiguration);
 
 		// Judgment call here... restore the REST_URL to what it was before getting the config from the backend.
 		// For example, when I am running test code, the local backend populates this field with the cloud URL,
@@ -567,7 +571,7 @@ console.log(szJSON);
 	}
 	public static async GetIXRStorage(/*OUT*/ ixrStorage: iXRXXXContainer<iXRStorage, PythonDictStrings, false>): Promise<iXRResult>
 	{
-		return await iXRLibClient.GetIXRXXXs<iXRStorage>([], ixrStorage, null);
+		return await iXRLibClient.GetIXRXXXs<iXRStorage>(iXRStorage, [], ixrStorage, null);
 	}
 	/// <summary>
 	/// Delete single iXRStorage entry by name.
@@ -578,7 +582,7 @@ console.log(szJSON);
 	/// <returns>iXRResult status code.</returns>
 	public static async DeleteIXRStorageEntry(szName: string, refparam: {szResponse: string}): Promise<iXRResult>
 	{
-		return await iXRLibClient.DeleteIXRXXX<iXRStorage>([ ["name", szName] ], {szResponse: ""});
+		return await iXRLibClient.DeleteIXRXXX<iXRStorage>(iXRStorage, [ ["name", szName] ], {szResponse: ""});
 	}
 	/// <summary>
 	/// Delete iXRStorage entries for this device, either session only or all of them.
@@ -589,7 +593,7 @@ console.log(szJSON);
 	/// <returns>iXRResult status code.</returns>
 	public static async DeleteMultipleIXRStorageEntries(bSessionOnly: boolean, refparam: {szResponse: string}): Promise<iXRResult>
 	{
-		return await iXRLibClient.DeleteIXRXXX<iXRStorage>([ ["sessionOnly", (bSessionOnly) ? "true" : "false"] ], {szResponse: ""});
+		return await iXRLibClient.DeleteIXRXXX<iXRStorage>(iXRStorage, [ ["sessionOnly", (bSessionOnly) ? "true" : "false"] ], {szResponse: ""});
 	}
 	// ---
 	public static async PostIXREvents(listpEvents: DbSet<iXREvent>, bOneAtATime: boolean, refparam: {szResponse: string}): Promise<iXRResult>

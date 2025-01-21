@@ -163,6 +163,23 @@ function DebugSetAppConfig(): void
 	ConfigurationManager.DebugSetAppConfig(szAppConfig);
 }
 
+function doSomethingWith(result: any)
+{
+	console.log(result)
+}
+
+function TestRegex()
+{
+	const targetText = "SomeT1extSomeT2extSomeT3extSomeT4extSomeT5extSomeT6ext"
+	const reg = /e(.*?)e/g;
+	let result: RegExpMatchArray | null = null;
+
+	while ((result = reg.exec(targetText)) !== null)
+	{
+		doSomethingWith(result[0]);
+	}
+}
+
 async function TestJson(): Promise<void>
 {
 	var objTestData:	TestData = new TestData();
@@ -178,6 +195,7 @@ async function TestJson(): Promise<void>
 
 	try
 	{
+		TestRegex();
 		bufferTest = await SHA256("Hello, world!");
 		try
 		{
@@ -189,34 +207,34 @@ async function TestJson(): Promise<void>
 		}
 		console.log(suidTest.ToString());
 		DebugSetAppConfig();
-		FakeUpSomeRandomCrapEvent(ixrEvent, true);
-		iXRLibSend.EventSynchronousCore(ixrEvent);
-		iXRLibAnalytics.m_ixrLibAsync.AddTask(async (o: any): Promise<iXRResult> => { console.log("Sleeping..."); await Sleep(3000); console.log("Never shoot no dear."); return iXRResult.eOk; }, objTestData, (o: any):void => { console.log("It's just flooded I'll be ok."); });
+		// iXRLibAnalytics.m_ixrLibAsync.AddTask(async (o: any): Promise<iXRResult> => { console.log("Sleeping..."); await Sleep(3000); console.log("Never shoot no dear."); return iXRResult.eOk; }, objTestData, (o: any):void => { console.log("It's just flooded I'll be ok."); });
 		// ---
 		console.log(DbSetsOfStuff);
 		iXRLibInit.Start();
-		if (typeof(DbSetsOfStuff) === "function")
-		{
-			console.log("It is a function");
-		}
-		await Sleep(4000);
-		for (const [szField, objField] of Object.entries(obj))
-		{
-			console.log(szField, " ", typeof(objField));
-			if (objField instanceof DbSet)
-			{
-				if (objField.ContainedType() === TestData)
-				{
-					console.log("Found it: ", szField);
-					pdsIXRXXX = objField;
-					break;
-				}
-			}
-		}
+		FakeUpSomeRandomCrapEvent(ixrEvent, true);
+		await iXRLibSend.EventSynchronousCore(ixrEvent);
+		// if (typeof(DbSetsOfStuff) === "function")
+		// {
+		// 	console.log("It is a function");
+		// }
+		await Sleep(400000);
+		// for (const [szField, objField] of Object.entries(obj))
+		// {
+		// 	console.log(szField, " ", typeof(objField));
+		// 	if (objField instanceof DbSet)
+		// 	{
+		// 		if (objField.ContainedType() === TestData)
+		// 		{
+		// 			console.log("Found it: ", szField);
+		// 			pdsIXRXXX = objField;
+		// 			break;
+		// 		}
+		// 	}
+		// }
 		szJSON = GenerateJson(objTestData, DumpCategory.eDumpingJsonForBackend);
-		console.log(szJSON);
+		// console.log(szJSON);
 		szJSON = JSON.stringify(objTestData, TestData.m_mapProperties.replacer);
-		console.log(szJSON);
+		// console.log(szJSON);
 	}
 	catch (e)
 	{

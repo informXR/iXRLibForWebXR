@@ -910,7 +910,7 @@ export class iXRLibAnalytics
 	/// <param name="objRequest">The request being prepared</param>
 	/// <param name="pbBodyContent">Body content where applicable (POST, PUT, ...)</param>
 	/// <param name="bIncludeAuthHeaders">Include X-iXRLib-xxx headers computed from Authenticate() data... i.e. false when Authenticate()ing</param>
-	public static SetHeadersFromCurrentState(objRequest: CurlHttp, pbBodyContent: Buffer, bHasBody: boolean, bIncludeAuthHeaders: boolean): void
+	public static async SetHeadersFromCurrentState(objRequest: CurlHttp, pbBodyContent: Buffer, bHasBody: boolean, bIncludeAuthHeaders: boolean): Promise<void>
 	{
 		try
 		{
@@ -923,7 +923,7 @@ export class iXRLibAnalytics
 			// ---
 			if (bIncludeAuthHeaders)
 			{
-				iXRLibInit.m_ixrLibAuthentication.SetHeadersFromCurrentState(objRequest, pbBodyContent, bHasBody);
+				await iXRLibInit.m_ixrLibAuthentication.SetHeadersFromCurrentState(objRequest, pbBodyContent, bHasBody);
 			}
 		}
 		catch (error)
