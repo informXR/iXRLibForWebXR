@@ -3,10 +3,11 @@ import { iXRLibAnalytics, iXRLibInit } from './iXRLibAnalytics';
 import { iXRLibAsync } from './iXRLibAsync';
 import { iXRBase, iXRDbContext, iXREvent, iXRLibConfiguration } from './iXRLibCoreModel';
 import { iXRLibSend } from './iXRLibSend';
-import { AuthenticationRequestSchema, Base64, Sleep, SUID } from './network/types';
+import { iXRLibStorage } from './iXRLibStorage';
+import { AuthenticationRequestSchema, Base64, CurlHttp, Sleep, SUID } from './network/types';
 import { SHA256 } from './network/utils/cryptoUtils';
 import { DataObjectBase, DbSet, DumpCategory, FieldProperties, FieldPropertiesRecordContainer, FieldPropertyFlags, GenerateJson } from './network/utils/DataObjectBase';
-import { ConfigurationManager, iXRResult, PythonDictStrings, StringList, TimeSpan } from './network/utils/DotNetishTypes';
+import { ConfigurationManager, DateTime, iXRResult, PythonDictStrings, StringList, TimeSpan } from './network/utils/DotNetishTypes';
 import { logError, logInfo } from './network/utils/logger';
 import { FakeUpSomeCrapEvent, FakeUpSomeRandomCrapEvent } from './test/iXRCoreModelTests';
 
@@ -163,11 +164,6 @@ function DebugSetAppConfig(): void
 	ConfigurationManager.DebugSetAppConfig(szAppConfig);
 }
 
-function doSomethingWith(result: any)
-{
-	console.log(result)
-}
-
 function TestRegex()
 {
 	const targetText = "SomeT1extSomeT2extSomeT3extSomeT4extSomeT5extSomeT6ext"
@@ -176,8 +172,38 @@ function TestRegex()
 
 	while ((result = reg.exec(targetText)) !== null)
 	{
-		doSomethingWith(result[0]);
+		console.log(result[0]);
 	}
+}
+
+async function TestHttp()
+{
+	var objRequest:	CurlHttp = new CurlHttp();
+	var dtNow:		DateTime = new DateTime();
+	var szResponse:	string = "";
+
+	objRequest.AddHttpHeader("Host", iXRLibStorage.m_ixrLibConfiguration.GetRestUrlObject().HostAndPort());
+	objRequest.AddHttpHeader("Accept", "application/json");
+	objRequest.AddHttpHeader("UserAgent", "Mozilla/5.0 (Windows NT 10.0; Win64; rv:109.0) Gecko/20100101 Firefox/119.0");
+	objRequest.AddHttpHeader("Accept-Language", "en-US; q=0.5, en; q=0.5");
+	objRequest.AddHttpHeader("Accept-Encoding", "gzip, deflate");
+	objRequest.AddHttpHeader("Content-Type", "application/json");	// May need to parse pbBodyContent someday to distinguish Content-Type and Accept header settings.
+	// ---
+	objRequest.AddHttpAuthHeader("Bearer", 'this.m_szApiToken');
+	objRequest.AddHttpHeader("X-iXRLib-Hash", "wpIeZXbCmG1HYQ/CpMK0BWFFE8K/cSsnw41hA8KrwrVnFsKcSsOnG2YN");
+	objRequest.AddHttpHeader("X-iXRLib-Timestamp", dtNow.ToString());
+	// ---
+	await objRequest.Post("http://192.168.5.2:19080/api/v1/telemetry", [], Buffer.from("Some egregiously invalid body content."), {szResponse: ""});
+	console.log(objRequest.m_objResponse);
+}
+
+async function TestLoginAndSend(): Promise<void>
+{
+	var ixrEvent:		iXREvent = new iXREvent();
+
+	iXRLibInit.Start();
+	FakeUpSomeRandomCrapEvent(ixrEvent, true);
+	await iXRLibSend.EventSynchronousCore(ixrEvent);
 }
 
 async function TestJson(): Promise<void>
@@ -195,7 +221,8 @@ async function TestJson(): Promise<void>
 
 	try
 	{
-		TestRegex();
+		// await TestHttp();
+		// TestRegex();
 		bufferTest = await SHA256("Hello, world!");
 		try
 		{

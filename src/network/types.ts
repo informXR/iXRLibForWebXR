@@ -6,6 +6,7 @@ import { DataObjectBase, FieldProperties, FieldPropertiesRecordContainer } from 
 export const DATEMAXVALUE = 2222;
 export const DATEMINVALUE = 1972;
 export const DEFAULTNAME = "state";
+export const SIZE_MAX = Number.MAX_SAFE_INTEGER;
 
 export class Base64
 {
@@ -67,6 +68,23 @@ export class ScopeThreadBlock
 	}
 }
 
+export class SyncEvent
+{
+	public m_bEvent:	boolean = false;
+	// ---
+	public SetEvent(): void
+	{
+		this.m_bEvent = true;
+	}
+	public async Wait(): Promise<void>
+	{
+		while (!this.m_bEvent)
+		{
+			await Sleep(100);
+		}
+	}
+}
+
 export enum Verb
 {
 	eGet,
@@ -80,7 +98,7 @@ export enum Verb
 };
 
 /// <summary>
-/// CURL-based HTTP client in the C++/TypeScript style.
+/// CURL-based HTTP client in the C++/TypeScript style.  Using Fetch API instead of CURL.
 /// </summary>
 export class CurlHttp
 {
@@ -108,7 +126,6 @@ export class CurlHttp
 	{
 		var	szUrlWithQueryParameters:	string = "";
 
-		this.m_objRequestHeaders = new Headers();
 		this.m_objResponse = new Response();
 		// ---
 		if (vpszQueryParameters.length !== 0)
@@ -193,10 +210,6 @@ export class CurlHttp
 		{
 			if (this.Initialize(szUrl, vpszQueryParameters, Verb.ePost, mbBodyContent, {szResponse: refparam.szResponse}))
 			{
-this.m_objRequestHeaders.forEach((szValue, szName) =>
-{
-	console.log(szName, szValue);
-});
 				const objResponse:	Response = await fetch(this.m_objRequest);
 
 				refparam.szResponse = await objResponse.text();
@@ -206,7 +219,7 @@ this.m_objRequestHeaders.forEach((szValue, szName) =>
 		}
 		catch (error: unknown)
 		{
-			this.m_szLastError = error instanceof Error ? error.message : String(error);
+			this.m_szLastError = `${error instanceof Error ? error.message : 'Fetch'} : ${String(error)}`;
 			// ---
 			return false;
 		}

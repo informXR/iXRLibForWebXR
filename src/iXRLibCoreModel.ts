@@ -50,8 +50,8 @@ export class iXRBase extends DataObjectBase
 		// ---
 		this.m_guidId = new SUID();
 		this.m_guidParentId = new SUID();
-		this.m_dtTimeStamp = new DateTime().FromUnixTime(DATEMAXVALUE);
-		this.m_nTimeStamp = DATEMAXVALUE;
+		this.m_dtTimeStamp = new DateTime().FromUnixTime(DateTime.Now());
+		this.m_nTimeStamp = this.m_dtTimeStamp.ToInt64();
 		this.m_bSyncedWithCloud = false;	// On the cloud db, this is always true.  On the device, false indicates exists only in device-local SQLite db... needs update or create in cloud db to sync.
 		// ---
 		if (iXRBase.m_bUseCapturedTimeStamp)
@@ -88,6 +88,9 @@ export class iXRBase extends DataObjectBase
 			break;
 		}
 		return true;
+	}
+	public FakeUpSomeRandomCrap(bWantChildObjects: boolean = true): void
+	{
 	}
 };
 

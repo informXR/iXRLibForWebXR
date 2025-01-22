@@ -314,12 +314,12 @@ export class iXRLibInit
 /// The main API object.
 /// </summary>
 // --- MJP:  templatize these?
-type iXRLibAnalyticsGeneralCallback = (eResult: iXRResult, szExceptionMessage: string) => void;
-type iXRLibAnalyticsAIProxyCallback = (ixrAIProxy: iXRAIProxy, eResult: iXRResult, szExceptionMessage: string) => void;
-type iXRLibAnalyticsStorageCallback = (ixrStorage: iXRStorage, eResult: iXRResult, szExceptionMessage: string) => void;
+export type iXRLibAnalyticsGeneralCallback = (eResult: iXRResult, szExceptionMessage: string) => void;
+export type iXRLibAnalyticsAIProxyCallback = (ixrAIProxy: iXRAIProxy, eResult: iXRResult, szExceptionMessage: string) => void;
+export type iXRLibAnalyticsStorageCallback = (ixrStorage: iXRStorage, eResult: iXRResult, szExceptionMessage: string) => void;
 // ---
-type iXRLibGetAuthSecretCallback = (pUserData: object | null) => string;
-type iXRLibDiagnosticCallback = (szDiagnostic: string) => void;
+export type iXRLibGetAuthSecretCallback = (pUserData: object | null) => string;
+export type iXRLibDiagnosticCallback = (szDiagnostic: string) => void;
 // ---
 export class iXRLibAnalytics
 {
@@ -390,7 +390,7 @@ export class iXRLibAnalytics
     /// <param name="pfnStatusCallback">Callback to call if this logic ^^^ computes.</param>
     /// <param name="szExceptionMessage">Message describing problem to be passed to the callback.</param>
     /// <returns>eResult</returns>
-    private static TaskErrorReturn(eResult: iXRResult, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsGeneralCallback, szExceptionMessage: string): iXRResult
+    /*private*/ public static TaskErrorReturn(eResult: iXRResult, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsGeneralCallback, szExceptionMessage: string): iXRResult
     {
         if (pfnStatusCallback !== null && pfnStatusCallback !== undefined)
         {
@@ -689,7 +689,8 @@ export class iXRLibAnalytics
 					{
 						var	szResponse: string = "";
 
-						if ((await pfnPostIXRXXX((dspObjectsToSend ?? new DbSet<T>(tTypeOfT)), bOneAtATime, {szResponse})) === iXRResult.eOk)
+						eTestRet = await pfnPostIXRXXX((dspObjectsToSend ?? new DbSet<T>(tTypeOfT)), bOneAtATime, {szResponse});
+						if (eTestRet === iXRResult.eOk)
 						{
 							var	eSuccessParse:		JsonResult,
 								eFailureParse:		JsonResult;
@@ -756,10 +757,11 @@ export class iXRLibAnalytics
 						continue;
 					}
 				}
-				//if (!bDoneSending)
-				//{
-				//	eRet = iXRResult.
-				//}
+				if (!bDoneSending)
+				{
+					eRet = eTestRet;
+					bDoneSending = true;
+				}
 			}
 			// Delete sent from local-db if thusly configured.
 			// if (iXRLibStorage.m_ixrLibConfiguration.m_bUseDatabase)

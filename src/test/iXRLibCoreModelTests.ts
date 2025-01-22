@@ -50,8 +50,8 @@ export function FakeUpSomeRandomCrapTelemetry(obj: iXRTelemetry): void
 {
 	var pszNames:		string[] =
 		[
-		"Right controller",
-		"Battery",
+			"Right controller",
+			"Battery",
 			"Aggravated battery",
 			"User looked at something significant",
 			"User fell asleep"
