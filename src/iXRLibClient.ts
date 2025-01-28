@@ -303,7 +303,7 @@ export class iXRLibClient
 	/// <param name="szRESTEndpoint">Backend REST endpoint that receives the POST.</param>
 	/// <param name="szResponse">Response from backend... either success JSON or failure JSON.</param>
 	/// <returns>iXRResult status code.</returns>
-	public static async PostIXRXXXs<T extends iXRBase>(listpXXXs: DbSet<T>, tTypeOfT: any, bOneAtATime: boolean, refparam: {szResponse: string}): Promise<iXRResult>
+	public static async PostIXRXXXs<T extends iXRBase>(listpXXXs: DbSet<T>, tTypeOfT: any, bOneAtATime: boolean, rpResponse: {szResponse: string}): Promise<iXRResult>
 	{
 		try
 		{
@@ -335,7 +335,7 @@ export class iXRLibClient
 					mbBodyContent = Buffer.from(szJSON);
 					// OUTPUTDEBUGSTRING(szJSON, "\n");
 					iXRLibAnalytics.SetHeadersFromCurrentState(objRequest, Buffer.from(szJSON), true, true);
-					eTestCurlRet = await objRequest.Post(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T>(tTypeOfT)), [], mbBodyContent, {szResponse: ""});
+					eTestCurlRet = await objRequest.Post(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T>(tTypeOfT)), [], mbBodyContent, rpResponse);
 					// OUTPUTDEBUGSTRING(szResponse, "\n");
 					if (!eTestCurlRet)
 					{
@@ -352,7 +352,7 @@ console.log(szJSON);
 				mbBodyContent = Buffer.from(szJSON);
 				// OUTPUTDEBUGSTRING(szJSON, "\n");
 				await iXRLibAnalytics.SetHeadersFromCurrentState(objRequest, Buffer.from(szJSON), true, true);
-				eCurlRet = await objRequest.Post(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T>(tTypeOfT)), [], mbBodyContent, {szResponse: ""});
+				eCurlRet = await objRequest.Post(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T>(tTypeOfT)), [], mbBodyContent, rpResponse);
 				// OUTPUTDEBUGSTRING(szJSON, "\n\nRESPONSE:\n\n", szResponse);
 			}
 			// Judgment call here... if (bOneAtATime) then szResponse will be the last response and this will react to that.
@@ -360,7 +360,7 @@ console.log(szJSON);
 			// bailing on the first failure is better but I do not know for sure.
 			if (eCurlRet)
 			{
-				eJsonRet = LoadFromJson(objResponseSuccess, refparam.szResponse);
+				eJsonRet = LoadFromJson(objResponseSuccess, rpResponse.szResponse);
 				if (eJsonRet === JsonResult.eOk)
 				{
 					return iXRResult.eOk;
@@ -368,7 +368,7 @@ console.log(szJSON);
 				else
 				{
 					// Did not get success, does failure parse?
-					eJsonRet = LoadFromJson(objResponseFailure, refparam.szResponse);
+					eJsonRet = LoadFromJson(objResponseFailure, rpResponse.szResponse);
 					if (eJsonRet === JsonResult.eOk)
 					{
 						// Failure parses, probably auth error.
@@ -408,21 +408,21 @@ console.log(szJSON);
 			var	eCurlRet:			boolean;
 			var	eJsonRet:			JsonResult;
 			var	eReauthResult:		iXRResult;
-			var	szResponse:			string = "";
+			var	rpResponse:			{szResponse: string} = {szResponse: ""};
 			var	objResponseFailure:	PostObjectsResponseFailure = new PostObjectsResponseFailure();	// e.g. {"detail":"Invalid Login - Hash"}
 
 			iXRLibAnalytics.SetHeadersFromCurrentState(objRequest, Buffer.from(""), false, true);
-			eCurlRet = await objRequest.Get(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T>(tTypeOfT)), vpszQueryParameters, {szResponse: ""});
+			eCurlRet = await objRequest.Get(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T>(tTypeOfT)), vpszQueryParameters, rpResponse);
 			// OUTPUTDEBUGSTRING("RESPONSE:\n", szResponse, "\n");
 			if (eCurlRet)
 			{
 				if (ptResponse)
 				{
-					eJsonRet = LoadFromJson(ptResponse, szResponse);
+					eJsonRet = LoadFromJson(ptResponse, rpResponse.szResponse);
 				}
 				else
 				{
-					eJsonRet = LoadFromJson(ptContainedResponse, szResponse);
+					eJsonRet = LoadFromJson(ptContainedResponse, rpResponse.szResponse);
 				}
 				if (eJsonRet === JsonResult.eOk)
 				{
@@ -431,7 +431,7 @@ console.log(szJSON);
 				else
 				{
 					// Did not get success, does failure parse?
-					eJsonRet = LoadFromJson(objResponseFailure, szResponse);
+					eJsonRet = LoadFromJson(objResponseFailure, rpResponse.szResponse);
 					if (eJsonRet === JsonResult.eOk)
 					{
 						// Failure parses, probably auth error.
@@ -464,7 +464,7 @@ console.log(szJSON);
 		return iXRResult.eOk;
 	}
 	// TODO:  Summary this when dust has settled.
-	public static async DeleteIXRXXX<T extends iXRBase>(tTypeOfT: any, vpszQueryParameters: Array<[string, string]>, refparam: {szResponse: string}): Promise<iXRResult>
+	public static async DeleteIXRXXX<T extends iXRBase>(tTypeOfT: any, vpszQueryParameters: Array<[string, string]>, rpResponse: {szResponse: string}): Promise<iXRResult>
 	{
 		try
 		{
@@ -476,11 +476,11 @@ console.log(szJSON);
 			var	objResponseFailure:	PostObjectsResponseFailure = new PostObjectsResponseFailure();	// e.g. {"detail":"Invalid Login - Hash"}
 
 			// iXRLibAnalytics.SetHeadersFromCurrentState(objRequest, "", false, true);
-			eCurlRet = await objRequest.Delete(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T>(tTypeOfT)), vpszQueryParameters, {szResponse: ""});
+			eCurlRet = await objRequest.Delete(iXRLibAnalytics.FinalUrl(RESTEndpointFromType<T>(tTypeOfT)), vpszQueryParameters, rpResponse);
 			// OUTPUTDEBUGSTRING(szResponse, "\n");
 			if (eCurlRet)
 			{
-				eJsonRet = LoadFromJson(objResponseSuccess, refparam.szResponse);
+				eJsonRet = LoadFromJson(objResponseSuccess, rpResponse.szResponse);
 				if (eJsonRet === JsonResult.eOk)
 				{
 					return iXRResult.eOk;
@@ -488,7 +488,7 @@ console.log(szJSON);
 				else
 				{
 					// Did not get success, does failure parse?
-					eJsonRet = LoadFromJson(objResponseFailure, refparam.szResponse);
+					eJsonRet = LoadFromJson(objResponseFailure, rpResponse.szResponse);
 					if (eJsonRet === JsonResult.eOk)
 					{
 						// Failure parses, probably auth error.
@@ -526,17 +526,18 @@ console.log(szJSON);
 	/// </summary>
 	/// <param name="authTokenRequest"></param>
 	/// <returns>Success or failure</returns>
-	public static async PostAuthenticate(authTokenRequest: AuthTokenRequest, refparam: {szResponse: string}): Promise<iXRResult>
+	public static async PostAuthenticate(authTokenRequest: AuthTokenRequest, rpResponse: {szResponse: string}): Promise<iXRResult>
 	{
 		var	objRequest:		CurlHttp = new CurlHttp();
 		var	eCurlRet:		boolean;
 		var	szJSON:			string = GenerateJson(authTokenRequest, DumpCategory.eDumpEverything);	// Save a few ns not going with eDumpingJsonForBackend... this is not a database object, no need to exclude fields.
-		var	mbBodyContent:	Buffer = new Buffer(szJSON);
+
+		var	mbBodyContent:	Buffer = Buffer.from(szJSON);
 
 		try
 		{
-			// iXRLibAnalytics.SetHeadersFromCurrentState(objRequest, szJSON, true, false);
-			eCurlRet = await objRequest.Post(iXRLibAnalytics.FinalUrl("auth/token"), [], mbBodyContent, {szResponse: ""});
+			iXRLibAnalytics.SetHeadersFromCurrentState(objRequest, Buffer.from(szJSON), true, false);
+			eCurlRet = await objRequest.Post(iXRLibAnalytics.FinalUrl("auth/token"), [], mbBodyContent, rpResponse);
 			if (!eCurlRet)
 			{
 				return iXRResult.eAuthenticateFailedNetworkError;
@@ -576,9 +577,9 @@ console.log(szJSON);
 	/// <param name="szName">Name of the Storage element.</param>
 	/// <param name="szResponse">Response from backend.</param>
 	/// <returns>iXRResult status code.</returns>
-	public static async DeleteIXRStorageEntry(szName: string, refparam: {szResponse: string}): Promise<iXRResult>
+	public static async DeleteIXRStorageEntry(szName: string, rpResponse: {szResponse: string}): Promise<iXRResult>
 	{
-		return await iXRLibClient.DeleteIXRXXX<iXRStorage>(iXRStorage, [ ["name", szName] ], {szResponse: ""});
+		return await iXRLibClient.DeleteIXRXXX<iXRStorage>(iXRStorage, [ ["name", szName] ], rpResponse);
 	}
 	/// <summary>
 	/// Delete iXRStorage entries for this device, either session only or all of them.
@@ -587,34 +588,34 @@ console.log(szJSON);
 	/// <param name="bSessionOnly">true if only session data is to be deleted, else all data.</param>
 	/// <param name="szResponse">Response from backend.</param>
 	/// <returns>iXRResult status code.</returns>
-	public static async DeleteMultipleIXRStorageEntries(bSessionOnly: boolean, refparam: {szResponse: string}): Promise<iXRResult>
+	public static async DeleteMultipleIXRStorageEntries(bSessionOnly: boolean, rpResponse: {szResponse: string}): Promise<iXRResult>
 	{
-		return await iXRLibClient.DeleteIXRXXX<iXRStorage>(iXRStorage, [ ["sessionOnly", (bSessionOnly) ? "true" : "false"] ], {szResponse: ""});
+		return await iXRLibClient.DeleteIXRXXX<iXRStorage>(iXRStorage, [ ["sessionOnly", (bSessionOnly) ? "true" : "false"] ], rpResponse);
 	}
 	// ---
-	public static async PostIXREvents(listpEvents: DbSet<iXREvent>, bOneAtATime: boolean, refparam: {szResponse: string}): Promise<iXRResult>
+	public static async PostIXREvents(listpEvents: DbSet<iXREvent>, bOneAtATime: boolean, rpResponse: {szResponse: string}): Promise<iXRResult>
 	{
-		return await iXRLibClient.PostIXRXXXs<iXREvent>(listpEvents, iXREvent, bOneAtATime, {szResponse: ""});
+		return await iXRLibClient.PostIXRXXXs<iXREvent>(listpEvents, iXREvent, bOneAtATime, rpResponse);
 	}
-	public static async PostIXRAIProxyObjects(listpAIProxyObjects: DbSet<iXRAIProxy>, bOneAtATime: boolean, refparam: {szResponse: string}): Promise<iXRResult>
+	public static async PostIXRAIProxyObjects(listpAIProxyObjects: DbSet<iXRAIProxy>, bOneAtATime: boolean, rpResponse: {szResponse: string}): Promise<iXRResult>
 	{
-		return await iXRLibClient.PostIXRXXXs<iXRAIProxy>(listpAIProxyObjects, iXRAIProxy, bOneAtATime, {szResponse: ""});
+		return await iXRLibClient.PostIXRXXXs<iXRAIProxy>(listpAIProxyObjects, iXRAIProxy, bOneAtATime, rpResponse);
 	}
-	public static async PostIXRLogs(listpLogs: DbSet<iXRLog>, bOneAtATime: boolean, refparam: {szResponse: string}): Promise<iXRResult>
+	public static async PostIXRLogs(listpLogs: DbSet<iXRLog>, bOneAtATime: boolean, rpResponse: {szResponse: string}): Promise<iXRResult>
 	{
-		return await iXRLibClient.PostIXRXXXs<iXRLog>(listpLogs, iXRLog, bOneAtATime, {szResponse: ""});
+		return await iXRLibClient.PostIXRXXXs<iXRLog>(listpLogs, iXRLog, bOneAtATime, rpResponse);
 	}
-	public static async PostIXRTelemetry(listpTelemetry: DbSet<iXRTelemetry>, bOneAtATime: boolean, refparam: {szResponse: string}): Promise<iXRResult>
+	public static async PostIXRTelemetry(listpTelemetry: DbSet<iXRTelemetry>, bOneAtATime: boolean, rpResponse: {szResponse: string}): Promise<iXRResult>
 	{
-		return await iXRLibClient.PostIXRXXXs<iXRTelemetry>(listpTelemetry, iXRTelemetry, bOneAtATime, {szResponse: ""});
+		return await iXRLibClient.PostIXRXXXs<iXRTelemetry>(listpTelemetry, iXRTelemetry, bOneAtATime, rpResponse);
 	}
-	public static async PostIXRAIProxy(listpAIProxy: DbSet<iXRAIProxy>, bOneAtATime: boolean, refparam: {szResponse: string}): Promise<iXRResult>
+	public static async PostIXRAIProxy(listpAIProxy: DbSet<iXRAIProxy>, bOneAtATime: boolean, rpResponse: {szResponse: string}): Promise<iXRResult>
 	{
-		return await iXRLibClient.PostIXRXXXs<iXRAIProxy>(listpAIProxy, iXRAIProxy, bOneAtATime, {szResponse: ""});
+		return await iXRLibClient.PostIXRXXXs<iXRAIProxy>(listpAIProxy, iXRAIProxy, bOneAtATime, rpResponse);
 	}
-	public static async PostIXRStorage(listpStorage: DbSet<iXRStorage>, bOneAtATime: boolean, refparam: {szResponse: string}): Promise<iXRResult>
+	public static async PostIXRStorage(listpStorage: DbSet<iXRStorage>, bOneAtATime: boolean, rpResponse: {szResponse: string}): Promise<iXRResult>
 	{
-		return await iXRLibClient.PostIXRXXXs<iXRStorage>(listpStorage, iXRStorage, bOneAtATime, {szResponse: ""});
+		return await iXRLibClient.PostIXRXXXs<iXRStorage>(listpStorage, iXRStorage, bOneAtATime, rpResponse);
 	}
 	// ---
 	/// <summary>

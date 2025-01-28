@@ -112,7 +112,7 @@ export class iXRLibInit
 	{
 		var objAuthTokenRequest:	AuthTokenRequest = new AuthTokenRequest();
 		var eRet:					iXRResult = iXRResult.eOk;
-		var szResponse:				string = "";
+		var rpResponse:				{szResponse: string} = {szResponse: ""};
 
 		// Stuff these into this object's property variables for future ReAuthenticate().
 		this.set_AppID(szAppId);
@@ -142,7 +142,7 @@ export class iXRLibInit
 		objAuthTokenRequest.m_dictGeoLocation = iXRLibInit.m_ixrLibAuthentication.m_objAuthTokenRequest.m_dictGeoLocation;
 		objAuthTokenRequest.m_dictAuthMechanism = iXRLibInit.m_ixrLibAuthentication.m_objAuthTokenRequest.m_dictAuthMechanism;
 		// ---
-		eRet = await iXRLibClient.PostAuthenticate(objAuthTokenRequest, {szResponse});
+		eRet = await iXRLibClient.PostAuthenticate(objAuthTokenRequest, rpResponse);
 		if (eRet === iXRResult.eOk)
 		{
 			var	eSuccessParse,
@@ -152,8 +152,8 @@ export class iXRLibInit
 			var	objAuthTokenResponseFailure:	AuthTokenResponseFailure = new AuthTokenResponseFailure();
 			var	objAuthTokenDecodedJWT:			AuthTokenDecodedJWT = new AuthTokenDecodedJWT();
 
-			eSuccessParse = LoadFromJson(objAuthTokenResponseSuccess, szResponse);
-			eFailureParse = LoadFromJson(objAuthTokenResponseFailure, szResponse);
+			eSuccessParse = LoadFromJson(objAuthTokenResponseSuccess, rpResponse.szResponse);
+			eFailureParse = LoadFromJson(objAuthTokenResponseFailure, rpResponse.szResponse);
 			if (eSuccessParse === JsonResult.eBadJsonStructure || eFailureParse === JsonResult.eBadJsonStructure)
 			{
 				eRet = iXRResult.eCorruptJson;
@@ -437,7 +437,7 @@ export class iXRLibAnalytics
 	/// <param name="bNoCallbackOnSuccess">true = Only call pfnStatusCallback on error, false = always call pfnStatusCallback (assuming pfnStatusCallback not null, do not call at all otherwise).</param>
 	/// <param name="pfnStatusCallback">null = do not want status callback, else call according to ^^^.</param>
 	/// <returns>As the call has not happened yet on return, this is the status of adding the task or failing to add it.</returns>
-	/*private*/ public static async AddXXXTask<T extends iXRBase>(ixrT: T, tTypeOfT: any, szTableName: string, pfnPostIXRXXX: (listpT: DbSet<T>, bOneAtATime: boolean, refparam: {szResponse: string}) => Promise<iXRResult>, bOneAtATime: boolean, bNoCallbackOnSuccess: boolean, pfnStatusCallback: ((ixrXXX: T, eResult: iXRResult, szExceptionMessage: string) => void) | null): Promise<iXRResult>
+	/*private*/ public static async AddXXXTask<T extends iXRBase>(ixrT: T, tTypeOfT: any, szTableName: string, pfnPostIXRXXX: (listpT: DbSet<T>, bOneAtATime: boolean, rpResponse: {szResponse: string}) => Promise<iXRResult>, bOneAtATime: boolean, bNoCallbackOnSuccess: boolean, pfnStatusCallback: ((ixrXXX: T, eResult: iXRResult, szExceptionMessage: string) => void) | null): Promise<iXRResult>
 	{
 		var	nTrimCount:		number;
 		var	dtNow:			DateTime = DateTime.ConvertUnixTime(DateTime.Now()),
@@ -546,7 +546,7 @@ export class iXRLibAnalytics
 	/// <param name="bNoCallbackOnSuccess">true = Only call pfnStatusCallback on error, false = always call pfnStatusCallback (assuming pfnStatusCallback not null, do not call at all otherwise).</param>
 	/// <param name="pfnStatusCallback">null = do not want status callback, else call according to ^^^.</param>
 	/// <returns>As the call has not happened yet on return, this is the status of adding the task or failing to add it.</returns>
-	private static DeleteXXXTask<T extends iXRBase>(ixrT: T, tTypeOfT: any, szTableName: string, pfnDeleteIXRXXX: (ixrT: T, refparam: {szResponse: string}) => iXRResult, bNoCallbackOnSuccess: boolean, pfnStatusCallback: ((ixrXXX: T, eResult: iXRResult, szExceptionMessage: string) => void) | null): iXRResult
+	private static DeleteXXXTask<T extends iXRBase>(ixrT: T, tTypeOfT: any, szTableName: string, pfnDeleteIXRXXX: (ixrT: T, rpResponse: {szResponse: string}) => iXRResult, bNoCallbackOnSuccess: boolean, pfnStatusCallback: ((ixrXXX: T, eResult: iXRResult, szExceptionMessage: string) => void) | null): iXRResult
 	{
 		var	nTrimCount:		number;
 		var	dtNow:			DateTime = DateTime.ConvertUnixTime(DateTime.Now()),
@@ -636,7 +636,7 @@ export class iXRLibAnalytics
 	/// <param name="nConfiguredXXXPerSendAttempt">The corresponding how many T's per send attempt from iXRLibConfiguration.</param>
 	/// <param name="bSendingStragglers">true when being called by TimerCallback to drive Nagle-algorithmish-straggler-send, false when doing a main send</param>
 	/// <returns>iXRResult status code</returns>
-	protected static async SendUnsentXXXs<T extends iXRBase>(ixrDbContext: iXRDbContext, dsIXRXXX: DbSet<T> | null, tTypeOfT: any, szTableName: string, pfnPostIXRXXX: (listpT: DbSet<T>, bOneAtATime: boolean, refparam: {szResponse: string}) => Promise<iXRResult>, bOneAtATime: boolean, nConfiguredXXXPerSendAttempt: number, bSendingStragglers: boolean): Promise<iXRResult>
+	protected static async SendUnsentXXXs<T extends iXRBase>(ixrDbContext: iXRDbContext, dsIXRXXX: DbSet<T> | null, tTypeOfT: any, szTableName: string, pfnPostIXRXXX: (listpT: DbSet<T>, bOneAtATime: boolean, rpResponse: {szResponse: string}) => Promise<iXRResult>, bOneAtATime: boolean, nConfiguredXXXPerSendAttempt: number, bSendingStragglers: boolean): Promise<iXRResult>
 	{
 		var	eRet:		iXRResult = iXRResult.eOk,
 			eTestRet:	iXRResult = iXRResult.eOk;
@@ -687,9 +687,9 @@ export class iXRLibAnalytics
 				{
 					try
 					{
-						var	szResponse: string = "";
+						var	rpResponse:	{szResponse: string} = {szResponse: ""};
 
-						eTestRet = await pfnPostIXRXXX((dspObjectsToSend ?? new DbSet<T>(tTypeOfT)), bOneAtATime, {szResponse});
+						eTestRet = await pfnPostIXRXXX((dspObjectsToSend ?? new DbSet<T>(tTypeOfT)), bOneAtATime, rpResponse);
 						if (eTestRet === iXRResult.eOk)
 						{
 							var	eSuccessParse:		JsonResult,
@@ -697,8 +697,8 @@ export class iXRLibAnalytics
 							var	objResponseSuccess:	PostObjectsResponseSuccess = new PostObjectsResponseSuccess();
 							var	objResponseFailure:	PostObjectsResponseFailure = new PostObjectsResponseFailure();
 
-							eSuccessParse = LoadFromJson(objResponseSuccess, szResponse);
-							eFailureParse = LoadFromJson(objResponseFailure, szResponse);
+							eSuccessParse = LoadFromJson(objResponseSuccess, rpResponse.szResponse);
+							eFailureParse = LoadFromJson(objResponseFailure, rpResponse.szResponse);
 							if (eSuccessParse === JsonResult.eBadJsonStructure || eFailureParse === JsonResult.eBadJsonStructure)
 							{
 								eTestRet = iXRResult.eCorruptJson;
@@ -798,7 +798,7 @@ export class iXRLibAnalytics
 	/// <param name="bNoCallbackOnSuccess">When asynchronous and pfnStatusCallback not null, call always when this is false, only on failure when true.</param>
 	/// <param name="pfnStatusCallback">null = no-op, not-null = callback in asynchronous case with respect to bNoCallbackOnSuccess.</param>
 	/// <returns>iXRResult status code.</returns>
-	private static async AddXXXNoDbTask<T extends iXRBase>(ixrT: T, tTypeOfT: any, pfnPostIXRXXX: (listpT: DbSet<T>, bOneAtATime: boolean, refparam: { szResponse: string}) => Promise<iXRResult>, bOneAtATime: boolean, bNoCallbackOnSuccess: boolean, pfnStatusCallback: ((ixrXXX: T, eResult: iXRResult, szExceptionMessage: string) => void) | null): Promise<iXRResult>
+	private static async AddXXXNoDbTask<T extends iXRBase>(ixrT: T, tTypeOfT: any, pfnPostIXRXXX: (listpT: DbSet<T>, bOneAtATime: boolean, rpResponse: {szResponse: string}) => Promise<iXRResult>, bOneAtATime: boolean, bNoCallbackOnSuccess: boolean, pfnStatusCallback: ((ixrXXX: T, eResult: iXRResult, szExceptionMessage: string) => void) | null): Promise<iXRResult>
 	{
 		var	eRet:	iXRResult = iXRResult.eOk;
 
@@ -819,9 +819,9 @@ export class iXRLibAnalytics
 					{
 						try
 						{
-							var	szResponse:	string = "";
+							var	rpResponse:	{szResponse: string} = {szResponse: ""};
 
-							if ((await pfnPostIXRXXX(pObjectsToSend, bOneAtATime, {szResponse})) === iXRResult.eOk)
+							if ((await pfnPostIXRXXX(pObjectsToSend, bOneAtATime, rpResponse)) === iXRResult.eOk)
 							{
 								var	eSuccessParse:		JsonResult,
 									eFailureParse:		JsonResult;
@@ -829,8 +829,8 @@ export class iXRLibAnalytics
 								var	objResponseFailure: PostObjectsResponseFailure = new PostObjectsResponseFailure();
 								var	eTestRet:			iXRResult = iXRResult.eOk;
 
-								eSuccessParse = LoadFromJson(objResponseSuccess, szResponse);
-								eFailureParse = LoadFromJson(objResponseFailure, szResponse);
+								eSuccessParse = LoadFromJson(objResponseSuccess, rpResponse.szResponse);
+								eFailureParse = LoadFromJson(objResponseFailure, rpResponse.szResponse);
 								if (eSuccessParse === JsonResult.eBadJsonStructure || eFailureParse === JsonResult.eBadJsonStructure)
 								{
 									eTestRet = iXRResult.eCorruptJson;
@@ -916,11 +916,11 @@ export class iXRLibAnalytics
 	{
 		try
 		{
-			objRequest.AddHttpHeader("Host", iXRLibStorage.m_ixrLibConfiguration.GetRestUrlObject().HostAndPort());
-			objRequest.AddHttpHeader("Accept", "application/json");
-			objRequest.AddHttpHeader("UserAgent", "Mozilla/5.0 (Windows NT 10.0; Win64; rv:109.0) Gecko/20100101 Firefox/119.0");
-			objRequest.AddHttpHeader("Accept-Language", "en-US; q=0.5, en; q=0.5");
-			objRequest.AddHttpHeader("Accept-Encoding", "gzip, deflate");
+			objRequest.AddHttpHeader("host", iXRLibStorage.m_ixrLibConfiguration.GetRestUrlObject().HostAndPort());
+			objRequest.AddHttpHeader("accept", "application/json");
+			objRequest.AddHttpHeader("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; rv:109.0) Gecko/20100101 Firefox/119.0");
+			objRequest.AddHttpHeader("accept-language", "en-US; q=0.5, en; q=0.5");
+			objRequest.AddHttpHeader("accept-encoding", "gzip, deflate");
 			objRequest.AddHttpHeader("Content-Type", "application/json");	// May need to parse pbBodyContent someday to distinguish Content-Type and Accept header settings.
 			// ---
 			if (bIncludeAuthHeaders)

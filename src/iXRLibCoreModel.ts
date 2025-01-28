@@ -8,6 +8,7 @@ import { DataObjectBase, DbContext, DbSet, DumpCategory, FieldProperties, FieldP
 import { ConfigurationManager, DateTime, Dictionary, iXRResult, PythonDictStrings, StringList, TimeSpan } from "./network/utils/DotNetishTypes";
 import { DatabaseResult, DbSuccess } from "./network/utils/iXRLibSQLite";
 import { HTTP_URL, URLParser } from "./network/utils/URLParser";
+import { FakeUpSomeRandomCrapAIProxy, FakeUpSomeRandomCrapApplication, FakeUpSomeRandomCrapDbContext, FakeUpSomeRandomCrapEvent, FakeUpSomeRandomCrapLocation, FakeUpSomeRandomCrapLog, FakeUpSomeRandomCrapStorage, FakeUpSomeRandomCrapStorageData, FakeUpSomeRandomCrapTelemetry } from "./test/iXRLibCoreModelTests";
 
 /// </summary>
 export class iXRBase extends DataObjectBase
@@ -88,9 +89,6 @@ export class iXRBase extends DataObjectBase
 			break;
 		}
 		return true;
-	}
-	public FakeUpSomeRandomCrap(bWantChildObjects: boolean = true): void
-	{
 	}
 };
 
@@ -286,7 +284,10 @@ export class iXRApplication extends iXRBase
 	}
 	// --- TESTS.
 // #ifdef _DEBUG
-// 	void FakeUpSomeRandomCrap();
+	public FakeUpSomeRandomCrap(bWantChildObjects: boolean = true): void
+	{
+		FakeUpSomeRandomCrapApplication(this);
+	}
 // #endif // _DEBUG
 };
 
@@ -345,7 +346,10 @@ export class iXRLocationData extends iXRBase
 	}
 	// ---
 // #ifdef _DEBUG
-// 	void FakeUpSomeRandomCrap();
+	public FakeUpSomeRandomCrap(bWantChildObjects: boolean = true): void
+	{
+		FakeUpSomeRandomCrapLocation(this);
+	}
 // #endif // _DEBUG
 };
 
@@ -435,10 +439,10 @@ export class iXRLog extends iXRBase
 	// --- TESTS.
 // #ifdef _DEBUG
 // 	void FakeUpSomeRandomCrap();
-// 	void FakeUpSomeRandomCrap(bool bDontWorryAboutThisEventHasThisJustNeedItHereSoTheTemplateInstantiates)
-// 	{
-// 		FakeUpSomeRandomCrap();
-// 	}
+	public FakeUpSomeRandomCrap(bWantChildObjects: boolean = true): void
+	{
+		FakeUpSomeRandomCrapLog(this);
+	}
 // #endif // _DEBUG
 };
 
@@ -479,11 +483,10 @@ export class iXRTelemetry extends iXRBase
 	}
 // 	// --- TESTS.
 // #ifdef _DEBUG
-// 	void FakeUpSomeRandomCrap();
-// 	void FakeUpSomeRandomCrap(bool bDontWorryAboutThisEventHasThisJustNeedItHereSoTheTemplateInstantiates)
-// 	{
-// 		FakeUpSomeRandomCrap();
-// 	}
+	public FakeUpSomeRandomCrap(bWantChildObjects: boolean = true): void
+	{
+		FakeUpSomeRandomCrapTelemetry(this);
+	}
 // #endif // _DEBUG
 };
 
@@ -547,11 +550,10 @@ export class iXRAIProxy extends iXRBase
 	}
 // 	// --- TESTS.
 // #ifdef _DEBUG
-// 	void FakeUpSomeRandomCrap();
-// 	void FakeUpSomeRandomCrap(bool bDontWorryAboutThisEventHasThisJustNeedItHereSoTheTemplateInstantiates)
-// 	{
-// 		FakeUpSomeRandomCrap();
-// 	}
+	public FakeUpSomeRandomCrap(bWantChildObjects: boolean = true): void
+	{
+		FakeUpSomeRandomCrapAIProxy(this);
+	}
 // #endif // _DEBUG
 };
 
@@ -607,10 +609,10 @@ export class iXREvent extends iXRBase
 	}
 	// --- TESTS.
 // #ifdef _DEBUG
-// 	void FakeUpSomeCrap();
-// 	void FakeUpSomeDifferentCrap();
-// 	void FakeUpSomeRandomCrap();
-// 	void FakeUpSomeRandomCrap(bool bWantChildObjects);
+	public FakeUpSomeRandomCrap(bWantChildObjects: boolean = true): void
+	{
+		FakeUpSomeRandomCrapEvent(this, bWantChildObjects);
+	}
 // #endif // _DEBUG
 };
 
@@ -678,15 +680,11 @@ export class iXRXXXContainer<T extends DataObjectBase, T_CONTAINS, bTWantTimesta
 	}
 	// --- TESTS.
 // #ifdef _DEBUG
-// 	void FakeUpSomeRandomCrap()
-// 	{
-// 		m_dspIXRXXXs.emplace_front().FakeUpSomeRandomCrap();
-// 	}
-// 	void FakeUpSomeRandomCrap(bool bDontWorryAboutThisEventHasThisJustNeedItHereSoTheTemplateInstantiates)
-// 	{
-// 		FakeUpSomeRandomCrap();
-// 	}
-// #endif
+	public FakeUpSomeRandomCrap(bWantChildObjects: boolean = true): void
+	{
+		this.m_dspIXRXXXs.emplace_front().FakeUpSomeRandomCrap(bWantChildObjects);
+	}
+// #endif // _DEBUG
 };
 
 /// <summary>
@@ -776,11 +774,10 @@ export class iXRStorageData extends iXRBase
 	}
 	// --- TESTS.
 // #ifdef _DEBUG
-// 	void FakeUpSomeRandomCrap();
-// 	void FakeUpSomeRandomCrap(bool bDontWorryAboutThisEventHasThisJustNeedItHereSoTheTemplateInstantiates)
-// 	{
-// 		FakeUpSomeRandomCrap();
-// 	}
+	public FakeUpSomeRandomCrap(bWantChildObjects: boolean = true): void
+	{
+		FakeUpSomeRandomCrapStorageData(this);
+	}
 // #endif
 };
 
@@ -866,11 +863,10 @@ export class iXRStorage extends iXRBase
 	}
 	// --- TESTS.
 // #ifdef _DEBUG
-// 	void FakeUpSomeRandomCrap();
-// 	void FakeUpSomeRandomCrap(bool bDontWorryAboutThisEventHasThisJustNeedItHereSoTheTemplateInstantiates)
-// 	{
-// 		FakeUpSomeRandomCrap();
-// 	}
+	public FakeUpSomeRandomCrap(bWantChildObjects: boolean = true): void
+	{
+		FakeUpSomeRandomCrapStorage(this);
+	}
 // #endif // _DEBUG
 };
 
@@ -1283,7 +1279,10 @@ export class iXRDbContext extends DbContext
 	}
 	// --- TESTS.
 // #ifdef _DEBUG
-// 	void FakeUpSomeRandomCrap();
+	public FakeUpSomeRandomCrap(bWantChildObjects: boolean = true): void
+	{
+		FakeUpSomeRandomCrapDbContext(this);
+	}
 // #endif // _DEBUG
 };
 

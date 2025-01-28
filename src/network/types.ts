@@ -116,13 +116,20 @@ export class CurlHttp
 	}
 	public AddHttpHeader(szName: string, szValue: string) : void
 	{
-		this.m_objRequestHeaders.append(szName, szValue);
+		if (this.m_objRequestHeaders.has(szName))
+		{
+			this.m_objRequestHeaders.set(szName, szValue);
+		}
+		else
+		{
+			this.m_objRequestHeaders.append(szName, szValue);
+		}
 	}
 	public AddHttpAuthHeader(szName: string, szValue: string): void
 	{
 		this.m_objRequestHeaders.append("Authorization", `${szName} ${szValue}`);
 	}
-	public Initialize(szUrl: string, vpszQueryParameters: Array<[string, string]>, eVerb: Verb, pmbBodyContent: Buffer | null, refparam: {szResponse: string}): boolean
+	public Initialize(szUrl: string, vpszQueryParameters: Array<[string, string]>, eVerb: Verb, pmbBodyContent: Buffer | null): boolean
 	{
 		var	szUrlWithQueryParameters:	string = "";
 
@@ -146,17 +153,19 @@ export class CurlHttp
 		// --- Body content for POST-style verbs.
 		if (pmbBodyContent)
 		{
+			var szBodyContent:	string = ((pmbBodyContent) ? ((pmbBodyContent instanceof Buffer) ? pmbBodyContent.toString('utf-8') : pmbBodyContent) : "") as string;
+
 			// If eVerb not POST, custom set whatever body-content verb it is.
 			switch (eVerb)
 			{
 			case Verb.ePut:
-				this.m_objRequest = new Request(szUrl, {method: "PUT", headers: this.m_objRequestHeaders, body: pmbBodyContent});
+				this.m_objRequest = new Request(szUrl, {method: "PUT", headers: this.m_objRequestHeaders, body: szBodyContent});
 				break;
 			case Verb.ePatch:
-				this.m_objRequest = new Request(szUrl, {method: "PATCH", headers: this.m_objRequestHeaders, body: pmbBodyContent});
+				this.m_objRequest = new Request(szUrl, {method: "PATCH", headers: this.m_objRequestHeaders, body: szBodyContent});
 				break;
 			case Verb.ePost:
-				this.m_objRequest = new Request(szUrl, {method: "POST", headers: this.m_objRequestHeaders, body: pmbBodyContent});
+				this.m_objRequest = new Request(szUrl, {method: "POST", headers: this.m_objRequestHeaders, body: szBodyContent});
 				break;
 			default:
 				break;
@@ -183,15 +192,15 @@ export class CurlHttp
 		// ---
 		return true;
 	}
-	public async Get(szUrl: string, vpszQueryParameters: Array<[string, string]>, refparam: {szResponse: string}): Promise<boolean>
+	public async Get(szUrl: string, vpszQueryParameters: Array<[string, string]>, rpResponse: {szResponse: string}): Promise<boolean>
 	{
 		try
 		{
-			if (this.Initialize(szUrl, vpszQueryParameters, Verb.eGet, null, {szResponse: refparam.szResponse}))
+			if (this.Initialize(szUrl, vpszQueryParameters, Verb.eGet, null))
 			{
 				const objResponse:	Response = await fetch(this.m_objRequest);
 
-				refparam.szResponse = await objResponse.text();
+				rpResponse.szResponse = await objResponse.text();
 				// ---
 				return true;
 			}
@@ -204,36 +213,40 @@ export class CurlHttp
 		}
 		return false;
 	}
-	public async Post(szUrl: string, vpszQueryParameters: Array<[string, string]>, mbBodyContent: Buffer, refparam: {szResponse: string}): Promise<boolean>
+	public async Post(szUrl: string, vpszQueryParameters: Array<[string, string]>, mbBodyContent: Buffer, rpResponse: {szResponse: string}): Promise<boolean>
 	{
 		try
 		{
-			if (this.Initialize(szUrl, vpszQueryParameters, Verb.ePost, mbBodyContent, {szResponse: refparam.szResponse}))
+			if (this.Initialize(szUrl, vpszQueryParameters, Verb.ePost, mbBodyContent))
 			{
 				const objResponse:	Response = await fetch(this.m_objRequest);
 
-				refparam.szResponse = await objResponse.text();
+				rpResponse.szResponse = await objResponse.text();
 				// ---
 				return true;
 			}
 		}
 		catch (error: unknown)
 		{
+			var eError:	Error = error as Error;
+			// var szCause:	string = eError.cause as string;
+
+			// this.m_szLastError = `${error instanceof Error ? error.message : 'Fetch'} : ${String(error)}, cause ${(eError) ? String(eError.cause.ToString()) : 'unknown'}`;
 			this.m_szLastError = `${error instanceof Error ? error.message : 'Fetch'} : ${String(error)}`;
 			// ---
 			return false;
 		}
 		return false;
 	}
-	public async Delete(szUrl: string, vpszQueryParameters: Array<[string, string]>, refparam: {szResponse: string}): Promise<boolean>
+	public async Delete(szUrl: string, vpszQueryParameters: Array<[string, string]>, rpResponse: {szResponse: string}): Promise<boolean>
 	{
 		try
 		{
-			if (this.Initialize(szUrl, vpszQueryParameters, Verb.eDelete, null, {szResponse: refparam.szResponse}))
+			if (this.Initialize(szUrl, vpszQueryParameters, Verb.eDelete, null))
 			{
 				const objResponse:	Response = await fetch(this.m_objRequest);
 
-				refparam.szResponse = await objResponse.text();
+				rpResponse.szResponse = await objResponse.text();
 				// ---
 				return true;
 			}
@@ -399,8 +412,8 @@ export class SUID
 	}
 	public ToStringPureHex(): string
 	{
-		// return ToStringGuts<CHAR>(true);
-		return "";
+		// Remove curly braces and hyphens from standard GUID string.
+		return this.m_guid.toString().replace(/[{}-]/g, '');
 	}
 };
 

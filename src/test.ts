@@ -2,14 +2,15 @@ import { iXRInit, iXRInstance, ResultOptions, InteractionType } from './iXR';
 import { iXRLibAnalytics, iXRLibInit } from './iXRLibAnalytics';
 import { iXRLibAsync } from './iXRLibAsync';
 import { iXRBase, iXRDbContext, iXREvent, iXRLibConfiguration } from './iXRLibCoreModel';
-import { iXRLibSend } from './iXRLibSend';
+import { iXRLibSend, iXRLibAnalyticsEventCallback } from './iXRLibSend';
 import { iXRLibStorage } from './iXRLibStorage';
-import { AuthenticationRequestSchema, Base64, CurlHttp, Sleep, SUID } from './network/types';
+import { AuthenticationRequestSchema, Base64, CurlHttp, Sleep, SUID, SyncEvent } from './network/types';
 import { SHA256 } from './network/utils/cryptoUtils';
 import { DataObjectBase, DbSet, DumpCategory, FieldProperties, FieldPropertiesRecordContainer, FieldPropertyFlags, GenerateJson } from './network/utils/DataObjectBase';
 import { ConfigurationManager, DateTime, iXRResult, PythonDictStrings, StringList, TimeSpan } from './network/utils/DotNetishTypes';
 import { logError, logInfo } from './network/utils/logger';
-import { FakeUpSomeCrapEvent, FakeUpSomeRandomCrapEvent } from './test/iXRCoreModelTests';
+import { FakeUpSomeCrapEvent, FakeUpSomeRandomCrapEvent } from './test/iXRLibCoreModelTests';
+import { iXRLibAnalyticsTests } from './test/iXRLibAnalyticsTests';
 
 export { iXRInit, iXRInstance, AuthenticationRequestSchema };
 
@@ -141,8 +142,8 @@ function DebugSetAppConfig(): void
 	var szAppConfig:	string = '<?xml version="1.0" encoding="utf-8" ?>' +
 		'<configuration>' +
 			'<appSettings>' +
-				'<!--<add key="REST_URL" value="http://192.168.5.17:9000/"/>-->' +
-				'<add key="REST_URL" value="http://192.168.5.2:19080/"/>' +
+				'<add key="REST_URL" value="http://192.168.5.24:9000/v1/"/>' +
+				'<!--<add key="REST_URL" value="http://192.168.5.2:19080/"/>-->' +
 				'<add key="SendRetriesOnFailure" value="3"/>' +
 				'<!-- Bandwidth config parameters. -->' +
 				'<add key="SendRetryInterval" value="00:00:03"/>' +
@@ -199,9 +200,14 @@ async function TestHttp()
 
 async function TestLoginAndSend(): Promise<void>
 {
-	var ixrEvent:		iXREvent = new iXREvent();
+	var ixrEvent:					iXREvent = new iXREvent();
+	var seAsyncOperationComplete:	SyncEvent = new SyncEvent();
 
 	iXRLibInit.Start();
+	if (await iXRLibAnalyticsTests.TestAuthenticate() === iXRResult.eOk)
+	{
+		await iXRLibAnalyticsTests.AddXXX<iXREvent>(ixrEvent, false, seAsyncOperationComplete, true, iXRLibSend.EventSynchronousCore, iXRLibSend.EventCore);
+	}
 	FakeUpSomeRandomCrapEvent(ixrEvent, true);
 	await iXRLibSend.EventSynchronousCore(ixrEvent);
 }
@@ -221,8 +227,10 @@ async function TestJson(): Promise<void>
 
 	try
 	{
+		DebugSetAppConfig();
 		// await TestHttp();
 		// TestRegex();
+		await TestLoginAndSend();
 		bufferTest = await SHA256("Hello, world!");
 		try
 		{
@@ -233,7 +241,6 @@ async function TestJson(): Promise<void>
 			console.log(e);
 		}
 		console.log(suidTest.ToString());
-		DebugSetAppConfig();
 		// iXRLibAnalytics.m_ixrLibAsync.AddTask(async (o: any): Promise<iXRResult> => { console.log("Sleeping..."); await Sleep(3000); console.log("Never shoot no dear."); return iXRResult.eOk; }, objTestData, (o: any):void => { console.log("It's just flooded I'll be ok."); });
 		// ---
 		console.log(DbSetsOfStuff);

@@ -7,9 +7,9 @@ import { iXREvent, iXRLog, iXRTelemetry, LogLevel } from "./iXRLibCoreModel";
 import { DateTime, InteractionType, InteractionTypeToString, iXRResult, PythonDictStrings, ResultOptions, ResultOptionsToString, TimeSpan } from "./network/utils/DotNetishTypes";
 
 // --- MJP:  templatize these?
-type iXRLibAnalyticsLogCallback = (ixrLog: iXRLog, eResult: iXRResult, szExceptionMessage: string) => void;
-type iXRLibAnalyticsEventCallback = (ixrEvent: iXREvent, eResult: iXRResult, szExceptionMessage: string) => void;
-type iXRLibAnalyticsTelemetryCallback = (ixrTelemetry: iXRTelemetry, eResult: iXRResult, szExceptionMessage: string) => void;
+export type iXRLibAnalyticsLogCallback = (ixrLog: iXRLog, eResult: iXRResult, szExceptionMessage: string) => void;
+export type iXRLibAnalyticsEventCallback = (ixrEvent: iXREvent, eResult: iXRResult, szExceptionMessage: string) => void;
+export type iXRLibAnalyticsTelemetryCallback = (ixrTelemetry: iXRTelemetry, eResult: iXRResult, szExceptionMessage: string) => void;
 // ---
 /// </summary>
 export class iXRLibSend
@@ -96,7 +96,7 @@ export class iXRLibSend
 	}
 	public static async EventAssessmentComplete(szAssessmentName: string, szScore: string, eResultOptions: ResultOptions, dictMeta: PythonDictStrings): Promise<iXRResult>
 	{
-		var	dtStartTime:	DateTime = new DateTime();
+		var	rpStartTime:	{vRet: DateTime} = {vRet: new DateTime()};
 		var	bGotValue:		boolean;
 
 		dictMeta.set("verb", "completed");
@@ -105,11 +105,11 @@ export class iXRLibSend
 		dictMeta.set("result_options", ResultOptionsToString(eResultOptions));
 		// Calculate and add duration if start time exists, otherwise use "0".
 		//iXREvent.m_csDictProtect.lock();
-		bGotValue = iXREvent.m_dictAssessmentStartTimes.TryGetValue(szAssessmentName, {vRet: dtStartTime});
+		bGotValue = iXREvent.m_dictAssessmentStartTimes.TryGetValue(szAssessmentName, rpStartTime);
 		//iXREvent.m_csDictProtect.unlock();
 		if (bGotValue)
 		{
-			var	tsDuration:	TimeSpan = new TimeSpan().FromUnixTime(DateTime.Now() - dtStartTime.ToUnixTime());
+			var	tsDuration:	TimeSpan = new TimeSpan().FromUnixTime(DateTime.Now() - rpStartTime.vRet.ToUnixTime());
 
 			dictMeta.set("duration", tsDuration.ToString());
 			// ---
@@ -137,7 +137,7 @@ export class iXRLibSend
 	}
 	public static async EventObjectiveComplete(szObjectiveName: string, szScore: string, eResultOptions: ResultOptions, dictMeta: PythonDictStrings): Promise<iXRResult>
 	{
-		var	dtStartTime:	DateTime = new DateTime();
+		var	rpStartTime:	{vRet: DateTime} = {vRet: new DateTime()};
 		var	bGotValue:		boolean;
 
 		dictMeta.set("verb", "completed");
@@ -146,11 +146,11 @@ export class iXRLibSend
 		dictMeta.set("result_options", ResultOptionsToString(eResultOptions));
 		// Calculate and add duration if start time exists, otherwise use "0".
 		//iXREvent.m_csDictProtect.lock();
-		bGotValue = iXREvent.m_dictObjectiveStartTimes.TryGetValue(szObjectiveName, {vRet: dtStartTime});
+		bGotValue = iXREvent.m_dictObjectiveStartTimes.TryGetValue(szObjectiveName, rpStartTime);
 		//iXREvent.m_csDictProtect.unlock();
 		if (bGotValue)
 		{
-			var	tsDuration:	TimeSpan = new TimeSpan().FromUnixTime(DateTime.Now() - dtStartTime.ToUnixTime());
+			var	tsDuration:	TimeSpan = new TimeSpan().FromUnixTime(DateTime.Now() - rpStartTime.vRet.ToUnixTime());
 
 			dictMeta.set("duration", tsDuration.ToString());
 			// ---
@@ -179,7 +179,7 @@ export class iXRLibSend
 	// Modified EventInteractionComplete methods.
 	public static async EventInteractionComplete(szInteractionName: string, szResult: string, szResultDetails: string, eInteractionType: InteractionType, dictMeta: PythonDictStrings): Promise<iXRResult>
 	{
-		var	dtStartTime:	DateTime = new DateTime();
+		var	rpStartTime:	{vRet: DateTime} = {vRet: new DateTime()};
 		var	bGotValue:		boolean;
 
 		dictMeta.set("verb", "completed");
@@ -188,11 +188,11 @@ export class iXRLibSend
 		dictMeta.set("result_details", szResultDetails);
 		dictMeta.set("lms_type", InteractionTypeToString(eInteractionType));
 		//iXREvent.m_csDictProtect.lock();
-		bGotValue = iXREvent.m_dictInteractionStartTimes.TryGetValue(szInteractionName, {vRet: dtStartTime});
+		bGotValue = iXREvent.m_dictInteractionStartTimes.TryGetValue(szInteractionName, rpStartTime);
 		//iXREvent.m_csDictProtect.unlock();
 		if (bGotValue)
 		{
-			var	tsDuration:	TimeSpan = new TimeSpan().FromUnixTime(DateTime.Now() - dtStartTime.ToUnixTime());
+			var	tsDuration:	TimeSpan = new TimeSpan().FromUnixTime(DateTime.Now() - rpStartTime.vRet.ToUnixTime());
 
 			dictMeta.set("duration", tsDuration.ToString());
 			// ---
@@ -208,7 +208,7 @@ export class iXRLibSend
 		//iXREvent.m_csDictProtect.lock();
 		if (iXREvent.m_dictAssessmentStartTimes.Count() === 1)
 		{
-			dictMeta.set("assessment_name", iXREvent.m_dictAssessmentStartTimes.entries().next().value.vRet.ToString());
+			dictMeta.set("assessment_name", iXREvent.m_dictAssessmentStartTimes.entries().next().value?.[1].ToString() ?? "");
 		}
 		//iXREvent.m_csDictProtect.unlock();
 		// ---
@@ -227,7 +227,7 @@ export class iXRLibSend
 	}
 	public static async EventLevelComplete(szLevelName: string, szScore: string, dictMeta: PythonDictStrings): Promise<iXRResult>
 	{
-		var	dtStartTime:	DateTime = new DateTime();
+		var	rpStartTime:	{vRet: DateTime} = {vRet: new DateTime()};
 		var	bGotValue:		boolean;
 
 		dictMeta.set("verb", "completed");
@@ -235,11 +235,11 @@ export class iXRLibSend
 		dictMeta.set("score", szScore);
 		// Calculate and add duration if start time exists, otherwise use "0".
 		//iXREvent.m_csDictProtect.lock();
-		bGotValue = iXREvent.m_dictLevelStartTimes.TryGetValue(szLevelName, {vRet: dtStartTime});
+		bGotValue = iXREvent.m_dictLevelStartTimes.TryGetValue(szLevelName, rpStartTime);
 		//iXREvent.m_csDictProtect.unlock();
 		if (bGotValue)
 		{
-			var	tsDuration:	TimeSpan = new TimeSpan().FromUnixTime(DateTime.Now() - dtStartTime.ToUnixTime());
+			var	tsDuration:	TimeSpan = new TimeSpan().FromUnixTime(DateTime.Now() - rpStartTime.vRet.ToUnixTime());
 
 			dictMeta.set("duration", tsDuration.ToString());
 			// ---

@@ -24,7 +24,7 @@ export function FakeUpSomeRandomCrapApplication(obj: iXRApplication): void
 
 export function FakeUpSomeRandomCrapLocation(obj: iXRLocationData): void
 {
-	var rnd:			Random = new Random();
+	var rnd:	Random = new Random();
 
 	obj.m_dX = (rnd.Next(625)) / 5.0;
 	obj.m_dY = (rnd.Next(625)) / 5.0;

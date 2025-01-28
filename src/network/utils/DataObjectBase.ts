@@ -270,6 +270,9 @@ export class DataObjectBase
 	public FinalizeParse(): void // virtual
 	{
 	}
+	public FakeUpSomeRandomCrap(bWantChildObjects: boolean = true): void
+	{
+	}
 };
 
 // ---

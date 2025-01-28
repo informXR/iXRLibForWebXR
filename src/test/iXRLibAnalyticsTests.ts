@@ -476,7 +476,7 @@ export class iXRLibAnalyticsTests
 	/// <param name="bAlreadyAuthenticated">Do not set ApiToken, Secret if this is true.</param>
 	/// <param name="pfnAddXXXSynchronous">Synchronous Add() function to call if bSynchronous.</param>
 	/// <param name="pfnAddXXX">Asynchronous Add() function to call if !bSynchronous.</param>
-	public static async AddXXX<T extends iXRBase, iXRLibCallback>(tTypeOfT: any, bSynchronous: boolean, seAsyncOperationComplete: SyncEvent, bAlreadyAuthenticated: boolean, pfnAddXXXSynchronous: (ixrT: T) => iXRResult, pfnAddXXX: (ixrT: T, bNoCallbackOnSuccess: boolean, pfnCallback: (ixrT: T, eResult: iXRResult, szExceptionMessage: string) => void) => Promise<iXRResult>): Promise<void>
+	public static async AddXXX<T extends iXRBase>(tTypeOfT: any, bSynchronous: boolean, seAsyncOperationComplete: SyncEvent, bAlreadyAuthenticated: boolean, pfnAddXXXSynchronous: (ixrT: T) => Promise<iXRResult>, pfnAddXXX: (ixrT: T, bNoCallbackOnSuccess: boolean, pfnCallback: (ixrT: T, eResult: iXRResult, szExceptionMessage: string) => void) => Promise<iXRResult>): Promise<void>
 	{
 		if (!bAlreadyAuthenticated)
 		{
