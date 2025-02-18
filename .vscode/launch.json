@@ -1,0 +1,25 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug TypeScript",
+            "type": "node",
+            "request": "launch",
+            "skipFiles": ["<node_internals>/**"],
+            "program": "${workspaceFolder}/src/test.ts",
+            "cwd": "${workspaceFolder}",
+            "runtimeArgs": [
+                "-r",
+                "ts-node/register"
+            ],
+            "sourceMaps": true,
+            "protocol": "inspector",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "openOnSessionStart",
+            "outFiles": ["${workspaceFolder}/build/**/*.js"],
+            "env": {
+                "TS_NODE_PROJECT": "${workspaceFolder}/tsconfig.json"
+            }
+        }
+    ]
+} 
