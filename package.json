@@ -1,60 +1,64 @@
 {
-  "name": "ixrlibforwebxr",
-  "version": "1.0.0",
-  "main": "index.js",
-  "type": "commonjs",
-  "module": "index.js",
-  "browser": "index.js",
-  "types": "index.d.ts",
-  "description": "iXRLibWebForXR for node (npm)",
-  "scripts": {
-    "test-package": "npm link ixrlib",
-    "login": "npm login",
-    "build": "tsc",
-    "ts-watch": "npx tsc -w",
-    "publish": "npm publish",
-    "lint": "gts lint",
-    "clean": "gts clean",
-    "compile": "tsc",
-    "fix": "gts fix",
-    "prepare": "npm run compile",
-    "pretest": "npm run compile",
-    "posttest": "npm run lint",
-    "test": "ts-node src/test.ts",
-    "debug": "node --import ts-node/register/transpile-only --inspect-brk src/test.ts"
-  },
-  "engines": {
-    "node": ">=16.0.0"
-  },
-  "author": "informXR",
-  "license": "ISC",
-  "devDependencies": {
-    "@types/jsonwebtoken": "^9.0.6",
-    "@types/node": "^22.9.1",
-    "gts": "^5.3.1",
-    "ts-loader": "^9.5.2",
-    "ts-node": "^10.9.2",
-    "typescript": "^4.9.5",
-    "webpack": "^5.98.0",
-    "webpack-cli": "^6.0.1"
-  },
-  "dependencies": {
-    "axios": "^1.7.5",
-    "guid-typescript": "^1.0.9",
-    "jsonwebtoken": "^9.0.2",
-    "jwt-decode": "^4.0.0",
-    "localStorage": "^1.0.4",
-    "threads": "^1.7.0"
-  },
-  "files": [
-    "index.js",
-    "build/**/*",
-    "tsconfig.json",
-    "ts-node-config.json",
-    "test.ts",
-    "index.d.ts",
-    "network/**/*",
-    "README.md",
-    "LICENSE"
-  ]
+	"name": "ixrlibforwebxr",
+	"version": "1.0.0",
+	"main": "index.js",
+	"type": "commonjs",
+	"module": "index.js",
+	"browser": "index.js",
+	"types": "index.d.ts",
+	"description": "iXRLibWebForXR for node (npm)",
+	"scripts": {
+		"test-package": "npm link ixrlib",
+		"login": "npm login",
+		"build": "tsc",
+		"ts-watch": "npx tsc -w",
+		"publish": "npm publish",
+		"lint": "gts lint",
+		"clean": "gts clean",
+		"compile": "tsc",
+		"fix": "gts fix",
+		"prepare": "npm run compile",
+		"pretest": "npm run compile",
+		"posttest": "npm run lint",
+		"test": "ts-node src/test.ts",
+		"debug": "node --import ts-node/register/transpile-only --inspect-brk src/test.ts"
+	},
+	"engines": {
+		"node": ">=16.0.0"
+	},
+	"author": "informXR",
+	"license": "ISC",
+	"devDependencies": {
+		"@types/jsonwebtoken": "^9.0.6",
+		"@types/node": "^22.9.1",
+		"gts": "^5.3.1",
+		"ts-loader": "^9.5.2",
+		"ts-node": "^10.9.2",
+		"typescript": "^4.9.5",
+		"webpack": "^5.98.0",
+		"webpack-cli": "^6.0.1"
+	},
+	"dependencies": {
+		"vm-browserify": "^1.1.2",
+		"util": "^0.12.5",
+		"buffer": "^6.0.3",
+		"stream-browserify": "^3.0.0",
+		"crypto-browserify": "^3.12.1",
+		"guid-typescript": "^1.0.9",
+		"jsonwebtoken": "^9.0.2",
+		"jwt-decode": "^4.0.0",
+		"localStorage": "^1.0.4",
+		"threads": "^1.7.0"
+	},
+	"files": [
+		"index.js",
+		"build/**/*",
+		"tsconfig.json",
+		"ts-node-config.json",
+		"test.ts",
+		"index.d.ts",
+		"network/**/*",
+		"README.md",
+		"LICENSE"
+	]
 }
