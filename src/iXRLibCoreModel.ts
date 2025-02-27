@@ -457,9 +457,34 @@ export function StringToLogLevel(szLogLevel: string): LogLevel
 }
 
 /// <summary>
+/// Any object that has m_dictMeta... factored up once we decided Log, Telemetry, Event each needs this.
+/// </summary>
+export class iXRMetaDataObject extends iXRBase
+{
+	public m_dictMeta:	PythonDictStrings;			// General purpose... could be {"batteryLevel": "67.0"}, {"x":"34", "y":"67", "z":"26"}...
+	// ---
+	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
+		super.m_mapProperties.m_rfp,
+	 	{m_dictMeta: new FieldProperties("meta")}));
+	// ---
+	constructor()
+	{
+		super();
+		// ---
+		this.m_dictMeta = new PythonDictStrings();
+	}
+	// На хуй TypeScript.  Could do this with that parameter-unioning bollocks
+	// but that cure is worse than the disease.
+	public ConstructMetaData(dictMeta: PythonDictStrings)
+	{
+		this.m_dictMeta = dictMeta;
+	}
+};
+
+/// <summary>
 /// General purpose... for developer to log whatever they want to log.
 /// </summary>
-export class iXRLog extends iXRBase
+export class iXRLog extends iXRMetaDataObject
 {
 	public m_szLogLevel:	string;
 	public m_szText:		string;
@@ -481,8 +506,10 @@ export class iXRLog extends iXRBase
 		this.m_szLogLevel = "";
 		this.m_szText = "";
 	}
-	public Construct(eLogLevel: LogLevel, szText: string): iXRLog
+	public Construct(eLogLevel: LogLevel, szText: string, dictMeta: PythonDictStrings): iXRLog
 	{
+		super.ConstructMetaData(dictMeta);
+		// ---
 		this.m_szLogLevel = LogLevelToString(eLogLevel);
 		this.m_szText = szText;
 		// ---
@@ -490,7 +517,6 @@ export class iXRLog extends iXRBase
 	}
 	// --- TESTS.
 // #ifdef _DEBUG
-// 	void FakeUpSomeRandomCrap();
 	public FakeUpSomeRandomCrap(bWantChildObjects: boolean = true): void
 	{
 		FakeUpSomeRandomCrapLog(this);
@@ -501,33 +527,27 @@ export class iXRLog extends iXRBase
 /// <summary>
 /// Metrics and position tracking.
 /// </summary>
-export class iXRTelemetry extends iXRBase
+export class iXRTelemetry extends iXRMetaDataObject
 {
-	public m_szName:			string;				// Consider the x, y, z case vvv ... (x, y, z) of what?  This is the "what"... can be empty when self-evident like battery level.
-	public m_dictData:			PythonDictStrings;	// General purpose... could be {"batteryLevel": "67.0"}, {"x":"34", "y":"67", "z":"26"}...
-	// public m_objInAppLocation:	iXRLocationData;
+	public m_szName:			string;				// Consider the x, y, z case (super.m_dictMeta) ... (x, y, z) of what?  This is the "what"... can be empty when self-evident like battery level.
 	// ---
 	constructor()
 	{
 		super();
 		// ---
 		this.m_szName = "";
-		this.m_dictData = new PythonDictStrings();
-		// this.m_objInAppLocation = new iXRLocationData();
 	}
-	public Construct(szName: string, dictData: PythonDictStrings): iXRTelemetry
+	public Construct(szName: string, dictMeta: PythonDictStrings): iXRTelemetry
 	{
+		super.ConstructMetaData(dictMeta);
+		// ---
 		this.m_szName = szName;
-		this.m_dictData = dictData;
 		// ---
 		return this;
 	}
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
 		super.m_mapProperties.m_rfp,
- 		{m_szName: new FieldProperties("name")},
- 		{m_dictData: new FieldProperties("data")},
-		// ---
- 		/*{m_objInAppLocation: new FieldProperties("inAppLocation", FieldPropertyFlags.bfChild)}*/));
+ 		{m_szName: new FieldProperties("name")}));
 	// ---
 	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
 	{
@@ -613,7 +633,7 @@ export class iXRAIProxy extends iXRBase
 /// Event object... from "ixrlib Spec 2023" doc... the main event object that will be profligately POST/PUT/ETCed to the backend for data analytics.
 ///		These are proactively added by the content creator, i.e. NOT automatically obtained by us from the platform, headset-OS, other API, etc.
 /// </summary>
-export class iXREvent extends iXRBase
+export class iXREvent extends iXRMetaDataObject
 {
 	// static std.recursive_mutex				m_csDictProtect;
 	// MJPQ:  This is a massive pain if I have to do this in the constructor to avoid that "cannot read property of undefined" error.
@@ -631,7 +651,6 @@ export class iXREvent extends iXRBase
 	}
 	// ---
 	m_szName:			string;
-	m_dictMeta:			PythonDictStrings;
 	m_szEnvironment:	string;
 	// ---
 	constructor()
@@ -639,13 +658,11 @@ export class iXREvent extends iXRBase
 		super();
 		// ---
 		this.m_szName = "";
-		this.m_dictMeta = new PythonDictStrings();
 		this.m_szEnvironment = "";
 	}
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
 		super.m_mapProperties.m_rfp,
-	 	{m_szName: new FieldProperties("name")},
-	 	{m_dictMeta: new FieldProperties("meta")}));
+	 	{m_szName: new FieldProperties("name")}));
 	// ---
 	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
 	{
@@ -654,6 +671,8 @@ export class iXREvent extends iXRBase
 	// ---
 	public Construct(szName: string, dictMeta: PythonDictStrings) : iXREvent
 	{
+		super.ConstructMetaData(dictMeta);
+		// ---
 		this.m_szName = szName;
 		this.m_dictMeta = dictMeta;
 		// ---

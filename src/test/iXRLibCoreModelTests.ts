@@ -44,6 +44,8 @@ export function FakeUpSomeRandomCrapLog(obj: iXRLog): void
 
 	obj.m_szLogLevel = LogLevelToString(rnd.Next(5) as LogLevel);
 	obj.m_szText = pszTexts[rnd.Next(pszTexts.length)];
+	obj.m_dictMeta.Add("Yes log", "All kids love log");
+	obj.m_dictMeta.Add("Rock on Chicago", "3141");
 }
 
 export function FakeUpSomeRandomCrapTelemetry(obj: iXRTelemetry): void
@@ -59,8 +61,8 @@ export function FakeUpSomeRandomCrapTelemetry(obj: iXRTelemetry): void
 	var rnd:			Random = new Random();
 
 	obj.m_szName = pszNames[rnd.Next(pszNames.length)];
-	obj.m_dictData.Add("galaxy", "Lousy Day");
-	obj.m_dictData.Add("Squirrel", "2718");
+	obj.m_dictMeta.Add("galaxy", "Lousy Day");
+	obj.m_dictMeta.Add("Squirrel", "2718");
 }
 
 export function FakeUpSomeRandomCrapAIProxy(obj: iXRAIProxy): void
@@ -98,7 +100,6 @@ export function FakeUpSomeCrapEvent(obj: iXREvent): void
 	obj.m_dictMeta.Add("key2", "value2");
 	obj.m_dictMeta.Add("key3", "3");
 	obj.m_dictMeta.Add("key4", "value4");
-//	obj.m_objInAppLocation.FakeUpSomeRandomCrap();
 }
 
 export function FakeUpSomeDifferentCrapEvent(obj: iXREvent): void
@@ -109,7 +110,6 @@ export function FakeUpSomeDifferentCrapEvent(obj: iXREvent): void
 	obj.m_dictMeta.Add("key2", "value2");
 	obj.m_dictMeta.Add("key3", "value3");
 	obj.m_dictMeta.Add("key4", "value4");
-//	m_objInAppLocation.FakeUpSomeRandomCrap();
 }
 
 // export function FakeUpSomeRandomCrapEvent(obj: iXREvent): void

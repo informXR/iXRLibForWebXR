@@ -15,58 +15,58 @@ export type iXRLibAnalyticsTelemetryCallback = (ixrTelemetry: iXRTelemetry, eRes
 export class iXRLibSend
 {
 	// --- (C++ dll and C# dll) versions of LogXXX().
-	private static async LogSynchronous(eLogLevel: LogLevel, szText: string): Promise<iXRResult>
+	private static async LogSynchronous(eLogLevel: LogLevel, szText: string, dictMeta: PythonDictStrings): Promise<iXRResult>
 	{
-		var	ixrLog:	iXRLog = new iXRLog().Construct(eLogLevel, szText);
+		var	ixrLog:	iXRLog = new iXRLog().Construct(eLogLevel, szText, dictMeta);
 
 		return await iXRLibSend.AddLogSynchronous(ixrLog);
 	}
-	// private static Log(eLogLevel: LogLevel, szText: string): Promise<iXRResult>
+	// private static Log(eLogLevel: LogLevel, szText: string, dictMeta: PythonDictStrings): Promise<iXRResult>
 	// {
-	// 	var	ixrLog:	iXRLog = new iXRLog().Construct(eLogLevel, szText);
+	// 	var	ixrLog:	iXRLog = new iXRLog().Construct(eLogLevel, szText, dictMeta);
 
 	// 	return iXRLibSend.AddLog(ixrLog, true, null);
 	// }
 	// ---
-	public static async LogDebugSynchronous(szText: string): Promise<iXRResult>
+	public static async LogDebugSynchronous(szText: string, dictMeta: PythonDictStrings): Promise<iXRResult>
 	{
-		return await iXRLibSend.LogSynchronous(LogLevel.eDebug, szText);
+		return await iXRLibSend.LogSynchronous(LogLevel.eDebug, szText, dictMeta);
 	}
-	// public static LogDebug(szText: string): Promise<iXRResult>
+	// public static LogDebug(szText: string, dictMeta: PythonDictStrings): Promise<iXRResult>
 	// {
-	// 	return iXRLibSend.Log(LogLevel.eDebug, szText);
+	// 	return iXRLibSend.Log(LogLevel.eDebug, szText, dictMeta);
 	// }
-	public static async LogInfoSynchronous(szText: string): Promise<iXRResult>
+	public static async LogInfoSynchronous(szText: string, dictMeta: PythonDictStrings): Promise<iXRResult>
 	{
-		return await iXRLibSend.LogSynchronous(LogLevel.eInfo, szText);
+		return await iXRLibSend.LogSynchronous(LogLevel.eInfo, szText, dictMeta);
 	}
-	// public static LogInfo(szText: string): Promise<iXRResult>
+	// public static LogInfo(szText: string, dictMeta: PythonDictStrings): Promise<iXRResult>
 	// {
-	// 	return iXRLibSend.Log(LogLevel.eInfo, szText);
+	// 	return iXRLibSend.Log(LogLevel.eInfo, szText, dictMeta);
 	// }
-	public static async LogWarnSynchronous(szText: string): Promise<iXRResult>
+	public static async LogWarnSynchronous(szText: string, dictMeta: PythonDictStrings): Promise<iXRResult>
 	{
-		return await iXRLibSend.LogSynchronous(LogLevel.eWarn, szText);
+		return await iXRLibSend.LogSynchronous(LogLevel.eWarn, szText, dictMeta);
 	}
-	// public static LogWarn(szText: string): Promise<iXRResult>
+	// public static LogWarn(szText: string, dictMeta: PythonDictStrings): Promise<iXRResult>
 	// {
-	// 	return iXRLibSend.Log(LogLevel.eWarn, szText);
+	// 	return iXRLibSend.Log(LogLevel.eWarn, szText, dictMeta);
 	// }
-	public static async LogErrorSynchronous(szText: string): Promise<iXRResult>
+	public static async LogErrorSynchronous(szText: string, dictMeta: PythonDictStrings): Promise<iXRResult>
 	{
-		return await iXRLibSend.LogSynchronous(LogLevel.eError, szText);
+		return await iXRLibSend.LogSynchronous(LogLevel.eError, szText, dictMeta);
 	}
-	// public static LogError(szText: string): Promise<iXRResult>
+	// public static LogError(szText: string, dictMeta: PythonDictStrings): Promise<iXRResult>
 	// {
-	// 	return iXRLibSend.Log(LogLevel.eError, szText);
+	// 	return iXRLibSend.Log(LogLevel.eError, szText, dictMeta);
 	// }
-	public static async LogCriticalSynchronous(szText: string): Promise<iXRResult>
+	public static async LogCriticalSynchronous(szText: string, dictMeta: PythonDictStrings): Promise<iXRResult>
 	{
-		return await iXRLibSend.LogSynchronous(LogLevel.eCritical, szText);
+		return await iXRLibSend.LogSynchronous(LogLevel.eCritical, szText, dictMeta);
 	}
-	// public static LogCritical(szText: string): Promise<iXRResult>
+	// public static LogCritical(szText: string, dictMeta: PythonDictStrings): Promise<iXRResult>
 	// {
-	// 	return iXRLibSend.Log(LogLevel.eCritical, szText);
+	// 	return iXRLibSend.Log(LogLevel.eCritical, szText, dictMeta);
 	// }
 	// --- End (C++ dll and C# dll) versions of LogXXX().
 	// --- API (C++ dll and C# dll) versions of iXRLibSend.Event().
