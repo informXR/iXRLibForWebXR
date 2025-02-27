@@ -10,4 +10,6 @@ RUN apt-get -y install apt-utils
 RUN apt-get -y install npm
 
 # Command to run the application.
-ENTRYPOINT [ "./ixr-buildall.sh" ]
+# ENTRYPOINT [ "./ixr-buildall.sh" ]
+RUN npm run build
+RUN npx webpack
