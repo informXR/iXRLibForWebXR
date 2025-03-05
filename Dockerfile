@@ -14,6 +14,7 @@ RUN chmod +x ixr-buildall.sh
 COPY src ./src
 
 RUN npm install
+RUN npm install process --save-dev
 
 # Command to run the application.
 ENTRYPOINT [ "./ixr-buildall.sh" ]
