@@ -1,15 +1,17 @@
 FROM node:21.6.2-slim
 
-RUN mkdir /opt/informxr
-RUN cd /opt/informxr
-COPY package.json ./ 
-COPY ixr-buildall.sh ./ 
-WORKDIR /opt/informxr
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    nano \
+    apt-utils \
+    npm
 
-RUN apt-get -y update
-RUN apt-get -y install nano
-RUN apt-get -y install apt-utils
-RUN apt-get -y install npm
+RUN mkdir /opt/informxr
+WORKDIR /opt/informxr
+COPY package.json ts-node-config.json tsconfig.json webpack.config.js .eslintignore .eslintrc.json .npmignore ./ 
+COPY ixr-buildall.sh ./ 
+RUN chmod +x ixr-buildall.sh
+COPY src ./src
 
 RUN npm install
 

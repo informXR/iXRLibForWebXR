@@ -10,4 +10,5 @@ services:
     env_file:
       - .env
     volumes:
-      - .:/opt/informxr
+      - ./build:/opt/informxr/build
+      - ./dist:/opt/informxr/dist
