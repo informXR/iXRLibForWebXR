@@ -8,14 +8,13 @@ iXRLibInit.InitStatics();
 iXRLibStorage.InitStatics();
 iXRLibAsync.InitStatics();
 
-export class iXRLibBaseSetup {
-    public static SetAppConfig(): void
+class iXRLibBaseSetup {
+    public static SetAppConfig(customConfig?: string): void
     {
-        var szAppConfig:	string = '<?xml version="1.0" encoding="utf-8" ?>' +
+        const defaultConfig: string = '<?xml version="1.0" encoding="utf-8" ?>' +
             '<configuration>' +
                 '<appSettings>' +
-                    '<add key="REST_URL" value="http://192.168.5.24:9000/v1/"/>' +
-                    '<!--<add key="REST_URL" value="http://192.168.5.2:19080/"/>-->' +
+                    '<add key="REST_URL" value="https://libapi.informxr.io/v1/"/>' +
                     '<add key="SendRetriesOnFailure" value="3"/>' +
                     '<!-- Bandwidth config parameters. -->' +
                     '<add key="SendRetryInterval" value="00:00:03"/>' +
@@ -34,6 +33,8 @@ export class iXRLibBaseSetup {
                 '</appSettings>' +
             '</configuration>';
 
+        const szAppConfig = customConfig || defaultConfig;
+        console.log(`Using ${customConfig ? 'user-defined' : 'default'} config`);
         ConfigurationManager.DebugSetAppConfig(szAppConfig);
     }
 
@@ -49,4 +50,5 @@ export {
     iXRLibInit,
     iXRLibStorage,
     iXRLibAsync,
+    iXRLibBaseSetup
 }; 

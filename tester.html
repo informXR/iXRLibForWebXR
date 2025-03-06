@@ -10,24 +10,35 @@
     // Define a global function that uses the library.
     // You can place this inside or outside a <script> tag,
     // as long as it runs after iXRLibForWebXR.js is loaded.
-    window.printToAlert = async function() {
-      window.alert("This function is global!");
-      // The following calls assume iXRLibInit.* is accessible 
-      // in the global scope from iXRLibForWebXR.js
-      iXRLibInit.InitStatics();
-      iXRLibInit.Start();
-      await iXRLibInit.Authenticate(
+    let setupiXRLib = async function() {
+      console.log("Starting iXRLib setup!");
+      // Update these calls to use the iXRLib namespace
+      console.log("Executing iXRLibBaseSetup.SetAppConfig()");
+      iXRLib.iXRLibBaseSetup.SetAppConfig();
+      console.log(" - iXRLibBaseSetup.SetAppConfig() completed");
+
+      console.log("Executing iXRLibInit.InitStatics()");
+      iXRLib.iXRLibInit.InitStatics();
+      console.log(" - iXRLibInit.InitStatics() completed");
+
+      console.log("Executing iXRLibInit.Start()");
+      iXRLib.iXRLibInit.Start();
+      console.log(" - iXRLibInit.Start() completed");
+
+      console.log("Executing iXRLibInit.Authenticate()");
+      await iXRLib.iXRLibInit.Authenticate(
         '471fd6fd-f5d0-4096-bc0c-17100c1c4fa0',
         '5304ef74-423f-4bd4-87d9-cba4f19c3bdb',
         'iXRLibForWebXR_js',
         'vEwWpJs5K2Kib3XeWBhXgQnQr43XNJCSyb5QJoGCU5ec590hFyb63vBSx6dX6Clj',
-        'arborxr'
+        'arborxrs'
       );
+      console.log(" - iXRLibInit.Authenticate() completed");
     };
   </script>
 </head>
 <body>
   <h1>Testing iXRLibForWebXR.js</h1>
-  <button onclick="printToAlert()">Click to Run printToAlert()</button>
+  <button onclick="setupiXRLib()">Setup iXRLib</button>
 </body>
 </html>
