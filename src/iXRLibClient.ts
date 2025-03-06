@@ -415,36 +415,54 @@ export class iXRLibClient
 			// OUTPUTDEBUGSTRING("RESPONSE:\n", szResponse, "\n");
 			if (eCurlRet)
 			{
-				if (ptResponse)
-				{
-					eJsonRet = LoadFromJson(ptResponse, rpResponse.szResponse);
-				}
-				else
-				{
-					eJsonRet = LoadFromJson(ptContainedResponse, rpResponse.szResponse);
-				}
-				if (eJsonRet === JsonResult.eOk)
-				{
-					return iXRResult.eOk;
-				}
-				else
-				{
-					// Did not get success, does failure parse?
-					eJsonRet = LoadFromJson(objResponseFailure, rpResponse.szResponse);
-					if (eJsonRet === JsonResult.eOk)
-					{
-						// Failure parses, probably auth error.
-						eReauthResult = await iXRLibInit.ReAuthenticate(true);
-						if (eReauthResult != iXRResult.eOk)
-						{
-							return eReauthResult;
+				// For config endpoint, we need to stringify nested objects
+				if (RESTEndpointFromType<T>(tTypeOfT) === 'storage/config') {
+					try {
+						const parsedResponse = JSON.parse(rpResponse.szResponse);
+						if (parsedResponse.authMechanism) {
+							// Convert nested object to string representation
+							parsedResponse.authMechanism = JSON.stringify(parsedResponse.authMechanism);
+							rpResponse.szResponse = JSON.stringify(parsedResponse);
 						}
+					} catch (e) {
+						console.error("Error preprocessing config response:", e);
+						return iXRResult.ePostObjectsBadJsonResponse;
+					}
+				}
+
+				try {
+					if (ptResponse)
+					{
+						eJsonRet = LoadFromJson(ptResponse, rpResponse.szResponse);
 					}
 					else
 					{
-						// Response does not parse.
-						return iXRResult.ePostObjectsBadJsonResponse;
+						eJsonRet = LoadFromJson(ptContainedResponse, rpResponse.szResponse);
 					}
+					if (eJsonRet === JsonResult.eOk)
+					{
+						return iXRResult.eOk;
+					}
+				} catch (jsonError) {
+					console.error("Error parsing JSON response:", jsonError);
+					return iXRResult.ePostObjectsBadJsonResponse;
+				}
+
+				// Did not get success, does failure parse?
+				eJsonRet = LoadFromJson(objResponseFailure, rpResponse.szResponse);
+				if (eJsonRet === JsonResult.eOk)
+				{
+					// Failure parses, probably auth error.
+					eReauthResult = await iXRLibInit.ReAuthenticate(true);
+					if (eReauthResult != iXRResult.eOk)
+					{
+						return eReauthResult;
+					}
+				}
+				else
+				{
+					// Response does not parse.
+					return iXRResult.ePostObjectsBadJsonResponse;
 				}
 			}
 			else
@@ -457,7 +475,7 @@ export class iXRLibClient
 			console.log("Error: ", error);
 			//WriteLine($"Error: {ex.Message}\nStackTrace: {ex.StackTrace}");
 			// ---
-			return iXRResult.ePostObjectsFailed;
+			//return iXRResult.ePostObjectsFailed;
 		}
 		// ---
 		return iXRResult.eOk;
@@ -532,18 +550,32 @@ export class iXRLibClient
 		var	szJSON:			string = GenerateJson(authTokenRequest, DumpCategory.eDumpEverything);	// Save a few ns not going with eDumpingJsonForBackend... this is not a database object, no need to exclude fields.
 		var	mbBodyContent:	Buffer = Buffer.from(szJSON);
 
-		try
-		{
-			await iXRLibAnalytics.SetHeadersFromCurrentState(objRequest, Buffer.from(szJSON), true, false);
+		try {
+			// Set additional headers from current state
+			await iXRLibAnalytics.SetHeadersFromCurrentState(objRequest, mbBodyContent, true, false);
+
+			// Debug logging
+			//console.log("Authentication Request:", {
+			//	url: iXRLibAnalytics.FinalUrl("auth/token"),
+			//	requestBody: JSON.parse(szJSON)
+			//});
+
 			eCurlRet = await objRequest.Post(iXRLibAnalytics.FinalUrl("auth/token"), [], mbBodyContent, rpResponse);
-			if (!eCurlRet)
-			{
+			
+			// Response logging
+			//console.log("Authentication Response:", {
+			//	success: eCurlRet,
+			//	response: rpResponse.szResponse,
+			//	responseObject: JSON.parse(rpResponse.szResponse)
+			//});
+
+			if (!eCurlRet) {
 				return iXRResult.eAuthenticateFailedNetworkError;
 			}
 		}
 		catch (error)
 		{
-			console.log("Error: ", error);
+			console.log("Authentication Error:", error);
 			//WriteLine($"Error: {ex.Message}\nStackTrace: {ex.StackTrace}");
 			return iXRResult.eAuthenticateFailed;
 		}

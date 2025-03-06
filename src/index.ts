@@ -1,6 +1,7 @@
 import { iXRLibInit } from "./iXRLibAnalytics";
 import { iXRLibStorage } from "./iXRLibStorage";
 import { iXRLibAsync } from "./iXRLibAsync";
+import { iXRLibSend } from "./iXRLibSend";
 import { ConfigurationManager, DateTime, iXRResult, PythonDictStrings, StringList, TimeSpan } from './network/utils/DotNetishTypes';
 
 // Initialize all static members
@@ -50,5 +51,6 @@ export {
     iXRLibInit,
     iXRLibStorage,
     iXRLibAsync,
+    iXRLibSend,
     iXRLibBaseSetup
 }; 
