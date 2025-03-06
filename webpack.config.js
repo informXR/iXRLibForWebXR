@@ -5,11 +5,14 @@ module.exports = {
 	mode: "development",
 	devtool: "inline-source-map",
 	entry: {
-		main: "./src/test.ts"
+		main: "./src/index.ts"
 	},
 	output: {
 		path: path.resolve(__dirname, './dist'),
-		filename: "iXRLibForWebXR.js" // <--- Will be compiled to this single file
+		filename: "iXRLibForWebXR.js",
+		library: 'iXRLib',
+		libraryTarget: 'umd',
+		globalObject: 'this'
 	},
 	resolve: {
 		extensions: [".ts", ".tsx", ".js"],
