@@ -14,7 +14,7 @@ class iXRLibBaseSetup {
         const defaultConfig: string = '<?xml version="1.0" encoding="utf-8" ?>' +
             '<configuration>' +
                 '<appSettings>' +
-                    '<add key="REST_URL" value="https://libapi.informxr.io/v1/"/>' +
+                    '<add key="REST_URL" value="https://dev-libapi.informxr.io/v1/"/>' +
                     '<add key="SendRetriesOnFailure" value="3"/>' +
                     '<!-- Bandwidth config parameters. -->' +
                     '<add key="SendRetryInterval" value="00:00:03"/>' +
