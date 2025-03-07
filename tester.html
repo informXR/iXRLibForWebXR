@@ -7,44 +7,129 @@
   <!-- Include your bundled JS file -->
   <script src="dist/iXRLibForWebXR.js"></script>
   <script>
-    // Define a global function that uses the library.
-    // You can place this inside or outside a <script> tag,
-    // as long as it runs after iXRLibForWebXR.js is loaded.
-    let setupiXRLib = async function() {
-      console.log("Starting iXRLib setup!");
-      // Update these calls to use the iXRLib namespace
-      console.log("Executing iXRLibBaseSetup.SetAppConfig()");
-      iXRLib.iXRLibBaseSetup.SetAppConfig();
-      console.log(" - iXRLibBaseSetup.SetAppConfig() completed");
-
-      console.log("Executing iXRLibInit.InitStatics()");
-      iXRLib.iXRLibInit.InitStatics();
-      console.log(" - iXRLibInit.InitStatics() completed");
-
-      console.log("Executing iXRLibInit.Start()");
-      iXRLib.iXRLibInit.Start();
-      console.log(" - iXRLibInit.Start() completed");
-
-      console.log("Executing iXRLibInit.Authenticate()");
-      await iXRLib.iXRLibInit.Authenticate(
-        '471fd6fd-f5d0-4096-bc0c-17100c1c4fa0',
-        '5304ef74-423f-4bd4-87d9-cba4f19c3bdb',
-        'iXRLibForWebXR_js',
-        'vEwWpJs5K2Kib3XeWBhXgQnQr43XNJCSyb5QJoGCU5ec590hFyb63vBSx6dX6Clj',
-        'arborxrs'
-      );
-      console.log(" - iXRLibInit.Authenticate() completed");
-
-      console.log("Executing iXRLibSend.LogDebugSynchronous()");
-      iXRLib.iXRLibSend.LogDebugSynchronous("Testing 123");
-      console.log(" - iXRLibSend.LogDebugSynchronous() completed");
-
-
-    };
+    // Authentication configuration
+    const app_id = '471fd6fd-f5d0-4096-bc0c-17100c1c4fa0';
+    const org_id = '5304ef74-423f-4bd4-87d9-cba4f19c3bdb';
+    const device_id = 'iXRLibForWebXR_js';
+    const auth_secret = 'vEwWpJs5K2Kib3XeWBhXgQnQr43XNJCSyb5QJoGCU5ec590hFyb63vBSx6dX6Clj';
+    const partner_id = 'arborxrs';
   </script>
+  <style>
+    table {
+      border-collapse: separate;
+      border-spacing: 20px 10px;
+    }
+    
+    .action-button {
+      width: 150px;
+      height: 40px;
+    }
+
+    .result-cell {
+      min-height: 100px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      white-space: pre-line;
+      overflow-wrap: break-word;
+      width: 400px;
+      vertical-align: middle;
+    }
+  </style>
 </head>
 <body>
   <h1>Testing iXRLibForWebXR.js</h1>
-  <button onclick="setupiXRLib()">Setup iXRLib</button>
+  
+  <table>
+    <tr>
+      <td><button class="action-button" onclick="setAppConfig()">1. Set App Config</button></td>
+      <td class="result-cell" id="setAppConfig_result">Not executed</td>
+    </tr>
+    <tr>
+      <td><button class="action-button" onclick="initStatics()">2. Init Statics</button></td>
+      <td class="result-cell" id="initStatics_result">Not executed</td>
+    </tr>
+    <tr>
+      <td><button class="action-button" onclick="startLib()">3. Start Library</button></td>
+      <td class="result-cell" id="startLib_result">Not executed</td>
+    </tr>
+    <tr>
+      <td><button class="action-button" onclick="authenticate()">4. Authenticate</button></td>
+      <td class="result-cell" id="authenticate_result">Not executed</td>
+    </tr>
+    <tr>
+      <td><button class="action-button" onclick="try_logDebug()">5. Log Debug</button></td>
+      <td class="result-cell" id="try_logDebug_result">Not executed</td>
+    </tr>
+    <tr>
+      <td><button class="action-button" onclick="try_Event()">6. Event</button></td>
+      <td class="result-cell" id="try_Event_result">Not executed</td>
+    </tr>
+  </table>
+
+  <script>
+    function setAppConfig() {
+      console.log("Executing iXRLibBaseSetup.SetAppConfig()");
+      const result = iXRLib.iXRLibBaseSetup.SetAppConfig();
+      document.getElementById('setAppConfig_result').textContent = result === undefined ? 'Complete' : result;
+    }
+
+    function initStatics() {
+      console.log("Executing iXRLibInit.InitStatics()");
+      const result = iXRLib.iXRLibInit.InitStatics();
+      document.getElementById('initStatics_result').textContent = result === undefined ? 'Complete' : result;
+    }
+
+    function startLib() {
+      console.log("Executing iXRLibInit.Start()");
+      const result = iXRLib.iXRLibInit.Start();
+      document.getElementById('startLib_result').textContent = result === undefined ? 'Complete' : result;
+    }
+
+    async function authenticate() {
+      console.log("Executing iXRLibInit.Authenticate()");
+      try {
+        const result = await iXRLib.iXRLibInit.Authenticate(
+          app_id,
+          org_id,
+          device_id,
+          auth_secret,
+          partner_id
+        );
+        
+        // Get token data after successful authentication
+        const tokenData = {
+          token: iXRLib.iXRLibInit.get_ApiToken(),
+          secret: iXRLib.iXRLibInit.get_ApiSecret(),
+          expiration: iXRLib.iXRLibInit.get_TokenExpiration()
+        };
+
+        // Create formatted display string
+        const displayText = result === 0 ? 
+          `Complete\nToken Data:\n- Token: ${tokenData.token.substring(0, 20)}...\n- Secret: ${tokenData.secret.substring(0, 20)}...\n- Expires: ${tokenData.expiration}` :
+          `Error: Unexpected result code ${result}`;
+
+        document.getElementById('authenticate_result').style.whiteSpace = 'pre-line';
+        document.getElementById('authenticate_result').textContent = displayText;
+      } catch (error) {
+        document.getElementById('authenticate_result').textContent = 'Error: ' + error.message;
+      }
+    }
+
+    function try_logDebug() {
+      console.log("Executing iXRLibSend.LogDebugSynchronous()");
+      const result = iXRLib.iXRLibSend.LogDebugSynchronous("Testing 123");
+      document.getElementById('try_logDebug_result').textContent = result === undefined ? 'Complete' : result;
+    }
+
+    function try_Event() {
+      console.log("Executing iXRLibSend.EventSynchronous()");
+      const dictMeta = new iXRLib.PythonDictStrings();
+      dictMeta.set("verb", "started");
+      dictMeta.set("assessment_name", "Testing 123");
+      const result = iXRLib.iXRLibSend.EventSynchronous("Testing 123", dictMeta);
+      document.getElementById('try_Event_result').textContent = result === undefined ? 'Complete' : result;
+    }
+
+  </script>
 </body>
 </html>

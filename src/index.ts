@@ -52,5 +52,6 @@ export {
     iXRLibStorage,
     iXRLibAsync,
     iXRLibSend,
-    iXRLibBaseSetup
+    iXRLibBaseSetup,
+    PythonDictStrings
 }; 
