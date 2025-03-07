@@ -13,6 +13,8 @@
     const device_id = 'iXRLibForWebXR_js';
     const auth_secret = 'vEwWpJs5K2Kib3XeWBhXgQnQr43XNJCSyb5QJoGCU5ec590hFyb63vBSx6dX6Clj';
     const partner_id = 'arborxrs';
+    iXR = iXRLib.iXRLibSend;
+    iXR.DictStrings = iXRLib.DictStrings;
   </script>
   <style>
     table {
@@ -57,36 +59,36 @@
       <td class="result-cell" id="authenticate_result">Not executed</td>
     </tr>
     <tr>
-      <td><button class="action-button" onclick="try_logDebug()">5. Log Debug</button></td>
-      <td class="result-cell" id="try_logDebug_result">Not executed</td>
-    </tr>
-    <tr>
       <td><button class="action-button" onclick="try_Event()">6. Event</button></td>
       <td class="result-cell" id="try_Event_result">Not executed</td>
+    </tr>
+    <tr>
+      <td><button class="action-button" onclick="try_logDebug()">5. Log Debug</button></td>
+      <td class="result-cell" id="try_logDebug_result">Not executed</td>
     </tr>
   </table>
 
   <script>
     function setAppConfig() {
-      console.log("Executing iXRLibBaseSetup.SetAppConfig()");
+      console.log("Executing iXRLib.iXRLibBaseSetup.SetAppConfig()");
       const result = iXRLib.iXRLibBaseSetup.SetAppConfig();
       document.getElementById('setAppConfig_result').textContent = result === undefined ? 'Complete' : result;
     }
 
     function initStatics() {
-      console.log("Executing iXRLibInit.InitStatics()");
+      console.log("Executing iXRLib.iXRLibInit.InitStatics()");
       const result = iXRLib.iXRLibInit.InitStatics();
       document.getElementById('initStatics_result').textContent = result === undefined ? 'Complete' : result;
     }
 
     function startLib() {
-      console.log("Executing iXRLibInit.Start()");
+      console.log("Executing iXRLib.iXRLibInit.Start()");
       const result = iXRLib.iXRLibInit.Start();
       document.getElementById('startLib_result').textContent = result === undefined ? 'Complete' : result;
     }
 
     async function authenticate() {
-      console.log("Executing iXRLibInit.Authenticate()");
+      console.log("Executing iXRLib.iXRLibInit.Authenticate()");
       try {
         const result = await iXRLib.iXRLibInit.Authenticate(
           app_id,
@@ -115,19 +117,70 @@
       }
     }
 
-    function try_logDebug() {
-      console.log("Executing iXRLibSend.LogDebugSynchronous()");
-      const result = iXRLib.iXRLibSend.LogDebugSynchronous("Testing 123");
-      document.getElementById('try_logDebug_result').textContent = result === undefined ? 'Complete' : result;
+    async function try_Event() {
+      console.log("Executing iXR.EventSynchronous()");
+      try {
+        const dictMeta = new iXR.DictStrings();
+        dictMeta.set("verb", "started");
+        dictMeta.set("assessment_name", "Testing 123");
+        
+        // Store the original fetch implementation
+        const originalFetch = window.fetch;
+        let responseData;
+        
+        // Temporarily override fetch to capture the response
+        window.fetch = async (...args) => {
+          const response = await originalFetch(...args);
+          // Clone the response so we can read it multiple times
+          const clone = response.clone();
+          responseData = await clone.json();
+          return response;
+        };
+        
+        // Call the original method
+        const result = await iXR.EventSynchronous("Testing 123", dictMeta);
+        
+        // Restore original fetch
+        window.fetch = originalFetch;
+        
+        document.getElementById('try_Event_result').textContent = 
+          `Status Code: ${result}\n` +
+          `Response: ${JSON.stringify(responseData, null, 2)}`;
+          
+      } catch (error) {
+        document.getElementById('try_Event_result').textContent = 'Error: ' + error.message;
+      }
     }
 
-    function try_Event() {
-      console.log("Executing iXRLibSend.EventSynchronous()");
-      const dictMeta = new iXRLib.PythonDictStrings();
-      dictMeta.set("verb", "started");
-      dictMeta.set("assessment_name", "Testing 123");
-      const result = iXRLib.iXRLibSend.EventSynchronous("Testing 123", dictMeta);
-      document.getElementById('try_Event_result').textContent = result === undefined ? 'Complete' : result;
+    async function try_logDebug() {
+      console.log("Executing iXR.LogDebugSynchronous()");
+      try {
+        // Store the original fetch implementation
+        const originalFetch = window.fetch;
+        let responseData;
+        
+        // Temporarily override fetch to capture the response
+        window.fetch = async (...args) => {
+          const response = await originalFetch(...args);
+          // Clone the response so we can read it multiple times
+          const clone = response.clone();
+          responseData = await clone.json();
+          return response;
+        };
+        
+        // Call the original method
+        const result = await iXR.LogDebugSynchronous("Testing 123");
+        
+        // Restore original fetch
+        window.fetch = originalFetch;
+        
+        document.getElementById('try_logDebug_result').textContent = 
+          `Status Code: ${result}\n` +
+          `Response: ${JSON.stringify(responseData, null, 2)}`;
+          
+      } catch (error) {
+        document.getElementById('try_logDebug_result').textContent = 'Error: ' + error.message;
+      }
     }
 
   </script>

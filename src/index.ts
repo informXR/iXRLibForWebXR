@@ -53,5 +53,10 @@ export {
     iXRLibAsync,
     iXRLibSend,
     iXRLibBaseSetup,
-    PythonDictStrings
-}; 
+    PythonDictStrings as DictStrings
+};
+
+// Create a global instance for direct access
+//if (typeof window !== 'undefined') {
+//    (window as any).iXR = iXRLibBaseSetup;
+//}
