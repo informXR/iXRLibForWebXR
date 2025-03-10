@@ -53,7 +53,7 @@ export {
     iXRLibAsync,
     iXRLibSend,
     iXRLibBaseSetup,
-    PythonDictStrings as DictStrings
+    PythonDictStrings as iXRDictStrings
 };
 
 // Create a global instance for direct access
