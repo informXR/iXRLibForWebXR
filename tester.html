@@ -59,11 +59,21 @@
       <td class="result-cell" id="authenticate_result">Not executed</td>
     </tr>
     <tr>
-      <td><button class="action-button" onclick="try_Event()">6. Event</button></td>
+      <td colspan="2">
+        <input type="text" id="event_input" value="Event Testing 123" style="width: 300px; margin-bottom: 10px;">
+      </td>
+    </tr>
+    <tr>
+      <td><button class="action-button" onclick="try_Event()">5. Event</button></td>
       <td class="result-cell" id="try_Event_result">Not executed</td>
     </tr>
     <tr>
-      <td><button class="action-button" onclick="try_logDebug()">5. Log Debug</button></td>
+      <td colspan="2">
+        <input type="text" id="log_input" value="Log Testing 123" style="width: 300px; margin-bottom: 10px;">
+      </td>
+    </tr>
+    <tr>
+      <td><button class="action-button" onclick="try_logDebug()">6. Log Debug</button></td>
       <td class="result-cell" id="try_logDebug_result">Not executed</td>
     </tr>
   </table>
@@ -120,9 +130,10 @@
     async function try_Event() {
       console.log("Executing iXR.EventSynchronous()");
       try {
+        const eventValue = document.getElementById('event_input').value;
         const dictMeta = new iXR.DictStrings();
         dictMeta.set("verb", "started");
-        dictMeta.set("assessment_name", "Testing 123");
+        dictMeta.set("assessment_name", eventValue);
         
         // Store the original fetch implementation
         const originalFetch = window.fetch;
@@ -138,7 +149,7 @@
         };
         
         // Call the original method
-        const result = await iXR.EventSynchronous("Testing 123", dictMeta);
+        const result = await iXR.EventSynchronous(eventValue, dictMeta);
         
         // Restore original fetch
         window.fetch = originalFetch;
@@ -155,6 +166,7 @@
     async function try_logDebug() {
       console.log("Executing iXR.LogDebugSynchronous()");
       try {
+        const debugValue = document.getElementById('log_input').value;
         // Store the original fetch implementation
         const originalFetch = window.fetch;
         let responseData;
@@ -169,7 +181,7 @@
         };
         
         // Call the original method
-        const result = await iXR.LogDebugSynchronous("Testing 123");
+        const result = await iXR.LogDebugSynchronous(debugValue);
         
         // Restore original fetch
         window.fetch = originalFetch;
