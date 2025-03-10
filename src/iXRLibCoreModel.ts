@@ -5,7 +5,7 @@ import { iXRLibClient } from "./iXRLibClient";
 import { iXRLibStorage } from "./iXRLibStorage";
 import { atobool, atof, atol, DATEMAXVALUE, DEFAULTNAME, EnsureSingleEndingCharacter, IsClass, /*Factory,MJPQ*/ SUID } from "./network/types";
 import { DataObjectBase, DbContext, DbSet, DumpCategory, FieldProperties, FieldPropertiesRecordContainer, FieldPropertyFlags, JsonFieldType } from "./network/utils/DataObjectBase";
-import { ConfigurationManager, DateTime, Dictionary, iXRResult, PythonDictStrings, StringList, TimeSpan } from "./network/utils/DotNetishTypes";
+import { ConfigurationManager, DateTime, Dictionary, iXRResult, iXRDictStrings, StringList, TimeSpan } from "./network/utils/DotNetishTypes";
 import { DatabaseResult, DbSuccess } from "./network/utils/iXRLibSQLite";
 import { HTTP_URL, URLParser } from "./network/utils/URLParser";
 import { FakeUpSomeRandomCrapAIProxy, FakeUpSomeRandomCrapApplication, FakeUpSomeRandomCrapDbContext, FakeUpSomeRandomCrapEvent, FakeUpSomeRandomCrapLocation, FakeUpSomeRandomCrapLog, FakeUpSomeRandomCrapStorage, FakeUpSomeRandomCrapStorageData, FakeUpSomeRandomCrapTelemetry } from "./test/iXRLibCoreModelTests";
@@ -147,7 +147,7 @@ export class iXRLibConfiguration extends DataObjectBase
 	// Extra data that (if not empty from backend after first auth) has to be requested from the user to be submitted
 	// in a followup call to auth by being copied into the auth environment/session property of the same name after
 	// being filled in.  Scorm interactionid is the initial motivation.
-	public m_dictAuthMechanism:					PythonDictStrings;
+	public m_dictAuthMechanism:					iXRDictStrings;
 	// ---
 	constructor()
 	{
@@ -173,7 +173,7 @@ export class iXRLibConfiguration extends DataObjectBase
 		this.m_bRetainLocalAfterSent = false;
 		this.m_bReAuthenticateBeforeTokenExpires = true;
 		this.m_bUseDatabase = false;
-		this.m_dictAuthMechanism = new PythonDictStrings();
+		this.m_dictAuthMechanism = new iXRDictStrings();
 		// ---
 		// Default URL... can be overriden by App.config or accessors in C# and C++.
 		this.SetRestUrl("https://libapi.informxr.io/");
@@ -461,7 +461,7 @@ export function StringToLogLevel(szLogLevel: string): LogLevel
 /// </summary>
 export class iXRMetaDataObject extends iXRBase
 {
-	public m_dictMeta:	PythonDictStrings;			// General purpose... could be {"batteryLevel": "67.0"}, {"x":"34", "y":"67", "z":"26"}...
+	public m_dictMeta:	iXRDictStrings;			// General purpose... could be {"batteryLevel": "67.0"}, {"x":"34", "y":"67", "z":"26"}...
 	// ---
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
 		super.m_mapProperties.m_rfp,
@@ -471,11 +471,11 @@ export class iXRMetaDataObject extends iXRBase
 	{
 		super();
 		// ---
-		this.m_dictMeta = new PythonDictStrings();
+		this.m_dictMeta = new iXRDictStrings();
 	}
 	// На хуй TypeScript.  Could do this with that parameter-unioning bollocks
 	// but that cure is worse than the disease.
-	public ConstructMetaData(dictMeta: PythonDictStrings)
+	public ConstructMetaData(dictMeta: iXRDictStrings)
 	{
 		this.m_dictMeta = dictMeta;
 	}
@@ -506,7 +506,7 @@ export class iXRLog extends iXRMetaDataObject
 		this.m_szLogLevel = "";
 		this.m_szText = "";
 	}
-	public Construct(eLogLevel: LogLevel, szText: string, dictMeta: PythonDictStrings): iXRLog
+	public Construct(eLogLevel: LogLevel, szText: string, dictMeta: iXRDictStrings): iXRLog
 	{
 		super.ConstructMetaData(dictMeta);
 		// ---
@@ -537,7 +537,7 @@ export class iXRTelemetry extends iXRMetaDataObject
 		// ---
 		this.m_szName = "";
 	}
-	public Construct(szName: string, dictMeta: PythonDictStrings): iXRTelemetry
+	public Construct(szName: string, dictMeta: iXRDictStrings): iXRTelemetry
 	{
 		super.ConstructMetaData(dictMeta);
 		// ---
@@ -570,7 +570,7 @@ export class iXRTelemetry extends iXRMetaDataObject
 export class iXRAIProxy extends iXRBase
 {
 	public m_szPrompt:			string;				// String type value.
-	public m_dictPastMessages:	PythonDictStrings;	// The history of chat (if needed).
+	public m_dictPastMessages:	iXRDictStrings;	// The history of chat (if needed).
 	public m_szLLMProvider:		string;				// (Optional) a string type value that can be used to choose a specific pre-defined chatbot.
 	// ---
 	constructor()
@@ -578,7 +578,7 @@ export class iXRAIProxy extends iXRBase
 		super();
 		// ---
 		this.m_szPrompt = "";
-		this.m_dictPastMessages = new PythonDictStrings();
+		this.m_dictPastMessages = new iXRDictStrings();
 		this.m_szLLMProvider = "";
 	}
 	/// <summary>
@@ -590,18 +590,18 @@ export class iXRAIProxy extends iXRBase
 	public Construct0(szPrompt: string, szPastMessages: string, szLMMProvider: string): iXRAIProxy
 	{
 		this.m_szPrompt = szPrompt;
-		this.m_dictPastMessages = new PythonDictStrings().Construct(szPastMessages);
+		this.m_dictPastMessages = new iXRDictStrings().Construct(szPastMessages);
 		this.m_szLLMProvider = szLMMProvider;
 		// ---
 		return this;
 	}
 	/// <summary>
-	/// For passing past messages in as what it is... PythonDictStrings.
+	/// For passing past messages in as what it is... iXRDictStrings.
 	/// </summary>
 	/// <param name="szPrompt">Prompt.</param>
 	/// <param name="szPastMessages">Past messages.</param>
 	/// <param name="szLMMProvider">LMM Provider.</param>
-	public Construct1(szPrompt: string, dictPastMessages: PythonDictStrings, szLMMProvider: string): iXRAIProxy
+	public Construct1(szPrompt: string, dictPastMessages: iXRDictStrings, szLMMProvider: string): iXRAIProxy
 	{
 		this.m_szPrompt = szPrompt;
 		this.m_dictPastMessages = dictPastMessages;
@@ -669,7 +669,7 @@ export class iXREvent extends iXRMetaDataObject
 		return iXREvent.m_mapProperties;
 	}
 	// ---
-	public Construct(szName: string, dictMeta: PythonDictStrings) : iXREvent
+	public Construct(szName: string, dictMeta: iXRDictStrings) : iXREvent
 	{
 		super.ConstructMetaData(dictMeta);
 		// ---
@@ -814,15 +814,15 @@ export class iXRXXXScalarContainer<T extends iXRBase> extends iXRBase
 /// </summary>
 export class iXRStorageData extends iXRBase
 {
-	public m_cdictData:	PythonDictStrings;
+	public m_cdictData:	iXRDictStrings;
 	// ---
 	constructor()
 	{
 		super();
 		// ---
-		this.m_cdictData = new PythonDictStrings();
+		this.m_cdictData = new iXRDictStrings();
 	}
-	public Construct0(dictData: PythonDictStrings) : iXRStorageData
+	public Construct0(dictData: iXRDictStrings) : iXRStorageData
 	{
 		this.m_cdictData = dictData;
 		// ---
@@ -830,7 +830,7 @@ export class iXRStorageData extends iXRBase
 	}
 	public Construct1(szdictData: string) : iXRStorageData
 	{
-		this.m_cdictData = new PythonDictStrings().Construct(szdictData);
+		this.m_cdictData = new iXRDictStrings().Construct(szdictData);
 		// ---
 		return this;
 	}
@@ -858,11 +858,11 @@ export class iXRStorageData extends iXRBase
 ///		FinalizeParse() could be in iXRXXXContainer<> but the other things that use iXRXXXContainer<>
 ///		bum that up due to T_CONTAINS.  Would like to clean that up.  If I manage to, I'll revisit this.
 /// </summary>
-export class StorageContainer extends iXRXXXContainer<iXRStorageData, PythonDictStrings, true>
+export class StorageContainer extends iXRXXXContainer<iXRStorageData, iXRDictStrings, true>
 {
 	constructor()
 	{
-		super(iXRStorageData, PythonDictStrings, true);
+		super(iXRStorageData, iXRDictStrings, true);
 	}
 	FinalizeParse() : void // virtual
 	{
@@ -895,7 +895,7 @@ export class iXRStorage extends iXRBase
 		this.m_bSessionData = false;
 		this.m_lszTags = new StringList();
 	}
-	Construct0(bKeepLatest: boolean, szName: string, dictData: PythonDictStrings, szOrigin: string, bSessionData: boolean) : iXRStorage
+	Construct0(bKeepLatest: boolean, szName: string, dictData: iXRDictStrings, szOrigin: string, bSessionData: boolean) : iXRStorage
 	{
 		this.m_szKeepPolicy = (bKeepLatest) ? "keepLatest" : "appendHistory";
 		this.m_szName = szName;
@@ -968,14 +968,14 @@ export class DbSetStorage extends DbSet<iXRStorage>
 	// ---
 	// Default name 'state'
 	public async SetEntry(
-		data: string | PythonDictStrings,
+		data: string | iXRDictStrings,
 		bKeepLatest: boolean,
 		szOrigin: string,
 		bSessionData: boolean,
 		szName: string = DbSetStorage.DEFAULTNAME
 	): Promise<iXRResult> {
 		const dictData = typeof data === 'string' 
-			? new PythonDictStrings().Construct(data)
+			? new iXRDictStrings().Construct(data)
 			: data;
 		
 		// Create new storage entry
@@ -1169,7 +1169,7 @@ export class iXRDbContext extends DbContext
 		return DatabaseResult.eOk;
 	}
 	// Default name 'state'
-	public StorageGetEntry(szName: string = DbSetStorage.DEFAULTNAME): PythonDictStrings | null
+	public StorageGetEntry(szName: string = DbSetStorage.DEFAULTNAME): iXRDictStrings | null
 	{
 		var pixrs:	iXRStorage | null;
 
@@ -1195,7 +1195,7 @@ export class iXRDbContext extends DbContext
 	}
 	// Default name 'state'
 	public async StorageSetEntry(
-		data: string | PythonDictStrings,
+		data: string | iXRDictStrings,
 		bKeepLatest: boolean,
 		szOrigin: string,
 		bSessionData: boolean,
@@ -1205,7 +1205,7 @@ export class iXRDbContext extends DbContext
 		// ---
 		
 		const dictData = typeof data === 'string' 
-			? new PythonDictStrings().Construct(data)
+			? new iXRDictStrings().Construct(data)
 			: data;
 		
 		return await (this.m_dsIXRStorage as DbSetStorage).SetEntry(
@@ -1245,9 +1245,9 @@ export class iXRDbContext extends DbContext
 		return DatabaseResult.eOk;
 	}
 	// Return dictionary
-	public getAllData(): PythonDictStrings
+	public getAllData(): iXRDictStrings
 	{
-		return new PythonDictStrings();
+		return new iXRDictStrings();
 	}
 	// --- TESTS.
 // #ifdef _DEBUG

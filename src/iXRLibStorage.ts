@@ -1,6 +1,6 @@
 import { iXRLibClient } from "./iXRLibClient";
 import { iXRAIProxy, iXRDbContext, iXRLibConfiguration, iXRStorage, iXRXXXContainer, DbSetStorage } from "./iXRLibCoreModel";
-import { iXRResult, PythonDictStrings, TimeSpan } from "./network/utils/DotNetishTypes";
+import { iXRResult, iXRDictStrings, TimeSpan } from "./network/utils/DotNetishTypes";
 import { iXRLibAnalytics, iXRLibInit } from "./iXRLibAnalytics"
 
 // --- MJP:  templatize these?
@@ -54,7 +54,7 @@ export class iXRLibStorage
 	/// <returns></returns>
 	public static async ReadStorageFromBackend(): Promise<iXRResult>
 	{
-		var	ixrStorage:	iXRXXXContainer<iXRStorage, PythonDictStrings, false> = new iXRXXXContainer<iXRStorage, PythonDictStrings, false>(iXRStorage, PythonDictStrings);
+		var	ixrStorage:	iXRXXXContainer<iXRStorage, iXRDictStrings, false> = new iXRXXXContainer<iXRStorage, iXRDictStrings, false>(iXRStorage, iXRDictStrings);
 
 		return iXRLibClient.GetIXRStorage(ixrStorage);
 	}
@@ -110,8 +110,8 @@ export class iXRLibStorage
 	public static get_UseDatabase() { return iXRLibStorage.m_ixrLibConfiguration.m_bUseDatabase; }
 	public static set_UseDatabase(bValue: boolean): void { iXRLibStorage.m_ixrLibConfiguration.m_bUseDatabase = bValue; }
 	// ---
-	public static get_AuthMechanism(): PythonDictStrings { return iXRLibStorage.m_ixrLibConfiguration.m_dictAuthMechanism; }
-	public static set_AuthMechanism(dictValue: PythonDictStrings): void { iXRLibStorage.m_ixrLibConfiguration.m_dictAuthMechanism = dictValue; }
+	public static get_AuthMechanism(): iXRDictStrings { return iXRLibStorage.m_ixrLibConfiguration.m_dictAuthMechanism; }
+	public static set_AuthMechanism(dictValue: iXRDictStrings): void { iXRLibStorage.m_ixrLibConfiguration.m_dictAuthMechanism = dictValue; }
 	// ---
 	public static ReadConfig(): boolean { return iXRLibStorage.m_ixrLibConfiguration.ReadConfig(); }
 	// --- End Configuration fields.
@@ -126,14 +126,14 @@ export class iXRLibStorage
 		return await dbContext.StorageGetEntryAsString(szName);
 	}
 	// Merge GetEntryRaw0 and GetEntryRaw1
-	public static async GetEntryRaw(szName: string = DbSetStorage.DEFAULTNAME): Promise<PythonDictStrings | null> 
+	public static async GetEntryRaw(szName: string = DbSetStorage.DEFAULTNAME): Promise<iXRDictStrings | null> 
 	{
 		const dbContext: iXRDbContext = new iXRDbContext(false);
 		return await dbContext.StorageGetEntry(szName);
 	}
 	// Merge all SetEntry functions (0,1,2,3)
 	public static async SetEntry(
-		data: string | PythonDictStrings,
+		data: string | iXRDictStrings,
 		bKeepLatest: boolean,
 		szOrigin: string,
 		bSessionData: boolean,

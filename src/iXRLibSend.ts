@@ -4,7 +4,7 @@
 import { iXRLibAnalytics } from "./iXRLibAnalytics";
 import { iXRLibClient } from "./iXRLibClient";
 import { iXREvent, iXRLog, iXRTelemetry, LogLevel } from "./iXRLibCoreModel";
-import { DateTime, InteractionType, InteractionTypeToString, iXRResult, PythonDictStrings, ResultOptions, ResultOptionsToString, TimeSpan } from "./network/utils/DotNetishTypes";
+import { DateTime, InteractionType, InteractionTypeToString, iXRResult, iXRDictStrings, ResultOptions, ResultOptionsToString, TimeSpan } from "./network/utils/DotNetishTypes";
 
 // --- MJP:  templatize these?
 export type iXRLibAnalyticsLogCallback = (ixrLog: iXRLog, eResult: iXRResult, szExceptionMessage: string) => void;
@@ -15,75 +15,75 @@ export type iXRLibAnalyticsTelemetryCallback = (ixrTelemetry: iXRTelemetry, eRes
 export class iXRLibSend
 {
 	// --- (C++ dll and C# dll) versions of LogXXX().
-	private static async LogSynchronous(eLogLevel: LogLevel, szText: string, dictMeta: PythonDictStrings): Promise<iXRResult>
+	private static async LogSynchronous(eLogLevel: LogLevel, szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	{
 		var	ixrLog:	iXRLog = new iXRLog().Construct(eLogLevel, szText, dictMeta);
 
 		return await iXRLibSend.AddLogSynchronous(ixrLog);
 	}
-	// private static Log(eLogLevel: LogLevel, szText: string, dictMeta: PythonDictStrings): Promise<iXRResult>
+	// private static Log(eLogLevel: LogLevel, szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	// {
 	// 	var	ixrLog:	iXRLog = new iXRLog().Construct(eLogLevel, szText, dictMeta);
 
 	// 	return iXRLibSend.AddLog(ixrLog, true, null);
 	// }
 	// ---
-	public static async LogDebugSynchronous(szText: string, dictMeta: PythonDictStrings): Promise<iXRResult>
+	public static async LogDebugSynchronous(szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	{
 		return await iXRLibSend.LogSynchronous(LogLevel.eDebug, szText, dictMeta);
 	}
-	// public static LogDebug(szText: string, dictMeta: PythonDictStrings): Promise<iXRResult>
+	// public static LogDebug(szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	// {
 	// 	return iXRLibSend.Log(LogLevel.eDebug, szText, dictMeta);
 	// }
-	public static async LogInfoSynchronous(szText: string, dictMeta: PythonDictStrings): Promise<iXRResult>
+	public static async LogInfoSynchronous(szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	{
 		return await iXRLibSend.LogSynchronous(LogLevel.eInfo, szText, dictMeta);
 	}
-	// public static LogInfo(szText: string, dictMeta: PythonDictStrings): Promise<iXRResult>
+	// public static LogInfo(szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	// {
 	// 	return iXRLibSend.Log(LogLevel.eInfo, szText, dictMeta);
 	// }
-	public static async LogWarnSynchronous(szText: string, dictMeta: PythonDictStrings): Promise<iXRResult>
+	public static async LogWarnSynchronous(szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	{
 		return await iXRLibSend.LogSynchronous(LogLevel.eWarn, szText, dictMeta);
 	}
-	// public static LogWarn(szText: string, dictMeta: PythonDictStrings): Promise<iXRResult>
+	// public static LogWarn(szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	// {
 	// 	return iXRLibSend.Log(LogLevel.eWarn, szText, dictMeta);
 	// }
-	public static async LogErrorSynchronous(szText: string, dictMeta: PythonDictStrings): Promise<iXRResult>
+	public static async LogErrorSynchronous(szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	{
 		return await iXRLibSend.LogSynchronous(LogLevel.eError, szText, dictMeta);
 	}
-	// public static LogError(szText: string, dictMeta: PythonDictStrings): Promise<iXRResult>
+	// public static LogError(szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	// {
 	// 	return iXRLibSend.Log(LogLevel.eError, szText, dictMeta);
 	// }
-	public static async LogCriticalSynchronous(szText: string, dictMeta: PythonDictStrings): Promise<iXRResult>
+	public static async LogCriticalSynchronous(szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	{
 		return await iXRLibSend.LogSynchronous(LogLevel.eCritical, szText, dictMeta);
 	}
-	// public static LogCritical(szText: string, dictMeta: PythonDictStrings): Promise<iXRResult>
+	// public static LogCritical(szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	// {
 	// 	return iXRLibSend.Log(LogLevel.eCritical, szText, dictMeta);
 	// }
 	// --- End (C++ dll and C# dll) versions of LogXXX().
 	// --- API (C++ dll and C# dll) versions of iXRLibSend.Event().
-	public static async EventSynchronous(szName: string, dictMeta: PythonDictStrings): Promise<iXRResult>
+	public static async EventSynchronous(szName: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	{
 		var	ixrEvent: iXREvent = new iXREvent().Construct(szName, dictMeta);
 
 		return await iXRLibSend.EventSynchronousCore(ixrEvent);
 	}
-	// public static async Event(szName: string, dictMeta: PythonDictStrings): Promise<iXRResult>
+	// public static async Event(szName: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	// {
 	// 	var	ixrEvent:	iXREvent = new iXREvent().Construct(szName, dictMeta);
 
 	// 	return await iXRLibSend.EventCore(ixrEvent, true, null);
 	// }
 	// Convenient wrappers for particular forms of events.
-	public static async EventAssessmentStart(szAssessmentName: string, dictMeta: PythonDictStrings): Promise<iXRResult>
+	public static async EventAssessmentStart(szAssessmentName: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	{
 		dictMeta.set("verb", "started");
 		dictMeta.set("assessment_name", szAssessmentName);
@@ -94,7 +94,7 @@ export class iXRLibSend
 		// ---
 		return await iXRLibSend.EventSynchronous("assessment_start", dictMeta);
 	}
-	public static async EventAssessmentComplete(szAssessmentName: string, szScore: string, eResultOptions: ResultOptions, dictMeta: PythonDictStrings): Promise<iXRResult>
+	public static async EventAssessmentComplete(szAssessmentName: string, szScore: string, eResultOptions: ResultOptions, dictMeta: iXRDictStrings): Promise<iXRResult>
 	{
 		var	rpStartTime:	{vRet: DateTime} = {vRet: new DateTime()};
 		var	bGotValue:		boolean;
@@ -124,7 +124,7 @@ export class iXRLibSend
 		// ---
 		return await iXRLibSend.EventSynchronous("assessment_complete", dictMeta);
 	}
-	public static async EventObjectiveStart(szObjectiveName: string, dictMeta: PythonDictStrings): Promise<iXRResult>
+	public static async EventObjectiveStart(szObjectiveName: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	{
 		dictMeta.set("verb", "started");
 		dictMeta.set("objective_name", szObjectiveName);
@@ -135,7 +135,7 @@ export class iXRLibSend
 		// ---
 		return await iXRLibSend.EventSynchronous("objective_start", dictMeta);
 	}
-	public static async EventObjectiveComplete(szObjectiveName: string, szScore: string, eResultOptions: ResultOptions, dictMeta: PythonDictStrings): Promise<iXRResult>
+	public static async EventObjectiveComplete(szObjectiveName: string, szScore: string, eResultOptions: ResultOptions, dictMeta: iXRDictStrings): Promise<iXRResult>
 	{
 		var	rpStartTime:	{vRet: DateTime} = {vRet: new DateTime()};
 		var	bGotValue:		boolean;
@@ -165,7 +165,7 @@ export class iXRLibSend
 		// ---
 		return await iXRLibSend.EventSynchronous("objective_complete", dictMeta);
 	}
-	public static async EventInteractionStart(szInteractionName: string, dictMeta: PythonDictStrings): Promise<iXRResult>
+	public static async EventInteractionStart(szInteractionName: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	{
 		dictMeta.set("verb", "started");
 		dictMeta.set("interaction_name", szInteractionName);
@@ -177,7 +177,7 @@ export class iXRLibSend
 		return await iXRLibSend.EventSynchronous("interaction_start", dictMeta);
 	}
 	// Modified EventInteractionComplete methods.
-	public static async EventInteractionComplete(szInteractionName: string, szResult: string, szResultDetails: string, eInteractionType: InteractionType, dictMeta: PythonDictStrings): Promise<iXRResult>
+	public static async EventInteractionComplete(szInteractionName: string, szResult: string, szResultDetails: string, eInteractionType: InteractionType, dictMeta: iXRDictStrings): Promise<iXRResult>
 	{
 		var	rpStartTime:	{vRet: DateTime} = {vRet: new DateTime()};
 		var	bGotValue:		boolean;
@@ -214,7 +214,7 @@ export class iXRLibSend
 		// ---
 		return await iXRLibSend.EventSynchronous("interaction_complete", dictMeta);
 	}
-	public static async EventLevelStart(szLevelName: string, dictMeta: PythonDictStrings): Promise<iXRResult>
+	public static async EventLevelStart(szLevelName: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	{
 		dictMeta.set("verb", "started");
 		dictMeta.set("level_name", szLevelName);
@@ -225,7 +225,7 @@ export class iXRLibSend
 		// ---
 		return await iXRLibSend.EventSynchronous("level_start", dictMeta);
 	}
-	public static async EventLevelComplete(szLevelName: string, szScore: string, dictMeta: PythonDictStrings): Promise<iXRResult>
+	public static async EventLevelComplete(szLevelName: string, szScore: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	{
 		var	rpStartTime:	{vRet: DateTime} = {vRet: new DateTime()};
 		var	bGotValue:		boolean;
@@ -257,13 +257,13 @@ export class iXRLibSend
 	// --- End API (C++ dll and C# dll) versions of iXRLibSend.Event().
 	// ---
 	// --- API (C++ dll and C# dll) versions of AddTelemetryEntry().
-	public static async AddTelemetryEntrySynchronous(szName: string, dictData: PythonDictStrings): Promise<iXRResult>
+	public static async AddTelemetryEntrySynchronous(szName: string, dictData: iXRDictStrings): Promise<iXRResult>
 	{
 		var	ixrTelemetryEntry:	iXRTelemetry = new iXRTelemetry().Construct(szName, dictData);
 
 		return await iXRLibSend.AddTelemetryEntrySynchronousCore(ixrTelemetryEntry);
 	}
-	// public static AddTelemetryEntry(szName: string, dictData: PythonDictStrings): Promise<iXRResult>
+	// public static AddTelemetryEntry(szName: string, dictData: iXRDictStrings): Promise<iXRResult>
 	// {
 	// 	var	ixrTelemetryEntry:	iXRTelemetry = new iXRTelemetry().Construct(szName, dictData);
 

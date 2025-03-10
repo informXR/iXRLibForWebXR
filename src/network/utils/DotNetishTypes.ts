@@ -672,19 +672,19 @@ export class Dictionary<KEY, VALUE> extends Map<KEY, VALUE>
 /// <summary>
 /// The specific Dictionary<mstringb, mstringb>, which makes it easy to convert comma-separated string to dictionary of strings.
 /// </summary>
-export class PythonDictStrings extends Dictionary<string, string>
+export class iXRDictStrings extends Dictionary<string, string>
 {
 	constructor()
 	{
 		super();
 	}
-	Construct(szCommaSeparatedNameEqualsValueList: string): PythonDictStrings
+	Construct(szCommaSeparatedNameEqualsValueList: string): iXRDictStrings
 	{
 		this.FromCommaSeparatedList(szCommaSeparatedNameEqualsValueList);
 		// ---
 		return this;
 	}
-	public FromCommaSeparatedList(szCommaSeparatedNameEqualsValueList: string): PythonDictStrings
+	public FromCommaSeparatedList(szCommaSeparatedNameEqualsValueList: string): iXRDictStrings
 	{
 		this.CommaSeparatedStringToDictionary(szCommaSeparatedNameEqualsValueList);
 		// ---
@@ -700,7 +700,7 @@ export class PythonDictStrings extends Dictionary<string, string>
 			{
 				szRet += ',';
 			}
-			szRet += `"${key}":${PythonDictStrings.StringIfNotNumber(value)}`;
+			szRet += `"${key}":${iXRDictStrings.StringIfNotNumber(value)}`;
 		}
 		// ---
 		return `{${szRet}}`;
@@ -721,7 +721,7 @@ export class PythonDictStrings extends Dictionary<string, string>
 			return `"${value}"`;
 		}
 	}
-	public FromJsonFieldValue(szJsonFieldValue: string): PythonDictStrings
+	public FromJsonFieldValue(szJsonFieldValue: string): iXRDictStrings
 	{
 		this.JsonFieldValueToDictionary(szJsonFieldValue);
 		// ---

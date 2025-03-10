@@ -6,7 +6,7 @@ import { iXRLibAnalytics, iXRLibInit } from "./iXRLibAnalytics";
 import { iXRAIProxy, iXRBase, iXREvent, iXRLibConfiguration, iXRLog, iXRStorage, iXRTelemetry, iXRXXXContainer, RESTEndpointFromType } from "./iXRLibCoreModel";
 import { CurlHttp, EnsureSingleEndingCharacter, JsonScalarArrayElement, SUID, time_t } from "./network/types";
 import { DataObjectBase, DbSet, DumpCategory, FieldProperties, FieldPropertiesRecordContainer, FieldPropertyFlags, GenerateJson, GenerateJsonAlternate, GenerateJsonList, LoadFromJson } from "./network/utils/DataObjectBase";
-import { iXRResult, JsonResult, PythonDictStrings, StringList } from "./network/utils/DotNetishTypes";
+import { iXRResult, JsonResult, iXRDictStrings, StringList } from "./network/utils/DotNetishTypes";
 
 /// </summary>
 export enum Partner
@@ -59,8 +59,8 @@ export class AuthTokenRequest extends DataObjectBase
 	m_szDeviceModel:		string = "";
 	m_szUserId:				string = "";
 	m_lszTags:				StringList;
-	m_dictGeoLocation:		PythonDictStrings;
-	m_dictAuthMechanism:	PythonDictStrings;
+	m_dictGeoLocation:		iXRDictStrings;
+	m_dictAuthMechanism:	iXRDictStrings;
 	// ---
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
 		super.m_mapProperties.m_rfp,
@@ -92,8 +92,8 @@ export class AuthTokenRequest extends DataObjectBase
 		super();
 		// ---
 		this.m_lszTags = new StringList();
-		this.m_dictGeoLocation = new PythonDictStrings();
-		this.m_dictAuthMechanism = new PythonDictStrings();
+		this.m_dictGeoLocation = new iXRDictStrings();
+		this.m_dictAuthMechanism = new iXRDictStrings();
 		// ---
 		this.RefreshSessionId();
 	}
@@ -399,7 +399,7 @@ export class iXRLibClient
 		return iXRResult.eOk;
 	}
 	// TODO:  Summary this when dust has settled.
-	public static async GetIXRXXXs<T extends DataObjectBase>(tTypeOfT: any, vpszQueryParameters: Array<[string, string]>, /*OUT*/ ptContainedResponse: iXRXXXContainer<T, PythonDictStrings, false> | null, /*OUT*/ ptResponse: T | null): Promise<iXRResult>
+	public static async GetIXRXXXs<T extends DataObjectBase>(tTypeOfT: any, vpszQueryParameters: Array<[string, string]>, /*OUT*/ ptContainedResponse: iXRXXXContainer<T, iXRDictStrings, false> | null, /*OUT*/ ptResponse: T | null): Promise<iXRResult>
 	{
 		try
 		{
@@ -596,7 +596,7 @@ export class iXRLibClient
 		// ---
 		return eRet;
 	}
-	public static async GetIXRStorage(/*OUT*/ ixrStorage: iXRXXXContainer<iXRStorage, PythonDictStrings, false>): Promise<iXRResult>
+	public static async GetIXRStorage(/*OUT*/ ixrStorage: iXRXXXContainer<iXRStorage, iXRDictStrings, false>): Promise<iXRResult>
 	{
 		return await iXRLibClient.GetIXRXXXs<iXRStorage>(iXRStorage, [], ixrStorage, null);
 	}

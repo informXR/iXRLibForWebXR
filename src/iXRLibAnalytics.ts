@@ -7,7 +7,7 @@ import { Base64, CurlHttp, DATEMAXVALUE, Sleep } from './network/types';
 import { crc32 } from './network/utils/crc32';
 import { sha256, SHA256 } from './network/utils/cryptoUtils';
 import { DataObjectBase, DbSet, FieldPropertyFlags, LoadFromJson } from './network/utils/DataObjectBase';
-import { iXRResult, DateTime, TimeSpan, StringList, PythonDictStrings, JsonResult } from './network/utils/DotNetishTypes';
+import { iXRResult, DateTime, TimeSpan, StringList, iXRDictStrings, JsonResult } from './network/utils/DotNetishTypes';
 import { DatabaseResult } from './network/utils/iXRLibSQLite';
 import { JWTDecode } from './network/utils/JWT';
 
@@ -306,11 +306,11 @@ export class iXRLibInit
 	public static get_Tags(): StringList { return iXRLibInit.m_ixrLibAuthentication.m_objAuthTokenRequest.m_lszTags; }
 	public static set_Tags(lszTags: StringList): void { iXRLibInit.m_ixrLibAuthentication.m_objAuthTokenRequest.m_lszTags = lszTags; }
 	// ---
-	public static get_GeoLocation(): PythonDictStrings { return iXRLibInit.m_ixrLibAuthentication.m_objAuthTokenRequest.m_dictGeoLocation; }
-	public static set_GeoLocation(dictGeoLocation: PythonDictStrings): void { iXRLibInit.m_ixrLibAuthentication.m_objAuthTokenRequest.m_dictGeoLocation = dictGeoLocation; }
+	public static get_GeoLocation(): iXRDictStrings { return iXRLibInit.m_ixrLibAuthentication.m_objAuthTokenRequest.m_dictGeoLocation; }
+	public static set_GeoLocation(dictGeoLocation: iXRDictStrings): void { iXRLibInit.m_ixrLibAuthentication.m_objAuthTokenRequest.m_dictGeoLocation = dictGeoLocation; }
 	// ---
-	public static get_AuthMechanism(): PythonDictStrings { return iXRLibInit.m_ixrLibAuthentication.m_objAuthTokenRequest.m_dictAuthMechanism; }
-	public static set_AuthMechanism(dictAuthMechanism: PythonDictStrings): void { iXRLibInit.m_ixrLibAuthentication.m_objAuthTokenRequest.m_dictAuthMechanism = dictAuthMechanism; }
+	public static get_AuthMechanism(): iXRDictStrings { return iXRLibInit.m_ixrLibAuthentication.m_objAuthTokenRequest.m_dictAuthMechanism; }
+	public static set_AuthMechanism(dictAuthMechanism: iXRDictStrings): void { iXRLibInit.m_ixrLibAuthentication.m_objAuthTokenRequest.m_dictAuthMechanism = dictAuthMechanism; }
 	// --- End Authentication fields.
 };
 
@@ -341,7 +341,7 @@ export class iXRLibAnalytics
     // --- Will be either userId or deviceId and currentId aliases whichever it is.  This is current global... snapshot in each IXREvent as well.
 	private static m_szUserId:						string;
 	private static m_szDeviceId:					string;
-	private static m_dssCurrentData:				PythonDictStrings;  			 // where we will store the current data in memory for quick access.  MJP:  may already have implemented this as IXRAnalytics.allEvents.
+	private static m_dssCurrentData:				iXRDictStrings;  			 // where we will store the current data in memory for quick access.  MJP:  may already have implemented this as IXRAnalytics.allEvents.
 	// ---
 	public static InitStatics(): void
 	{
@@ -353,7 +353,7 @@ export class iXRLibAnalytics
 		iXRLibAnalytics.m_pvGetAuthSecretCallbackData = null;
 		iXRLibAnalytics.m_szUserId = "";
 		iXRLibAnalytics.m_szDeviceId = "";
-		iXRLibAnalytics.m_dssCurrentData = new PythonDictStrings();
+		iXRLibAnalytics.m_dssCurrentData = new iXRDictStrings();
 	}
 	//private static					m_dsbAllEvents = new Dictionary<mstringb, bool>;
 	public static get_UserId(): string { return iXRLibAnalytics.m_szUserId; }
@@ -952,7 +952,7 @@ export class iXRLibAnalytics
 
 		return await iXRLibAnalytics.AddAIProxySynchronous(ixrAIProxy);
 	}
-	public static async AddAIProxySynchronous2(szPrompt: string, dictPastMessages: PythonDictStrings, szLMMProvider: string): Promise<iXRResult>
+	public static async AddAIProxySynchronous2(szPrompt: string, dictPastMessages: iXRDictStrings, szLMMProvider: string): Promise<iXRResult>
 	{
 		var	ixrAIProxy:	iXRAIProxy = new iXRAIProxy().Construct1(szPrompt, dictPastMessages, szLMMProvider);
 
@@ -971,7 +971,7 @@ export class iXRLibAnalytics
 
 	// 	return iXRLibAnalytics.AddAIProxy(ixrAIProxy, true, null);
 	// }
-	// public static AddAIProxy2(szPrompt: string, dictPastMessages: PythonDictStrings, szLMMProvider: string): Promise<iXRResult>
+	// public static AddAIProxy2(szPrompt: string, dictPastMessages: iXRDictStrings, szLMMProvider: string): Promise<iXRResult>
 	// {
 	// 	var	ixrAIProxy:	iXRAIProxy = new iXRAIProxy().Construct1(szPrompt, dictPastMessages, szLMMProvider);
 

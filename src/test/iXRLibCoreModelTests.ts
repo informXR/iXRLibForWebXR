@@ -1,4 +1,4 @@
-import { PythonDictStrings, Random } from "../../src/network/utils/DotNetishTypes";
+import { iXRDictStrings, Random } from "../../src/network/utils/DotNetishTypes";
 import { iXRAIProxy, iXRStorageData, LogLevelToString } from "../iXRLibCoreModel";
 import { LogLevel } from "../iXRLibCoreModel";
 import { iXRLocationData, iXRApplication, iXREvent, iXRLog, iXRTelemetry, iXRStorage, iXRDbContext } from "../iXRLibCoreModel";
@@ -188,7 +188,7 @@ export function FakeUpSomeRandomCrapStorageData(obj: iXRStorageData): void
 	var szKey:				string;
 	var szValue:			string;
 
-	obj.m_cdictData = new PythonDictStrings();
+	obj.m_cdictData = new iXRDictStrings();
 	szKey = pszStorageEntries[rnd.Next(pszStorageEntries.length)];
 	szValue = pszStorageEntries[rnd.Next(pszStorageEntries.length)];
 	obj.m_cdictData.Add(szKey, szValue);
