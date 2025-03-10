@@ -954,11 +954,7 @@ export class DbSetStorage extends DbSet<iXRStorage>
 		this.DEFAULTNAME = "state";
 	}
 	// Default name 'state'
-	public GetEntry0(): iXRStorage | null
-	{
-		return this.GetEntry1(DEFAULTNAME);
-	}
-	public GetEntry1(szName: string): iXRStorage | null
+	public GetEntry(szName: string = DbSetStorage.DEFAULTNAME): iXRStorage | null
 	{
 		for (let ixd of this.values())
 		{
@@ -971,97 +967,36 @@ export class DbSetStorage extends DbSet<iXRStorage>
 	}
 	// ---
 	// Default name 'state'
-	public async SetEntry0(dictData: PythonDictStrings, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): Promise<iXRResult>
-	{
-		return await this.SetEntry1(DEFAULTNAME, dictData, bKeepLatest, szOrigin, bSessionData);
-	}
-	public async SetEntry1(szName: string, dictData: PythonDictStrings, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): Promise<iXRResult>
-	{
-		for (let ixd of this.values())
-		{
-			if (ixd.m_szName === szName)
-			{
-				if (!ixd.m_dsData.empty() && !ixd.m_dsData[0].m_dspIXRXXXs.empty())
-				{
-					ixd.m_dsData[0].m_dspIXRXXXs[0].m_cdictData = dictData;
-				}
-				// ---
-				return iXRLibStorage.AddEntrySynchronous(ixd);
-			}
-		}
-		// --- MJP:  for now, coding just the synchronous case.  As these are environment variables, blocking main thread should not be a big deal.
-		const ixrs = new iXRStorage().Construct0(bKeepLatest, szName, dictData, szOrigin, bSessionData);
-		super.push(ixrs)
-		// ---
-		return await iXRLibStorage.AddEntrySynchronous(ixrs);
-	}
-	// Default name 'state'
-	public async SetEntry2(szdictData: string, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): Promise<iXRResult>
-	{
-		return await this.SetEntry3(DEFAULTNAME, szdictData, bKeepLatest, szOrigin, bSessionData);
-	}
-	public async SetEntry3(szName: string, szdictData: string, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): Promise<iXRResult>
-	{
-		for (let ixd of this.values())
-		{
-			if (ixd.m_szName === szName)
-			{
-				if (!ixd.m_dsData.empty() && !ixd.m_dsData[0].m_dspIXRXXXs.empty())
-				{
-					ixd.m_dsData[0].m_dspIXRXXXs[0].m_cdictData = new PythonDictStrings().Construct(szdictData);
-				}
-				// ---
-				return iXRLibStorage.AddEntrySynchronous(ixd);
-			}
-		}
-		// --- MJP:  for now, coding just the synchronous case.  As these are environment variables, blocking main thread should not be a big deal.
-		const ixrs = new iXRStorage().Construct0(bKeepLatest, szName, new PythonDictStrings().Construct(szdictData), szOrigin, bSessionData);
-		super.push(ixrs)
-		// ---
-		return await iXRLibStorage.AddEntrySynchronous(ixrs);
+	public async SetEntry(
+		data: string | PythonDictStrings,
+		bKeepLatest: boolean,
+		szOrigin: string,
+		bSessionData: boolean,
+		szName: string = DbSetStorage.DEFAULTNAME
+	): Promise<iXRResult> {
+		const dictData = typeof data === 'string' 
+			? new PythonDictStrings().Construct(data)
+			: data;
+		
+		// Create new storage entry
+		const storage = new iXRStorage().Construct0(
+			bKeepLatest,
+			szName,
+			dictData,
+			szOrigin,
+			bSessionData
+		);
+		
+		this.Add(storage);
+		return iXRResult.eOk;
 	}
 	// ---
 	// Default name 'state'
-	public async RemoveEntry0(dbContext: iXRDbContext): Promise<iXRResult>
-	{
-		// As name is explicit, "state", passing false in for bSessionOnly (backend considers
-		// true to be default but since it is named, want anything with that name gone).
-		return await this.RemoveEntry1(dbContext, DEFAULTNAME);
-	}
-	public async RemoveEntry1(dbContext: iXRDbContext, szName: string): Promise<iXRResult>
-	{
-		var	eRet:				iXRResult;
-		var	szResponse:			string = "";
-		var	bChangedSomething:	boolean = false;
-
-		// Delete from backend.
-		eRet = await iXRLibClient.DeleteIXRStorageEntry(szName, {szResponse: ""});
-		// ---
-		if (eRet === iXRResult.eOk)
-		{
-			// Reflect what we just did on backend in device-local db.
-			for (let it of this.values())
-			{
-				// If you look at the backend, there is a boolean userOnly flag whose specification is:
-				//	true = Delete data for the user only across all devices for the current app.
-				//	false = Delete data for the user on the current device only.
-				// Note how there is no third clause with that in it... all the entries in the db are
-				// on this device and therefore are all to be deleted for either value of that flag.
-				if (it.m_szName === szName)
-				{
-					super.erase(it);
-					bChangedSomething = true;
-				}
-			}
-			if (bChangedSomething)
-			{
-				if (!DbSuccess(dbContext.SaveChanges()))
-				{
-					eRet = iXRResult.eDeleteObjectsFailedDatabase;
-				}
-			}
-			// ---
-			return eRet;
+	public async RemoveEntry(szName: string = DbSetStorage.DEFAULTNAME): Promise<iXRResult> {
+		const entry = this.GetEntry(szName);
+		if (entry) {
+			this.erase(entry);
+			return iXRResult.eOk;
 		}
 		// ---
 		return iXRResult.eObjectNotFound;
@@ -1080,13 +1015,12 @@ export class DbSetStorage extends DbSet<iXRStorage>
 			// Reflect what we just did on backend in device-local db.
 			for (let it of this.values())
 			{
-				// If you look at the backend, there is a boolean userOnly flag whose specification is:
-				//	true = Delete data for the user only across all devices for the current app.
-				//	false = Delete data for the user on the current device only.
-				// Note how there is no third clause with that in it... all the entries in the db are
-				// on this device and therefore are all to be deleted for either value of that flag.
-				if (!bSessionOnly || it.m_bSessionData)
-				{
+                // If you look at the backend, there is a boolean userOnly flag whose specification is:
+                //  true = Delete data for the user only across all devices for the current app.
+                //  false = Delete data for the user on the current device only.
+                // Note how there is no third clause with that in it... all the entries in the db are
+                // on this device and therefore are all to be deleted for either value of that flag.
+                if (!bSessionOnly || it.m_bSessionData) {
 					super.erase(it);
 					bChangedSomething = true;
 				}
@@ -1235,46 +1169,23 @@ export class iXRDbContext extends DbContext
 		return DatabaseResult.eOk;
 	}
 	// Default name 'state'
-	public StorageGetEntry0(): PythonDictStrings | null
+	public StorageGetEntry(szName: string = DbSetStorage.DEFAULTNAME): PythonDictStrings | null
 	{
 		var pixrs:	iXRStorage | null;
 
 		this.LoadStorageEntriesIfNecessary();
-		pixrs = (this.m_dsIXRStorage as DbSetStorage).GetEntry0();
-		// ---
-		return (pixrs && !pixrs.m_dsData.empty() && !pixrs.m_dsData[0].m_dspIXRXXXs.empty()) ? pixrs.m_dsData[0].m_dspIXRXXXs[0].m_cdictData : null;
-	}
-	public StorageGetEntry1(szName: string): PythonDictStrings | null
-	{
-		var	pixrs: iXRStorage | null;
-
-		this.LoadStorageEntriesIfNecessary();
-		pixrs = (this.m_dsIXRStorage as DbSetStorage).GetEntry1(szName);
+		pixrs = (this.m_dsIXRStorage as DbSetStorage).GetEntry(szName);
 		// ---
 		return (pixrs && !pixrs.m_dsData.empty() && !pixrs.m_dsData[0].m_dspIXRXXXs.empty()) ? pixrs.m_dsData[0].m_dspIXRXXXs[0].m_cdictData : null;
 	}
 	// Default name 'state'
-	public StorageGetEntryAsString0(): string
+	public StorageGetEntryAsString(szName: string = DbSetStorage.DEFAULTNAME): string
 	{
 		var	szRet:	string = "";
 		var	pixrs:	iXRStorage | null;
 
 		this.LoadStorageEntriesIfNecessary();
-		pixrs = (this.m_dsIXRStorage as DbSetStorage).GetEntry0();
-		if (pixrs && !pixrs.m_dsData.empty() && !pixrs.m_dsData[0].m_dspIXRXXXs.empty())
-		{
-			szRet = pixrs.m_dsData[0].m_dspIXRXXXs[0].m_cdictData.ToString();
-		}
-		// ---
-		return szRet;
-	}
-	public StorageGetEntryAsString1(szName: string): string
-	{
-		var	szRet:	string = "";
-		var	pixrs:	iXRStorage | null;
-
-		this.LoadStorageEntriesIfNecessary();
-		pixrs = (this.m_dsIXRStorage as DbSetStorage).GetEntry1(szName);
+		pixrs = (this.m_dsIXRStorage as DbSetStorage).GetEntry(szName);
 		if (pixrs && !pixrs.m_dsData.empty() && !pixrs.m_dsData[0].m_dspIXRXXXs.empty())
 		{
 			szRet = pixrs.m_dsData[0].m_dspIXRXXXs[0].m_cdictData.ToString();
@@ -1283,43 +1194,33 @@ export class iXRDbContext extends DbContext
 		return szRet;
 	}
 	// Default name 'state'
-	public async StorageSetEntry0(szData: string, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): Promise<iXRResult>
-	{
+	public async StorageSetEntry(
+		data: string | PythonDictStrings,
+		bKeepLatest: boolean,
+		szOrigin: string,
+		bSessionData: boolean,
+		szName: string = DbSetStorage.DEFAULTNAME
+	): Promise<iXRResult> {
 		this.LoadStorageEntriesIfNecessary();
 		// ---
-		return await (this.m_dsIXRStorage as DbSetStorage).SetEntry0(new PythonDictStrings().Construct(szData), bKeepLatest, szOrigin, bSessionData);
-	}
-	public async StorageSetEntry1(szName: string, szData: string, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): Promise<iXRResult>
-	{
-		this.LoadStorageEntriesIfNecessary();
-		// ---
-		return await (this.m_dsIXRStorage as DbSetStorage).SetEntry3(szName, szData, bKeepLatest, szOrigin, bSessionData);
-	}
-	// Default name 'state'
-	public async StorageSetEntry2(dictData: PythonDictStrings, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): Promise<iXRResult>
-	{
-		this.LoadStorageEntriesIfNecessary();
-		// ---
-		return await (this.m_dsIXRStorage as DbSetStorage).SetEntry0(dictData, bKeepLatest, szOrigin, bSessionData);
-	}
-	public async StorageSetEntry3(szName: string, dictData: PythonDictStrings, bKeepLatest: boolean, szOrigin: string, bSessionData: boolean): Promise<iXRResult>
-	{
-		this.LoadStorageEntriesIfNecessary();
-		// ---
-		return await (this.m_dsIXRStorage as DbSetStorage).SetEntry1(szName, dictData, bKeepLatest, szOrigin, bSessionData);
+		
+		const dictData = typeof data === 'string' 
+			? new PythonDictStrings().Construct(data)
+			: data;
+		
+		return await (this.m_dsIXRStorage as DbSetStorage).SetEntry(
+			dictData,
+			bKeepLatest,
+			szOrigin,
+			bSessionData,
+			szName
+		);
 	}
 	// Default name 'state'
-	public async StorageRemoveEntry0(): Promise<iXRResult>
+	public async StorageRemoveEntry(szName: string = DbSetStorage.DEFAULTNAME): Promise<iXRResult>
 	{
 		this.LoadStorageEntriesIfNecessary();
-		// ---
-		return await (this.m_dsIXRStorage as DbSetStorage).RemoveEntry0(this);
-	}
-	public async StorageRemoveEntry1(szName: string): Promise<iXRResult>
-	{
-		this.LoadStorageEntriesIfNecessary();
-		// ---
-		return await (this.m_dsIXRStorage as DbSetStorage).RemoveEntry1(this, szName);
+		return await (this.m_dsIXRStorage as DbSetStorage).RemoveEntry(szName);
 	}
 	public async StorageRemoveMultipleEntries(bSessionOnly: boolean): Promise<iXRResult>
 	{
