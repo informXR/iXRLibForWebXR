@@ -176,7 +176,7 @@ export class iXRLibConfiguration extends DataObjectBase
 		this.m_dictAuthMechanism = new PythonDictStrings();
 		// ---
 		// Default URL... can be overriden by App.config or accessors in C# and C++.
-		this.SetRestUrl("https://libapi.informxr.io/");
+		this.SetRestUrl("https://libapi.informxr.io/v1/");
 	}
 	public SetRestUrl(szRestUrl: string): void
 	{
