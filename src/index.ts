@@ -2,7 +2,7 @@ import { iXRLibInit } from "./iXRLibAnalytics";
 import { iXRLibStorage } from "./iXRLibStorage";
 import { iXRLibAsync } from "./iXRLibAsync";
 import { iXRLibSend } from "./iXRLibSend";
-import { ConfigurationManager, DateTime, iXRResult, PythonDictStrings, StringList, TimeSpan } from './network/utils/DotNetishTypes';
+import { ConfigurationManager, DateTime, iXRResult, iXRDictStrings, StringList, TimeSpan } from './network/utils/DotNetishTypes';
 
 // Initialize all static members
 iXRLibInit.InitStatics();
@@ -53,7 +53,7 @@ export {
     iXRLibAsync,
     iXRLibSend,
     iXRLibBaseSetup,
-    PythonDictStrings as iXRDictStrings
+    iXRDictStrings
 };
 
 // Create a global instance for direct access

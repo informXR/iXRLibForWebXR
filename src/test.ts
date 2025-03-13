@@ -6,7 +6,7 @@ import { iXRLibStorage } from './iXRLibStorage';
 import { Base64, CurlHttp, logError, Sleep, SUID, SyncEvent } from './network/types';
 import { SHA256 } from './network/utils/cryptoUtils';
 import { DataObjectBase, DbSet, DumpCategory, FieldProperties, FieldPropertiesRecordContainer, FieldPropertyFlags, GenerateJson } from './network/utils/DataObjectBase';
-import { ConfigurationManager, DateTime, iXRResult, PythonDictStrings, StringList, TimeSpan } from './network/utils/DotNetishTypes';
+import { ConfigurationManager, DateTime, iXRResult, iXRDictStrings, StringList, TimeSpan } from './network/utils/DotNetishTypes';
 import { FakeUpSomeCrapEvent, FakeUpSomeRandomCrapEvent } from './test/iXRLibCoreModelTests';
 import { iXRLibAnalyticsTests } from './test/iXRLibAnalyticsTests';
 
@@ -68,7 +68,7 @@ class TestData extends DataObjectBase
 	public m_nStrictlyCommercial:	number = 1.2;
 	public m_szSomeString:			string = "with a lead filled snowshoe."
 	public m_objTestChild:			TestChild = new TestChild();
-	public m_dictTest:				PythonDictStrings = new PythonDictStrings();
+	public m_dictTest:				iXRDictStrings = new iXRDictStrings();
 	public m_listTestListChild:		DbSet<TestListChild> = new DbSet<TestListChild>(TestListChild);
 	public m_listTestStringList:	StringList = new StringList();
 	// ---

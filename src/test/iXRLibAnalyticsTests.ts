@@ -182,7 +182,7 @@ import { iXRLibClient, Partner } from "../iXRLibClient";
 //	// ---
 //	if (true)
 //	{
-//		PythonDictStrings	dictFirst,
+//		iXRDictStrings	dictFirst,
 //							dictSecond,
 //							dictThird("var1=value1"),
 //							dictFourth("var1=value1,var2=value2,var3="),

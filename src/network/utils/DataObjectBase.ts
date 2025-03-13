@@ -2,7 +2,7 @@
 /// Allows for several categories of object dumping each with rules for which fields to dump or filter.
 
 import { SUID } from "../types";
-import { DateTime, iXRResult, JsonResult, PythonDictStrings, StringList, TimeSpan } from "./DotNetishTypes";
+import { DateTime, iXRResult, JsonResult, iXRDictStrings, StringList, TimeSpan } from "./DotNetishTypes";
 import { DatabaseResult } from "./iXRLibSQLite";
 
 /// </summary>
@@ -103,9 +103,9 @@ export class FieldPropertiesRecordContainer
 				rObj.obj[rObj.szKey] = (szJsonFieldValue === 'true');
 				break;
 			case 'object':
-				if (rObj.obj[rObj.szKey] instanceof PythonDictStrings)
+				if (rObj.obj[rObj.szKey] instanceof iXRDictStrings)
 				{
-					rObj.obj[rObj.szKey] = new PythonDictStrings().FromJsonFieldValue(szJsonFieldValue);
+					rObj.obj[rObj.szKey] = new iXRDictStrings().FromJsonFieldValue(szJsonFieldValue);
 				}
 				else if (rObj.obj[rObj.szKey] instanceof StringList)
 				{
@@ -183,9 +183,9 @@ export class FieldPropertiesRecordContainer
 				{
 					result[szJsonKey] = undefined;
 				}
-				else if (oObjectValue instanceof PythonDictStrings)
+				else if (oObjectValue instanceof iXRDictStrings)
 				{
-					const szInnerJson:	string = (bStringOnly) ? (oObjectValue as PythonDictStrings).JSONstringify() : (oObjectValue as PythonDictStrings).GenerateJson();
+					const szInnerJson:	string = (bStringOnly) ? (oObjectValue as iXRDictStrings).JSONstringify() : (oObjectValue as iXRDictStrings).GenerateJson();
 
 					result[szJsonKey] = JSON.parse(szInnerJson);
 				}
@@ -287,7 +287,7 @@ export class DataObjectBase
 	// When indicated by ObjectAttribute::eOutOfBandObject, any fields not found in the object
 	// being LoadFromJson()ed, instead of erroring with JsonResult::eMissingField, will get stuffed
 	// into here, and GenerateJson() will render the extra fields.
-	// PythonDictStrings	m_dictOutOfBandData;
+	// iXRDictStrings	m_dictOutOfBandData;
 	// // ---
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
 		{m_nLastLoadedSignature: new FieldProperties("last_loaded_signature", FieldPropertyFlags.bfExclude)},
