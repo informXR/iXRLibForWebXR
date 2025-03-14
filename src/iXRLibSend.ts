@@ -15,74 +15,75 @@ export type iXRLibAnalyticsTelemetryCallback = (ixrTelemetry: iXRTelemetry, eRes
 export class iXRLibSend
 {
 	// --- (C++ dll and C# dll) versions of LogXXX().
-	private static async LogSynchronous(eLogLevel: LogLevel, szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
+	private static async Log(eLogLevel: LogLevel, szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	{
 		var	ixrLog:	iXRLog = new iXRLog().Construct(eLogLevel, szText, dictMeta);
 
-		return await iXRLibSend.AddLogSynchronous(ixrLog);
+		return await iXRLibSend.AddLog(ixrLog);
 	}
-	// private static Log(eLogLevel: LogLevel, szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
+	// private static LogDeferred(eLogLevel: LogLevel, szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	// {
 	// 	var	ixrLog:	iXRLog = new iXRLog().Construct(eLogLevel, szText, dictMeta);
 
-	// 	return iXRLibSend.AddLog(ixrLog, true, null);
+	// 	return iXRLibSend.AddLogDeferred(ixrLog, true, null);
 	// }
 	// ---
-	public static async LogDebugSynchronous(szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
+	public static async LogDebug(szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	{
-		return await iXRLibSend.LogSynchronous(LogLevel.eDebug, szText, dictMeta);
+		return await iXRLibSend.Log(LogLevel.eDebug, szText, dictMeta);
 	}
-	// public static LogDebug(szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
+	// public static LogDebugDeferred(szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	// {
-	// 	return iXRLibSend.Log(LogLevel.eDebug, szText, dictMeta);
+	// 	return iXRLibSend.LogDeferred(LogLevel.eDebug, szText, dictMeta);
 	// }
-	public static async LogInfoSynchronous(szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
+	public static async LogInfo(szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	{
-		return await iXRLibSend.LogSynchronous(LogLevel.eInfo, szText, dictMeta);
+		return await iXRLibSend.Log(LogLevel.eInfo, szText, dictMeta);
 	}
-	// public static LogInfo(szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
+	// public static LogInfoDeferred(szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	// {
-	// 	return iXRLibSend.Log(LogLevel.eInfo, szText, dictMeta);
+	// 	return iXRLibSend.LogDeferred(LogLevel.eInfo, szText, dictMeta);
 	// }
-	public static async LogWarnSynchronous(szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
+	public static async LogWarn(szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	{
-		return await iXRLibSend.LogSynchronous(LogLevel.eWarn, szText, dictMeta);
+		return await iXRLibSend.Log(LogLevel.eWarn, szText, dictMeta);
 	}
-	// public static LogWarn(szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
+	// public static LogWarnDeferred(szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	// {
-	// 	return iXRLibSend.Log(LogLevel.eWarn, szText, dictMeta);
+	// 	return iXRLibSend.LogDeferred(LogLevel.eWarn, szText, dictMeta);
 	// }
-	public static async LogErrorSynchronous(szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
+	public static async LogError(szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	{
-		return await iXRLibSend.LogSynchronous(LogLevel.eError, szText, dictMeta);
+		return await iXRLibSend.Log(LogLevel.eError, szText, dictMeta);
 	}
-	// public static LogError(szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
+	// public static LogErrorDeferred(szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	// {
-	// 	return iXRLibSend.Log(LogLevel.eError, szText, dictMeta);
+	// 	return iXRLibSend.LogDeferred(LogLevel.eError, szText, dictMeta);
 	// }
-	public static async LogCriticalSynchronous(szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
+	public static async LogCritical(szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	{
-		return await iXRLibSend.LogSynchronous(LogLevel.eCritical, szText, dictMeta);
+		return await iXRLibSend.Log(LogLevel.eCritical, szText, dictMeta);
 	}
-	// public static LogCritical(szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
+	// public static LogCriticalDeferred(szText: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	// {
-	// 	return iXRLibSend.Log(LogLevel.eCritical, szText, dictMeta);
+	// 	return iXRLibSend.LogDeferred(LogLevel.eCritical, szText, dictMeta);
 	// }
 	// --- End (C++ dll and C# dll) versions of LogXXX().
 	// --- API (C++ dll and C# dll) versions of iXRLibSend.Event().
-	public static async EventSynchronous(szName: string, dictMeta: iXRDictStrings): Promise<iXRResult>
+	public static async Event(szName: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	{
 		var	ixrEvent: iXREvent = new iXREvent().Construct(szName, dictMeta);
 
-		return await iXRLibSend.EventSynchronousCore(ixrEvent);
+		return await iXRLibSend.EventCore(ixrEvent);
 	}
-	// public static async Event(szName: string, dictMeta: iXRDictStrings): Promise<iXRResult>
+	// public static async EventDeferred(szName: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	// {
 	// 	var	ixrEvent:	iXREvent = new iXREvent().Construct(szName, dictMeta);
 
-	// 	return await iXRLibSend.EventCore(ixrEvent, true, null);
+	// 	return await iXRLibSend.EventCoreDeferred(ixrEvent, true, null);
 	// }
 	// Convenient wrappers for particular forms of events.
+	// Note these are all blocking because everything is in this TypeScript implementation.  In the C++ they call the EventDeferred() variations to not chunk the main thread.
 	public static async EventAssessmentStart(szAssessmentName: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	{
 		dictMeta.set("verb", "started");
@@ -92,7 +93,7 @@ export class iXRLibSend
 		iXREvent.m_dictAssessmentStartTimes.set(szAssessmentName, new DateTime().FromUnixTime(DateTime.Now()));	// MJPQ:  Just use default ctor?
 		//iXREvent.m_csDictProtect.unlock();
 		// ---
-		return await iXRLibSend.EventSynchronous("assessment_start", dictMeta);
+		return await iXRLibSend.Event("assessment_start", dictMeta);
 	}
 	public static async EventAssessmentComplete(szAssessmentName: string, szScore: string, eResultOptions: ResultOptions, dictMeta: iXRDictStrings): Promise<iXRResult>
 	{
@@ -122,7 +123,7 @@ export class iXRLibSend
 			dictMeta.set("duration", "0");
 		}
 		// ---
-		return await iXRLibSend.EventSynchronous("assessment_complete", dictMeta);
+		return await iXRLibSend.Event("assessment_complete", dictMeta);
 	}
 	public static async EventObjectiveStart(szObjectiveName: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	{
@@ -133,7 +134,7 @@ export class iXRLibSend
 		iXREvent.m_dictObjectiveStartTimes.set(szObjectiveName, new DateTime().FromUnixTime(DateTime.Now()));	// MJPQ:  Just use default ctor?
 		//iXREvent.m_csDictProtect.unlock();
 		// ---
-		return await iXRLibSend.EventSynchronous("objective_start", dictMeta);
+		return await iXRLibSend.Event("objective_start", dictMeta);
 	}
 	public static async EventObjectiveComplete(szObjectiveName: string, szScore: string, eResultOptions: ResultOptions, dictMeta: iXRDictStrings): Promise<iXRResult>
 	{
@@ -163,7 +164,7 @@ export class iXRLibSend
 			dictMeta.set("duration", "0");
 		}
 		// ---
-		return await iXRLibSend.EventSynchronous("objective_complete", dictMeta);
+		return await iXRLibSend.Event("objective_complete", dictMeta);
 	}
 	public static async EventInteractionStart(szInteractionName: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	{
@@ -174,7 +175,7 @@ export class iXRLibSend
 		iXREvent.m_dictInteractionStartTimes.set(szInteractionName, new DateTime().FromUnixTime(DateTime.Now()));	// MJPQ:  Just use default ctor?
 		//iXREvent.m_csDictProtect.unlock();
 		// ---
-		return await iXRLibSend.EventSynchronous("interaction_start", dictMeta);
+		return await iXRLibSend.Event("interaction_start", dictMeta);
 	}
 	// Modified EventInteractionComplete methods.
 	public static async EventInteractionComplete(szInteractionName: string, szResult: string, szResultDetails: string, eInteractionType: InteractionType, dictMeta: iXRDictStrings): Promise<iXRResult>
@@ -212,7 +213,7 @@ export class iXRLibSend
 		}
 		//iXREvent.m_csDictProtect.unlock();
 		// ---
-		return await iXRLibSend.EventSynchronous("interaction_complete", dictMeta);
+		return await iXRLibSend.Event("interaction_complete", dictMeta);
 	}
 	public static async EventLevelStart(szLevelName: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	{
@@ -223,7 +224,7 @@ export class iXRLibSend
 		iXREvent.m_dictLevelStartTimes.set(szLevelName, new DateTime().FromUnixTime(DateTime.Now()));	// MJPQ:  Just use default ctor?
 		//iXREvent.m_csDictProtect.unlock();
 		// ---
-		return await iXRLibSend.EventSynchronous("level_start", dictMeta);
+		return await iXRLibSend.Event("level_start", dictMeta);
 	}
 	public static async EventLevelComplete(szLevelName: string, szScore: string, dictMeta: iXRDictStrings): Promise<iXRResult>
 	{
@@ -252,33 +253,33 @@ export class iXRLibSend
 			dictMeta.set("duration", "0");
 		}
 		// ---
-		return await iXRLibSend.EventSynchronous("level_complete", dictMeta);
+		return await iXRLibSend.Event("level_complete", dictMeta);
 	}
 	// --- End API (C++ dll and C# dll) versions of iXRLibSend.Event().
 	// ---
 	// --- API (C++ dll and C# dll) versions of AddTelemetryEntry().
-	public static async AddTelemetryEntrySynchronous(szName: string, dictData: iXRDictStrings): Promise<iXRResult>
+	public static async AddTelemetryEntry(szName: string, dictData: iXRDictStrings): Promise<iXRResult>
 	{
 		var	ixrTelemetryEntry:	iXRTelemetry = new iXRTelemetry().Construct(szName, dictData);
 
-		return await iXRLibSend.AddTelemetryEntrySynchronousCore(ixrTelemetryEntry);
+		return await iXRLibSend.AddTelemetryEntryCore(ixrTelemetryEntry);
 	}
-	// public static AddTelemetryEntry(szName: string, dictData: iXRDictStrings): Promise<iXRResult>
+	// public static AddTelemetryEntryDeferred(szName: string, dictData: iXRDictStrings): Promise<iXRResult>
 	// {
 	// 	var	ixrTelemetryEntry:	iXRTelemetry = new iXRTelemetry().Construct(szName, dictData);
 
-	// 	return iXRLibSend.AddTelemetryEntryCore(ixrTelemetryEntry, true, null);
+	// 	return iXRLibSend.AddTelemetryEntryCoreDeferred(ixrTelemetryEntry, true, null);
 	// }
 	// --- End API (C++ dll and C# dll) versions of AddTelemetryEntry().
 	// ---
 	// --- Core AddXXX() functions called by the API functions.
 	//		These are deliberately public... users who are using the C++ lib directly may find it
 	//		expedient/elegant to construct their own objects and call these directly.
-	public static async AddLogSynchronous(ixrLog: iXRLog): Promise<iXRResult>
+	public static async AddLog(ixrLog: iXRLog): Promise<iXRResult>
 	{
 		return await iXRLibAnalytics.AddXXXTask<iXRLog>(ixrLog, iXRLog, "IXRLogs", iXRLibClient.PostIXRLogs, false, false, null);
 	}
-	// public static AddLog(ixrLog: iXRLog, bNoCallbackOnSuccess: boolean, pfnStatusCallback?: iXRLibAnalyticsLogCallback | null): Promise<iXRResult>
+	// public static AddLogDeferred(ixrLog: iXRLog, bNoCallbackOnSuccess: boolean, pfnStatusCallback?: iXRLibAnalyticsLogCallback | null): Promise<iXRResult>
 	// {
 	// 	iXRLibAnalytics.DiagnosticWriteLine("Going to call AddLog().");
 	// 	// Notice the = capture... so pfnStatusCallback propagates by copy into the thread. <- Comment from C++... irrelevant here but leaving it to document that this is a port from C++.
@@ -287,11 +288,11 @@ export class iXRLibSend
 	// 		(pObject: any): void => { /*delete (iXRLog*)pObject;*/ });
 	// }
 	// ---
-	public static async EventSynchronousCore(ixrEvent: iXREvent): Promise<iXRResult>
+	public static async EventCore(ixrEvent: iXREvent): Promise<iXRResult>
 	{
 		return await iXRLibAnalytics.AddXXXTask<iXREvent>(ixrEvent, iXREvent, "IXREvents", iXRLibClient.PostIXREvents, false, false, null);
 	}
-	// public static EventCore(ixrEvent: iXREvent, bNoCallbackOnSuccess: boolean, pfnStatusCallback?: iXRLibAnalyticsEventCallback | null): Promise<iXRResult>
+	// public static EventCoreDeferred(ixrEvent: iXREvent, bNoCallbackOnSuccess: boolean, pfnStatusCallback?: iXRLibAnalyticsEventCallback | null): Promise<iXRResult>
 	// {
 	// 	iXRLibAnalytics.DiagnosticWriteLine("Going to call iXRLibSend.Event().");
 	// 	// Notice the = capture... so pfnStatusCallback propagates by copy into the thread. <- Comment from C++... irrelevant here but leaving it to document that this is a port from C++.
@@ -300,11 +301,11 @@ export class iXRLibSend
 	// 		(pObject: any): void => { /*delete (iXREvent*)pObject;*/ });
 	// }
 	// ---
-	public static async AddTelemetryEntrySynchronousCore(ixrTelemetry: iXRTelemetry): Promise<iXRResult>
+	public static async AddTelemetryEntryCore(ixrTelemetry: iXRTelemetry): Promise<iXRResult>
 	{
 		return await iXRLibAnalytics.AddXXXTask<iXRTelemetry>(ixrTelemetry, iXRTelemetry, "IXRTelemetry", iXRLibClient.PostIXRTelemetry, false, false, null);
 	}
-	// public static AddTelemetryEntryCore(ixrTelemetry: iXRTelemetry, bNoCallbackOnSuccess: boolean, pfnStatusCallback?: iXRLibAnalyticsTelemetryCallback | null): Promise<iXRResult>
+	// public static AddTelemetryEntryCoreDeferred(ixrTelemetry: iXRTelemetry, bNoCallbackOnSuccess: boolean, pfnStatusCallback?: iXRLibAnalyticsTelemetryCallback | null): Promise<iXRResult>
 	// {
 	// 	iXRLibAnalytics.DiagnosticWriteLine("Going to call AddTelemetry().");
 	// 	//DebugMessage.WriteLine("Adding telemetry entry named ", ixrTelemetry.m_szName, " at time ", new DateTime().ToLocalTimeString());

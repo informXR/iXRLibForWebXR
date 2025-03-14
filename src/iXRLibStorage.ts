@@ -161,11 +161,11 @@ export class iXRLibStorage
 		return await dbContext.StorageRemoveMultipleEntries(bSessionOnly);
 	}
 	// --- END Environment / state data functions.
-	public static async AddEntrySynchronous(ixrStorage: iXRStorage): Promise<iXRResult>
+	public static async AddEntry(ixrStorage: iXRStorage): Promise<iXRResult>
 	{
 		return await iXRLibAnalytics.AddXXXTask<iXRStorage>(ixrStorage, iXRStorage, "IXRStorage", iXRLibClient.PostIXRStorage, true, false, null);
 	}
-	// public static async AddEntry(ixrStorage: iXRStorage, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsStorageCallback): Promise<iXRResult>
+	// public static async AddEntryDeferred(ixrStorage: iXRStorage, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsStorageCallback): Promise<iXRResult>
 	// {
 	// 	iXRLibAnalytics.DiagnosticWriteLine("Going to call DeleteStorage().");
 	// 	// Notice the = capture... so pfnStatusCallback propagates by copy into the thread.

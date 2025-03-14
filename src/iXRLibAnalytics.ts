@@ -258,9 +258,9 @@ export class iXRLibInit
 	///		Now we want it to be callable on its own for the user-goes-to-the-bog-then-resumes-playing workflow.
 	/// </summary>
 	/// <returns>iXRResult enum.</returns>
-	public static async ForceSendUnsentSynchronous(): Promise<iXRResult>
+	public static async ForceSendUnsent(): Promise<iXRResult>
 	{
-		return await iXRLibAnalytics.ForceSendUnsentSynchronous();
+		return await iXRLibAnalytics.ForceSendUnsent();
 	}
 	// --- End Initialization and its ancillaries.
 	// --- Authentication fields.
@@ -430,7 +430,7 @@ export class iXRLibAnalytics
 		return eResult;
 	}
 	/// <summary>
-	/// The core Add<Event, Log, etc> function template that is called directly by Add<Event, Log, etc>Synchronous() or indirectly by asynchronous Add<Event, Log, etc>().
+	/// The core Add<Event, Log, etc> function template that is called directly by Add<Event, Log, etc>() or indirectly by asynchronous Add<Event, Log, etc>Deferred().
 	/// </summary>
 	/// <typeparam name="T">Type of object to be added.</typeparam>
 	/// <typeparam name="CB">Callback type, generally 1-1 with object type, e.g. (iXREvent, iXRLibAnalyticsEventCallback).</typeparam>
@@ -540,7 +540,7 @@ export class iXRLibAnalytics
 		return iXRLibAnalytics.TaskErrorReturnT<T>(eRet, ixrT, bNoCallbackOnSuccess, pfnStatusCallback, "");
 	}
 	/// <summary>
-	/// The core Delete<Event, Log, etc> function template that is called directly by Delete<Event, Log, etc>Synchronous() or indirectly by asynchronous Delete<Event, Log, etc>().
+	/// The core Delete<Event, Log, etc> function template that is called directly by Delete<Event, Log, etc>() or indirectly by asynchronous Delete<Event, Log, etc>Deferred().
 	/// </summary>
 	/// <typeparam name="T">Type of object to be deleted.</typeparam>
 	/// <typeparam name="CB">Callback type, generally 1-1 with object type, e.g. (iXREvent, iXRLibAnalyticsEventCallback).</typeparam>
@@ -877,7 +877,7 @@ export class iXRLibAnalytics
 	///		Now we want it to be callable on its own for the user-goes-to-the-bog-then-resumes-playing workflow.
 	/// </summary>
 	/// <returns>iXRResult enum.</returns>
-    public static async ForceSendUnsentSynchronous(): Promise<iXRResult>
+    public static async ForceSendUnsent(): Promise<iXRResult>
 	{
 		var	eRet:			iXRResult = iXRResult.eOk,
 			eTestRet:		iXRResult = iXRResult.eOk;
@@ -940,49 +940,49 @@ export class iXRLibAnalytics
 		}
 	}
 	// --- API (C++ dll and C# dll) versions of AddAIProxy().
-	public static async AddAIProxySynchronous0(szPrompt: string, szLMMProvider: string): Promise<iXRResult>
+	public static async AddAIProxy0(szPrompt: string, szLMMProvider: string): Promise<iXRResult>
 	{
 		var	ixrAIProxy:	iXRAIProxy = new iXRAIProxy().Construct0(szPrompt, "", szLMMProvider);
 
-		return await iXRLibAnalytics.AddAIProxySynchronous(ixrAIProxy);
+		return await iXRLibAnalytics.AddAIProxy(ixrAIProxy);
 	}
-	public static async AddAIProxySynchronous1(szPrompt: string, szPastMessages: string, szLMMProvider: string): Promise<iXRResult>
+	public static async AddAIProxy1(szPrompt: string, szPastMessages: string, szLMMProvider: string): Promise<iXRResult>
 	{
 		var	ixrAIProxy:	iXRAIProxy = new iXRAIProxy().Construct0(szPrompt, szPastMessages, szLMMProvider);
 
-		return await iXRLibAnalytics.AddAIProxySynchronous(ixrAIProxy);
+		return await iXRLibAnalytics.AddAIProxy(ixrAIProxy);
 	}
-	public static async AddAIProxySynchronous2(szPrompt: string, dictPastMessages: iXRDictStrings, szLMMProvider: string): Promise<iXRResult>
+	public static async AddAIProxy2(szPrompt: string, dictPastMessages: iXRDictStrings, szLMMProvider: string): Promise<iXRResult>
 	{
 		var	ixrAIProxy:	iXRAIProxy = new iXRAIProxy().Construct1(szPrompt, dictPastMessages, szLMMProvider);
 
-		return await iXRLibAnalytics.AddAIProxySynchronous(ixrAIProxy);
+		return await iXRLibAnalytics.AddAIProxy(ixrAIProxy);
 	}
 	// ---
-	// public static AddAIProxy0(szPrompt: string, szLMMProvider: string): Promise<iXRResult>
+	// public static AddAIProxyDeferred0(szPrompt: string, szLMMProvider: string): Promise<iXRResult>
 	// {
 	// 	var	ixrAIProxy:	iXRAIProxy = new iXRAIProxy().Construct0(szPrompt, "", szLMMProvider);
 
-	// 	return iXRLibAnalytics.AddAIProxy(ixrAIProxy, true, null);
+	// 	return iXRLibAnalytics.AddAIProxyDeferred(ixrAIProxy, true, null);
 	// }
-	// public static AddAIProxy1(szPrompt: string, szPastMessages: string, szLMMProvider: string): Promise<iXRResult>
+	// public static AddAIProxyDeferred1(szPrompt: string, szPastMessages: string, szLMMProvider: string): Promise<iXRResult>
 	// {
 	// 	var	ixrAIProxy:	iXRAIProxy = new iXRAIProxy().Construct0(szPrompt, szPastMessages, szLMMProvider);
 
-	// 	return iXRLibAnalytics.AddAIProxy(ixrAIProxy, true, null);
+	// 	return iXRLibAnalytics.AddAIProxyDeferred(ixrAIProxy, true, null);
 	// }
-	// public static AddAIProxy2(szPrompt: string, dictPastMessages: iXRDictStrings, szLMMProvider: string): Promise<iXRResult>
+	// public static AddAIProxyDeferred2(szPrompt: string, dictPastMessages: iXRDictStrings, szLMMProvider: string): Promise<iXRResult>
 	// {
 	// 	var	ixrAIProxy:	iXRAIProxy = new iXRAIProxy().Construct1(szPrompt, dictPastMessages, szLMMProvider);
 
-	// 	return iXRLibAnalytics.AddAIProxy(ixrAIProxy, true, null);
+	// 	return iXRLibAnalytics.AddAIProxyDeferred(ixrAIProxy, true, null);
 	// }
 	// --- End API (C++ dll and C# dll) versions of AddAIProxy().
-	public static async AddAIProxySynchronous(ixrAIProxy: iXRAIProxy): Promise<iXRResult>
+	public static async AddAIProxy(ixrAIProxy: iXRAIProxy): Promise<iXRResult>
 	{
 		return await iXRLibAnalytics.AddXXXNoDbTask<iXRAIProxy>(ixrAIProxy, iXRAIProxy, iXRLibClient.PostIXRAIProxyObjects, false, false, null);
 	}
-	// public static AddAIProxy(ixrAIProxy: iXRAIProxy, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsAIProxyCallback | null): Promise<iXRResult>
+	// public static AddAIProxyDeferred(ixrAIProxy: iXRAIProxy, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsAIProxyCallback | null): Promise<iXRResult>
 	// {
 	// 	iXRLibAnalytics.DiagnosticWriteLine("Going to call AddAIProxy().");
 	// 	// Notice the = capture... so pfnStatusCallback propagates by copy into the thread.  Notice it is not needed in the typescript port colon paren.
@@ -992,11 +992,11 @@ export class iXRLibAnalytics
 	// 	);
 	// }
 	// ---
-	public static async AddAIProxyEntrySynchronous(ixrAIProxy: iXRAIProxy): Promise<iXRResult>
+	public static async AddAIProxyEntry(ixrAIProxy: iXRAIProxy): Promise<iXRResult>
 	{
 		return await iXRLibAnalytics.AddXXXTask<iXRAIProxy>(ixrAIProxy, iXRAIProxy, "IXRAIProxy", iXRLibClient.PostIXRAIProxy, false, false, null);
 	}
-	// public static AddAIProxyEntry(ixrAIProxy: iXRAIProxy, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsAIProxyCallback): Promise<iXRResult>
+	// public static AddAIProxyEntryDeferred(ixrAIProxy: iXRAIProxy, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsAIProxyCallback): Promise<iXRResult>
 	// {
 	// 	iXRLibAnalytics.DiagnosticWriteLine("Going to call AddAIProxy().");
 	// 	// Notice the = capture... so pfnStatusCallback propagates by copy into the thread.  Notice it is not needed in the typescript port colon paren.

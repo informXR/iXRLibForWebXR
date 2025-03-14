@@ -128,7 +128,7 @@
     }
 
     async function try_Event() {
-      console.log("Executing iXR.EventSynchronous()");
+      console.log("Executing iXR.Event()");
       try {
         const eventValue = document.getElementById('event_input').value;
         const dictMeta = new iXR.DictStrings();
@@ -149,7 +149,7 @@
         };
         
         // Call the original method
-        const result = await iXR.EventSynchronous(eventValue, dictMeta);
+        const result = await iXR.Event(eventValue, dictMeta);
         
         // Restore original fetch
         window.fetch = originalFetch;
@@ -164,7 +164,7 @@
     }
 
     async function try_logDebug() {
-      console.log("Executing iXR.LogDebugSynchronous()");
+      console.log("Executing iXR.LogDebug()");
       try {
         const debugValue = document.getElementById('log_input').value;
         // Store the original fetch implementation
@@ -181,7 +181,7 @@
         };
         
         // Call the original method
-        const result = await iXR.LogDebugSynchronous(debugValue);
+        const result = await iXR.LogDebug(debugValue);
         
         // Restore original fetch
         window.fetch = originalFetch;

@@ -210,12 +210,12 @@ async function TestLoginAndSend(): Promise<void>
 						dtOlderThan:	DateTime = DateTime.ConvertUnixTime(dtNow.ToUnixTime() - (iXRLibStorage.m_ixrLibConfiguration.m_tsPruneSentItemsOlderThan as TimeSpan).ToInt64());
 	if (await iXRLibAnalyticsTests.TestAuthenticate() === iXRResult.eOk)
 	{
-		await iXRLibAnalyticsTests.AddXXX<iXREvent>(iXREvent, true, seAsyncOperationComplete, true, iXRLibSend.EventSynchronousCore, /*iXRLibSend.EventCore*/null);
-		await iXRLibAnalyticsTests.AddXXX<iXRTelemetry>(iXRTelemetry, true, seAsyncOperationComplete, true, iXRLibSend.AddTelemetryEntrySynchronousCore, /*iXRLibSend.AddTelemetryEntryCore*/null);
-		await iXRLibAnalyticsTests.AddXXX<iXRLog>(iXRLog, true, seAsyncOperationComplete, true, iXRLibSend.AddLogSynchronous, /*iXRLibSend.AddLog*/null);
+		await iXRLibAnalyticsTests.AddXXX<iXREvent>(iXREvent, true, seAsyncOperationComplete, true, iXRLibSend.EventCore, /*iXRLibSend.EventCoreDeferred*/null);
+		await iXRLibAnalyticsTests.AddXXX<iXRTelemetry>(iXRTelemetry, true, seAsyncOperationComplete, true, iXRLibSend.AddTelemetryEntryCore, /*iXRLibSend.AddTelemetryEntryCoreDeferred*/null);
+		await iXRLibAnalyticsTests.AddXXX<iXRLog>(iXRLog, true, seAsyncOperationComplete, true, iXRLibSend.AddLog, /*iXRLibSend.AddLogDeferred*/null);
 	}
 	ixrEvent.FakeUpSomeRandomCrap(true);
-	await iXRLibSend.EventSynchronousCore(ixrEvent);
+	await iXRLibSend.EventCore(ixrEvent);
 }
 
 async function PrintStuffEveryThirdOfASecond(): Promise<number>
@@ -242,6 +242,16 @@ async function PrintStuffEveryHalfOfASecond(): Promise<number>
 	return 1;
 }
 
+async function TestEmptyDictMeta()
+{
+	var ixrEvent:	iXREvent = new iXREvent();
+
+	ixrEvent.FakeUpSomeRandomCrap();
+	console.log(GenerateJson(ixrEvent, DumpCategory.eDumpingJsonForBackend), "\n");
+	ixrEvent.m_dictMeta.clear();
+	console.log(GenerateJson(ixrEvent, DumpCategory.eDumpingJsonForBackend), "\n");
+}
+
 async function TestJson(): Promise<void>
 {
 	var objTestData:	TestData = new TestData();
@@ -257,6 +267,7 @@ async function TestJson(): Promise<void>
 
 	try
 	{
+		// TestEmptyDictMeta();
 		// Sequential.
 		// await PrintStuffEveryThirdOfASecond();
 		// await PrintStuffEveryHalfOfASecond();
@@ -282,7 +293,7 @@ async function TestJson(): Promise<void>
 		console.log(DbSetsOfStuff);
 		iXRLibInit.Start();
 		FakeUpSomeRandomCrapEvent(ixrEvent, true);
-		await iXRLibSend.EventSynchronousCore(ixrEvent);
+		await iXRLibSend.EventCore(ixrEvent);
 		// if (typeof(DbSetsOfStuff) === "function")
 		// {
 		// 	console.log("It is a function");
