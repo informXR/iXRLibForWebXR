@@ -890,7 +890,7 @@ export class Task
 		this.m_pObject = pObject;
 		this.m_pfnCleanup = pfnCleanup;
 	}
-	RunSynchronously(): void
+	RunSynchronouzsly(): void
 	{
 		if (this.m_pfnTask != undefined)
 		{
