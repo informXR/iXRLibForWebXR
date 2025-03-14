@@ -33,9 +33,10 @@ export enum FieldPropertyFlags
 	bfBackendAccommodation	= 0x00000004,
 	bfNoEscapeJson			= 0x00000008,
 	bfStringOnly			= 0x00000010,
-	bfChild					= 0x00000020,
-	bfChildList				= 0x00000040,
-	bfExclude				= 0x00000080
+	bfNoFieldIfEmpty		= 0x00000020,
+	bfChild					= 0x00000040,
+	bfChildList				= 0x00000080,
+	bfExclude				= 0x00000100
 }
 
 export class FieldProperties
@@ -163,6 +164,18 @@ export class FieldPropertiesRecordContainer
 			}
 		}
 	}
+	private ValueIsEmpty(oObjectValue: any)
+	{
+		if (oObjectValue instanceof iXRDictStrings)
+		{
+			return (oObjectValue as iXRDictStrings).Count() == 0;
+		}
+		else if (oObjectValue instanceof StringList)
+		{
+			return (oObjectValue as StringList).length == 0;
+		}
+		return false;
+	}
 	public replacer = (key: string, value: any): any =>
 	{
 		if (key === '')
@@ -172,14 +185,17 @@ export class FieldPropertiesRecordContainer
 
 			for (const [szObjectKey, oObjectValue] of Object.entries(value))
 			{
-				const fpNode:		FieldProperties | null = this.m_rfp[szObjectKey];
-				const szJsonKey:	string = (fpNode) ? fpNode.m_szName : szObjectKey;
-				const fFlags:		FieldPropertyFlags = (fpNode && fpNode.m_fFlags) ? fpNode.m_fFlags : FieldPropertyFlags.bfNull;
-				const bExclude:		boolean = ((fFlags & (FieldPropertyFlags.bfExclude | FieldPropertyFlags.bfBackendAccommodation)) !== 0);
-				const bChild:		boolean = ((fFlags & (FieldPropertyFlags.bfChild | FieldPropertyFlags.bfChildList)) !== 0);
-				const bStringOnly:	boolean = ((fFlags & FieldPropertyFlags.bfStringOnly) !== 0);
+				const fpNode:			FieldProperties | null = this.m_rfp[szObjectKey];
+				const szJsonKey:		string = (fpNode) ? fpNode.m_szName : szObjectKey;
+				const fFlags:			FieldPropertyFlags = (fpNode && fpNode.m_fFlags) ? fpNode.m_fFlags : FieldPropertyFlags.bfNull;
+				const bExclude:			boolean = ((fFlags & (FieldPropertyFlags.bfExclude | FieldPropertyFlags.bfBackendAccommodation)) !== 0);
+				const bChild:			boolean = ((fFlags & (FieldPropertyFlags.bfChild | FieldPropertyFlags.bfChildList)) !== 0);
+				const bStringOnly:		boolean = ((fFlags & FieldPropertyFlags.bfStringOnly) !== 0);
+				const bNoFieldIfEmpty:	boolean = ((fFlags & FieldPropertyFlags.bfNoFieldIfEmpty) !== 0);
 
-				if (bExclude || (!bChild && this.m_objCurrentObject && !this.m_objCurrentObject.ShouldDump(szJsonKey, JsonFieldType.eField, DumpCategory.eDumpingJsonForBackend)))
+				if (bExclude ||
+					(!bChild && this.m_objCurrentObject && !this.m_objCurrentObject.ShouldDump(szJsonKey, JsonFieldType.eField, DumpCategory.eDumpingJsonForBackend)) ||
+					(bNoFieldIfEmpty && this.ValueIsEmpty(oObjectValue)))
 				{
 					result[szJsonKey] = undefined;
 				}

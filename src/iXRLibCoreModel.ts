@@ -465,7 +465,7 @@ export class iXRMetaDataObject extends iXRBase
 	// ---
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
 		super.m_mapProperties.m_rfp,
-	 	{m_dictMeta: new FieldProperties("meta")}));
+	 	{m_dictMeta: new FieldProperties("meta", FieldPropertyFlags.bfNoFieldIfEmpty)}));
 	// ---
 	constructor()
 	{

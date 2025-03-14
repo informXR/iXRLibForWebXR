@@ -242,6 +242,16 @@ async function PrintStuffEveryHalfOfASecond(): Promise<number>
 	return 1;
 }
 
+async function TestEmptyDictMeta()
+{
+	var ixrEvent:	iXREvent = new iXREvent();
+
+	ixrEvent.FakeUpSomeRandomCrap();
+	console.log(GenerateJson(ixrEvent, DumpCategory.eDumpingJsonForBackend), "\n");
+	ixrEvent.m_dictMeta.clear();
+	console.log(GenerateJson(ixrEvent, DumpCategory.eDumpingJsonForBackend), "\n");
+}
+
 async function TestJson(): Promise<void>
 {
 	var objTestData:	TestData = new TestData();
@@ -257,6 +267,7 @@ async function TestJson(): Promise<void>
 
 	try
 	{
+		// TestEmptyDictMeta();
 		// Sequential.
 		// await PrintStuffEveryThirdOfASecond();
 		// await PrintStuffEveryHalfOfASecond();

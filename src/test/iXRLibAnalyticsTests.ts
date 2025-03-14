@@ -471,12 +471,12 @@ export class iXRLibAnalyticsTests
 	/// <typeparam name="T">Type... iXREvent, iXRLog, iXRTelemetry, ...</typeparam>
 	/// <typeparam name="iXRLibCallback">Type of callback... which using std.function<>... iXRLibAnalyticsLogCallback, iXRLibAnalyticsEventCallback, iXRLibAnalyticsTelemetryCallback, ...</typeparam>
 	/// <typeparam name="iXRLibStorage">Resolves forward reference catch-22.</typeparam>
-	/// <param name="bSynchronouzs">Call synchronous version of the Add() function, else asynchronous.</param>
+	/// <param name="bSynchronous">Call synchronous version of the Add() function, else asynchronous.</param>
 	/// <param name="seAsyncOperationComplete">Reference to sync event to be used in asynchronous case.</param>
 	/// <param name="bAlreadyAuthenticated">Do not set ApiToken, Secret if this is true.</param>
-	/// <param name="pfnAddXXX">Synchronouzs Add() function to call if bSynchronouzs.</param>
-	/// <param name="pfnAddXXX">Asynchronous Add() function to call if !bSynchronouzs.</param>
-	public static async AddXXX<T extends iXRBase>(tTypeOfT: any, bSynchronouzs: boolean, seAsyncOperationComplete: SyncEvent, bAlreadyAuthenticated: boolean, pfnAddXXX: (ixrT: T) => Promise<iXRResult>, pfnAddXXXDeferred: ((ixrT: T, bNoCallbackOnSuccess: boolean, pfnCallback: (ixrT: T, eResult: iXRResult, szExceptionMessage: string) => void) => Promise<iXRResult>) | null): Promise<void>
+	/// <param name="pfnAddXXX">Synchronous Add() function to call if bSynchronous.</param>
+	/// <param name="pfnAddXXX">Asynchronous Add() function to call if !bSynchronous.</param>
+	public static async AddXXX<T extends iXRBase>(tTypeOfT: any, bSynchronous: boolean, seAsyncOperationComplete: SyncEvent, bAlreadyAuthenticated: boolean, pfnAddXXX: (ixrT: T) => Promise<iXRResult>, pfnAddXXXDeferred: ((ixrT: T, bNoCallbackOnSuccess: boolean, pfnCallback: (ixrT: T, eResult: iXRResult, szExceptionMessage: string) => void) => Promise<iXRResult>) | null): Promise<void>
 	{
 		if (!bAlreadyAuthenticated)
 		{
@@ -495,7 +495,7 @@ export class iXRLibAnalyticsTests
 
 		ixrT.FakeUpSomeRandomCrap();
 		// ---
-		if (bSynchronouzs)
+		if (bSynchronous)
 		{
 			await pfnAddXXX(ixrT);
 		}
@@ -652,7 +652,7 @@ export class iXRLibAnalyticsTests
 		// ---
 		return iXRLibAnalytics.TaskErrorReturn(eRet, bNoCallbackOnSuccess, pfnStatusCallback, "");
 	}
-	// Synchronouzs and asynchronous test functions for sending logs directly... in here as that should only be done during testing.
+	// Synchronous and asynchronous test functions for sending logs directly... in here as that should only be done during testing.
 	//public static async SendLogsDeferred(listLogs: DbSet<iXRLog>, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsGeneralCallback) : Promise<iXRResult>
 	//{
 	//	return await iXRLibAnalyticsTests.SendXXXsDeferred<iXRLog>(iXRLog, "Log", listLogs, false, bNoCallbackOnSuccess, pfnStatusCallback);
@@ -661,7 +661,7 @@ export class iXRLibAnalyticsTests
 	{
 		return await iXRLibAnalyticsTests.SendXXXs<iXRLog>(iXRLog, "Log", listLogs, false, bNoCallbackOnSuccess, pfnStatusCallback);
 	}
-	// Synchronouzs and asynchronous test functions for sending events directly... in here as that should only be done during testing.
+	// Synchronous and asynchronous test functions for sending events directly... in here as that should only be done during testing.
 	//public static async SendEventsDeferred(listEvents: DbSet<iXREvent>, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsGeneralCallback) : Promise<iXRResult>
 	//{
 	//	return await iXRLibAnalyticsTests.SendXXXsDeferred<iXREvent>(iXREvent, "Event", listEvents, false, bNoCallbackOnSuccess, pfnStatusCallback);
@@ -670,7 +670,7 @@ export class iXRLibAnalyticsTests
 	{
 		return await iXRLibAnalyticsTests.SendXXXs<iXREvent>(iXREvent, "Event", listEvents, false, bNoCallbackOnSuccess, pfnStatusCallback);
 	}
-	// Synchronouzs and asynchronous test functions for sending telemetry directly... in here as that should only be done during testing.
+	// Synchronous and asynchronous test functions for sending telemetry directly... in here as that should only be done during testing.
 	//public static async SendTelemetryDeferred(listTelemetryEntries: DbSet<iXRTelemetry>, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsGeneralCallback) : Promise<iXRResult>
 	//{
 	//	return await iXRLibAnalyticsTests.SendXXXsDeferred<iXRTelemetry>(iXRTelemetry, "Telemetry", listTelemetryEntries, false, bNoCallbackOnSuccess, pfnStatusCallback);
@@ -679,7 +679,7 @@ export class iXRLibAnalyticsTests
 	{
 		return await iXRLibAnalyticsTests.SendXXXs<iXRTelemetry>(iXRTelemetry, "Telemetry", listTelemetryEntries, false, bNoCallbackOnSuccess, pfnStatusCallback);
 	}
-	// Synchronouzs and asynchronous test functions for sending AIProxy directly... in here as that should only be done during testing.
+	// Synchronous and asynchronous test functions for sending AIProxy directly... in here as that should only be done during testing.
 	//public static async SendAIProxyDeferred(listAIProxyEntries: DbSet<iXRAIProxy>, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsGeneralCallback) : Promise<iXRResult>
 	//{
 	//	return await iXRLibAnalyticsTests.SendXXXsDeferred<iXRAIProxy>(iXRAIProxy, "AIProxy", listAIProxyEntries, false, bNoCallbackOnSuccess, pfnStatusCallback);
@@ -688,7 +688,7 @@ export class iXRLibAnalyticsTests
 	{
 		return await iXRLibAnalyticsTests.SendXXXs<iXRAIProxy>(iXRAIProxy, "AIProxy", listAIProxyEntries, false, bNoCallbackOnSuccess, pfnStatusCallback);
 	}
-	// Synchronouzs and asynchronous test functions for sending storage directly... in here as that should only be done during testing.
+	// Synchronous and asynchronous test functions for sending storage directly... in here as that should only be done during testing.
 	//public static async SendStorageDeferred(listStorageEntries: DbSet<iXRStorage>, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsGeneralCallback) : Promise<iXRResult>
 	//{
 	//	return await iXRLibAnalyticsTests.SendXXXsDeferred<iXRStorage>(iXRStorage, "Storage", listStorageEntries, false, bNoCallbackOnSuccess, pfnStatusCallback);
