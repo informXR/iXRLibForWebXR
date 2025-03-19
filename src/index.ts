@@ -3,11 +3,13 @@ import { iXRLibStorage } from "./iXRLibStorage";
 import { iXRLibAsync } from "./iXRLibAsync";
 import { iXRLibSend } from "./iXRLibSend";
 import { ConfigurationManager, DateTime, iXRResult, iXRDictStrings, StringList, TimeSpan } from './network/utils/DotNetishTypes';
+import { iXRBase } from "./iXRLibCoreModel";
 
 // Initialize all static members
 iXRLibInit.InitStatics();
 iXRLibStorage.InitStatics();
 iXRLibAsync.InitStatics();
+iXRBase.InitStatics;
 
 class iXRLibBaseSetup {
     public static SetAppConfig(customConfig?: string): void
@@ -53,7 +55,8 @@ export {
     iXRLibAsync,
     iXRLibSend,
     iXRLibBaseSetup,
-    iXRDictStrings
+    iXRDictStrings,
+    iXRBase
 };
 
 // Create a global instance for direct access
