@@ -2,7 +2,7 @@ import { iXRLibInit } from "./iXRLibAnalytics";
 import { iXRLibStorage } from "./iXRLibStorage";
 import { iXRLibAsync } from "./iXRLibAsync";
 import { iXRLibSend } from "./iXRLibSend";
-import { ConfigurationManager, DateTime, iXRResult, iXRDictStrings, StringList, TimeSpan } from './network/utils/DotNetishTypes';
+import { ConfigurationManager, DateTime, iXRResult, iXRDictStrings, StringList, TimeSpan, InteractionType } from './network/utils/DotNetishTypes';
 import { iXRBase, iXREvent } from "./iXRLibCoreModel";
 
 // Initialize all static members
@@ -57,7 +57,8 @@ export {
     iXRLibSend,
     iXRLibBaseSetup,
     iXRDictStrings,
-    iXRBase
+    iXRBase,
+    InteractionType
 };
 
 // Create a global instance for direct access
