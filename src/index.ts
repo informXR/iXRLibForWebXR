@@ -3,13 +3,14 @@ import { iXRLibStorage } from "./iXRLibStorage";
 import { iXRLibAsync } from "./iXRLibAsync";
 import { iXRLibSend } from "./iXRLibSend";
 import { ConfigurationManager, DateTime, iXRResult, iXRDictStrings, StringList, TimeSpan } from './network/utils/DotNetishTypes';
-import { iXRBase } from "./iXRLibCoreModel";
+import { iXRBase, iXREvent } from "./iXRLibCoreModel";
 
 // Initialize all static members
 iXRLibInit.InitStatics();
 iXRLibStorage.InitStatics();
 iXRLibAsync.InitStatics();
 iXRBase.InitStatics;
+iXREvent.InitStatics();
 
 class iXRLibBaseSetup {
     public static SetAppConfig(customConfig?: string): void
