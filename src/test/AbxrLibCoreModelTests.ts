@@ -1,4 +1,4 @@
-import { AbxrDictStrings, Random } from "../../src/network/utils/DotNetishTypes";
+import { AbxrDictStrings, Random } from "../network/utils/DotNetishTypes";
 import { AbxrAIProxy, AbxrStorageData, LogLevelToString } from "../AbxrLibCoreModel";
 import { LogLevel } from "../AbxrLibCoreModel";
 import { AbxrLocationData, AbxrApplication, AbxrEvent, AbxrLog, AbxrTelemetry, AbxrStorage, AbxrDbContext } from "../AbxrLibCoreModel";
