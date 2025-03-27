@@ -1,16 +1,16 @@
 /// <summary>
 /// Main return code for library operations.
 ///		In here as it is needed by Task.
-///		Co-maintained with the one in iXRInterop.cs.
+///		Co-maintained with the one in AbxrInterop.cs.
 
 import { atol, DATEMAXVALUE, DATEMINVALUE, Regex } from "../types";
 
 /// <summary>
 /// Main return code for library operations.
 ///		In here as it is needed by Task.
-///		Co-maintained with the one in iXRInterop.cs.
+///		Co-maintained with the one in AbxrInterop.cs.
 /// </summary>
-export enum iXRResult
+export enum AbxrResult
 {
 	// --- Unity compatible.
 	eOk,						// Analytics API result: Success.
@@ -25,11 +25,11 @@ export enum iXRResult
 	eEnableEventFailed,			// Really bad... the dictionary insert failed, system out of memory.
 	eEventNotEnabled,			// User attempting to fire an event that has not been registered/enabled.
 	eEventCached,				// Attempt to fire event could not reach cloud, so it got stored into local db.
-	eSendEventFailed,			// General failure of iXRLibSend.Event().
-	ePostObjectsFailed,			// General failure of iXRLibAnalytics.PostIXREvents().
+	eSendEventFailed,			// General failure of AbxrLibSend.Event().
+	ePostObjectsFailed,			// General failure of AbxrLibAnalytics.PostABXREvents().
 	ePostObjectsFailedNetworkError,
 	ePostObjectsBadJsonResponse,
-	eDeleteObjectsFailed,		// General failure of iXRLibAnalytics.DeleteIXREvents().
+	eDeleteObjectsFailed,		// General failure of AbxrLibAnalytics.DeleteABXREvents().
 	eDeleteObjectsFailedNetworkError,
 	eDeleteObjectsFailedDatabase,
 	eDeleteObjectsBadJsonResponse,
@@ -41,57 +41,57 @@ export enum iXRResult
 	eObjectNotFound
 };
 
-export function iXRResultToString(eRet: iXRResult): string
+export function AbxrResultToString(eRet: AbxrResult): string
 {
     switch (eRet)
     {
-    case iXRResult.eNotInitialized:
+    case AbxrResult.eNotInitialized:
         return "Not Initialized";
-    case iXRResult.eAnalyticsDisabled:
+    case AbxrResult.eAnalyticsDisabled:
         return "Analytics Disabled";
-    case iXRResult.eTooManyItems:
+    case AbxrResult.eTooManyItems:
         return "Too Many Items";
-    case iXRResult.eSizeLimitReached:
+    case AbxrResult.eSizeLimitReached:
         return "Size Limit Reached";
-    case iXRResult.eTooManyRequests:
+    case AbxrResult.eTooManyRequests:
         return "Too Many Requests";
-    case iXRResult.eInvalidData:
+    case AbxrResult.eInvalidData:
         return "Invalid Data";
-    case iXRResult.eUnsupportedPlatform:
+    case AbxrResult.eUnsupportedPlatform:
         return "Unsupported Platform";
-    case iXRResult.eEnableEventFailed:
+    case AbxrResult.eEnableEventFailed:
         return "Enable Event Failed";
-    case iXRResult.eEventNotEnabled:
+    case AbxrResult.eEventNotEnabled:
         return "Event Not Enabled";
-    case iXRResult.eEventCached:
+    case AbxrResult.eEventCached:
         return "Event Cached";
-    case iXRResult.eSendEventFailed:
+    case AbxrResult.eSendEventFailed:
         return "Send Event Failed";
-    case iXRResult.ePostObjectsFailed:
+    case AbxrResult.ePostObjectsFailed:
         return "Post Objects Failed";
-    case iXRResult.ePostObjectsFailedNetworkError:
+    case AbxrResult.ePostObjectsFailedNetworkError:
         return "Post Objects Failed Network Error";
-    case iXRResult.ePostObjectsBadJsonResponse:
+    case AbxrResult.ePostObjectsBadJsonResponse:
         return "Post Objects Bad Json Response";
-    case iXRResult.eDeleteObjectsFailed:
+    case AbxrResult.eDeleteObjectsFailed:
         return "Delete Objects Failed";
-    case iXRResult.eDeleteObjectsFailedNetworkError:
+    case AbxrResult.eDeleteObjectsFailedNetworkError:
         return "Delete Objects Failed Network Error";
-    case iXRResult.eDeleteObjectsFailedDatabase:
+    case AbxrResult.eDeleteObjectsFailedDatabase:
         return "Delete Objects Failed Database";
-    case iXRResult.eDeleteObjectsBadJsonResponse:
+    case AbxrResult.eDeleteObjectsBadJsonResponse:
         return "Delete Objects Bad Json Response";
-    case iXRResult.eAuthenticateFailed:
+    case AbxrResult.eAuthenticateFailed:
         return "Authenticate Failed";
-    case iXRResult.eAuthenticateFailedNetworkError:
+    case AbxrResult.eAuthenticateFailedNetworkError:
         return "Authenticate Failed Network Error";
-    case iXRResult.eCouldNotObtainAuthSecret:
+    case AbxrResult.eCouldNotObtainAuthSecret:
         return "Could Not Obtain Auth Secret";
-    case iXRResult.eCorruptJson:
+    case AbxrResult.eCorruptJson:
         return "Corrupt JSON";
-    case iXRResult.eSetEnvironmentDataFailed:
+    case AbxrResult.eSetEnvironmentDataFailed:
         return "Set Environment Data Failed";
-    case iXRResult.eObjectNotFound:
+    case AbxrResult.eObjectNotFound:
         return "Object Not Found";
     default:
         return "Ok";
@@ -101,8 +101,8 @@ export function iXRResultToString(eRet: iXRResult): string
 
 /// <summary>
 /// Used by EventInteractionComplete() as I write this... initially inspired by Scorm but set-union of all LMSes we support.
-///		In here directly underneath iXRResult as it similarly occurs at all levels (including iXR.cs in iXRLibForUnity).
-///		Co-maintained with the one in iXRInterop.cs.
+///		In here directly underneath AbxrResult as it similarly occurs at all levels (including Abxr.cs in AbxrLibForUnity).
+///		Co-maintained with the one in AbxrInterop.cs.
 /// </summary>
 export enum InteractionType
 {
@@ -136,7 +136,7 @@ export function InteractionTypeToString(eRet: InteractionType): string
 
 /// <summary>
 /// In EventXXXComplete() functions.
-///		Co-maintained with the one in iXRInterop.cs.
+///		Co-maintained with the one in AbxrInterop.cs.
 /// </summary>
 export enum ResultOptions
 {
@@ -672,19 +672,19 @@ export class Dictionary<KEY, VALUE> extends Map<KEY, VALUE>
 /// <summary>
 /// The specific Dictionary<mstringb, mstringb>, which makes it easy to convert comma-separated string to dictionary of strings.
 /// </summary>
-export class iXRDictStrings extends Dictionary<string, string>
+export class AbxrDictStrings extends Dictionary<string, string>
 {
 	constructor()
 	{
 		super();
 	}
-	Construct(szCommaSeparatedNameEqualsValueList: string): iXRDictStrings
+	Construct(szCommaSeparatedNameEqualsValueList: string): AbxrDictStrings
 	{
 		this.FromCommaSeparatedList(szCommaSeparatedNameEqualsValueList);
 		// ---
 		return this;
 	}
-	public FromCommaSeparatedList(szCommaSeparatedNameEqualsValueList: string): iXRDictStrings
+	public FromCommaSeparatedList(szCommaSeparatedNameEqualsValueList: string): AbxrDictStrings
 	{
 		this.CommaSeparatedStringToDictionary(szCommaSeparatedNameEqualsValueList);
 		// ---
@@ -700,7 +700,7 @@ export class iXRDictStrings extends Dictionary<string, string>
 			{
 				szRet += ',';
 			}
-			szRet += `"${key}":${iXRDictStrings.StringIfNotNumber(value)}`;
+			szRet += `"${key}":${AbxrDictStrings.StringIfNotNumber(value)}`;
 		}
 		// ---
 		return `{${szRet}}`;
@@ -721,7 +721,7 @@ export class iXRDictStrings extends Dictionary<string, string>
 			return `"${value}"`;
 		}
 	}
-	public FromJsonFieldValue(szJsonFieldValue: string): iXRDictStrings
+	public FromJsonFieldValue(szJsonFieldValue: string): AbxrDictStrings
 	{
 		this.JsonFieldValueToDictionary(szJsonFieldValue);
 		// ---
@@ -881,7 +881,7 @@ export class Random
 export class Task
 {
 	m_pfnTask?: (pObject?: object) => void = undefined;		// The task to be done.
-	m_pObject?: object = undefined;							// The task data, iXREvent, list of events, etc.
+	m_pObject?: object = undefined;							// The task data, AbxrEvent, list of events, etc.
 	m_pfnCleanup?: (pObject?: object) => void = undefined;	// How to clean up m_pObject.
 	// ---
 	constructor(pfnTask?: (pObject?: object) => void, pObject?: object, pfnCleanup?: (pObject?: object) => void)

@@ -6,22 +6,22 @@
 //								szErrorJsonFromAuth;
 //	std.stringstream			ssJson;
 //	JsonResult					eRet = JsonResult.eOk;
-//	iXRDbContext				objDbContext;
+//	AbxrDbContext				objDbContext;
 //	AuthTokenResponseFailure	objAuthTokenResponseFailure;
 //	std.set<mstringb>			sszErrors;
 
-import { iXRLibAnalytics, iXRLibInit, iXRLibAnalyticsGeneralCallback } from "../iXRLibAnalytics"
-import { iXRAIProxy, iXRBase, iXREvent, iXRLibConfiguration, iXRLog, iXRStorage, iXRTelemetry } from "../iXRLibCoreModel";
-import { iXRLibStorage } from "../iXRLibStorage";
+import { AbxrLibAnalytics, AbxrLibInit, AbxrLibAnalyticsGeneralCallback } from "../AbxrLibAnalytics"
+import { AbxrAIProxy, AbxrBase, AbxrEvent, AbxrLibConfiguration, AbxrLog, AbxrStorage, AbxrTelemetry } from "../AbxrLibCoreModel";
+import { AbxrLibStorage } from "../AbxrLibStorage";
 import { DbSet } from "../network/utils/DataObjectBase";
 import { SIZE_MAX, Sleep, SyncEvent } from "../network/types";
-import { iXRResult, TimeSpan } from "../network/utils/DotNetishTypes"
-import { iXRLibClient, Partner } from "../iXRLibClient";
+import { AbxrResult, TimeSpan } from "../network/utils/DotNetishTypes"
+import { AbxrLibClient, Partner } from "../AbxrLibClient";
 
 //#ifdef _UNIX
-//	if (szErrorJsonFromAuth.LoadFromFile(_T("../iXRTestData/AuthReturnedError.json")))
+//	if (szErrorJsonFromAuth.LoadFromFile(_T("../AbxrTestData/AuthReturnedError.json")))
 //#else
-//	if (szErrorJsonFromAuth.LoadFromFile("..\\iXRTestData\\AuthReturnedError.json"))
+//	if (szErrorJsonFromAuth.LoadFromFile("..\\AbxrTestData\\AuthReturnedError.json"))
 //#endif // _UNIX
 //	{
 //		ssJson << szErrorJsonFromAuth;
@@ -34,9 +34,9 @@ import { iXRLibClient, Partner } from "../iXRLibClient";
 //			});
 //	}
 //#ifdef _UNIX
-//	if (szJson.LoadFromFile(_T("../iXRTestData/Test01.json")))
+//	if (szJson.LoadFromFile(_T("../AbxrTestData/Test01.json")))
 //#else
-//	if (szJson.LoadFromFile("..\\iXRTestData\\Test01.json"))
+//	if (szJson.LoadFromFile("..\\AbxrTestData\\Test01.json"))
 //#endif // _UNIX
 //	{
 //		InPlaceRefresh<std.stringstream>(ssJson);
@@ -109,7 +109,7 @@ import { iXRLibClient, Partner } from "../iXRLibClient";
 /// </summary>
 /// <param name="argc"></param>
 /// <param name="argv"></param>
-//int iXRLibAnalyticsTests.iXRLibAnalyticsTestsMain(int argc, char* argv[])
+//int AbxrLibAnalyticsTests.AbxrLibAnalyticsTestsMain(int argc, char* argv[])
 //{
 //	int		nRet = glavnaya(argc, argv);
 
@@ -127,7 +127,7 @@ import { iXRLibClient, Partner } from "../iXRLibClient";
 //		"http://www.somesite.com/",
 //		"https://www.somesite.com:19080"
 //	};
-//	iXRDbContext			objDbContext(false);
+//	AbxrDbContext			objDbContext(false);
 //	DateTime				dt = DateTime.Now();
 //	mstringb				szNow;
 //	mstringw				wszNow;
@@ -182,7 +182,7 @@ import { iXRLibClient, Partner } from "../iXRLibClient";
 //	// ---
 //	if (true)
 //	{
-//		iXRDictStrings	dictFirst,
+//		AbxrDictStrings	dictFirst,
 //							dictSecond,
 //							dictThird("var1=value1"),
 //							dictFourth("var1=value1,var2=value2,var3="),
@@ -346,9 +346,9 @@ import { iXRLibClient, Partner } from "../iXRLibClient";
 //	memcpy(aUnbase64SHA256.data(), mbUnbase64SHA256, 32);
 //	szUnbase64SHA256 = SHA256.ToString(aUnbase64SHA256);
 //#ifdef _UNIX
-//	if (szAppConfig.LoadFromFile("../iXRTestData/App.config"))
+//	if (szAppConfig.LoadFromFile("../AbxrTestData/App.config"))
 //#else
-//	if (szAppConfig.LoadFromFile("..\\iXRTestData\\App.config"))
+//	if (szAppConfig.LoadFromFile("..\\AbxrTestData\\App.config"))
 //#endif // _UNIX
 //	{
 //		CSREGEXB.DeepMatch(szAppConfig, { R"(<add[\s]+key[\s]*=[\s]*".*"[\s]+value[\s]*=[\s]*".*"[\s]*[/]?[\s]*>)", R"(value[\s]*=[\s]*".*"[\s]*[/]?[\s]*>)" }, R"(value[\s]*=[\s]*")", R"("[\s]*[/]?[\s]*>)", vszMatches);
@@ -404,9 +404,9 @@ import { iXRLibClient, Partner } from "../iXRLibClient";
 //	// ---
 //	GenerateCreateSchema(nullptr, objDbContext, vszCreateTables);
 //#ifdef _UNIX
-//	if (db.ConnectSQLite("../iXRTestData/InformXR.db") == DatabaseResult.eOk)
+//	if (db.ConnectSQLite("../AbxrTestData/InformXR.db") == DatabaseResult.eOk)
 //#else
-//	if (db.ConnectSQLite("..\\iXRTestData\\InformXR.db") == DatabaseResult.eOk)
+//	if (db.ConnectSQLite("..\\AbxrTestData\\InformXR.db") == DatabaseResult.eOk)
 //#endif // _UNIX
 //	//if (db.ConnectSQLite("C:\\ztest\\InformXR\\test.db") == DatabaseResult.eOk)
 //	{
@@ -417,9 +417,9 @@ import { iXRLibClient, Partner } from "../iXRLibClient";
 ////		eDb = objDbContext.SaveChanges();
 //		// MJP:  This illustrates how to traverse a recordset in the simplest way where it tells you via callback what the column names are.
 //		//	Did not wind up using this because it is not type-strong but this code may come in handy as reference someday.
-//		//db.m_objSQLiteDll.exec(db.m_pdbSQLite3, "SELECT * FROM IXREvents", [](void* pData, int nColumns, char** ppszColumnValues, char** ppszColumns)->int
+//		//db.m_objSQLiteDll.exec(db.m_pdbSQLite3, "SELECT * FROM ABXREvents", [](void* pData, int nColumns, char** ppszColumnValues, char** ppszColumns)->int
 //		//{
-//		//	std.pair<bool, DbSet<iXREvent>*>	&listEvents = *(std.pair<bool, DbSet<iXREvent>*>*)pData;
+//		//	std.pair<bool, DbSet<AbxrEvent>*>	&listEvents = *(std.pair<bool, DbSet<AbxrEvent>*>*)pData;
 //		//	std.vector<intptr_t>				vnIndices;
 
 //		//	if (listEvents.first)
@@ -429,32 +429,32 @@ import { iXRLibClient, Partner } from "../iXRLibClient";
 //		//	}
 //		//	// ---
 //		//	return 0;
-//		//}, ADDRESSOF(std.pair<bool, DbSet<iXREvent>*>{true, &objDbContext.m_dsIXREvents}), & szError);
-//		iXREvent		ixrEvent;
-//		DbSet<iXREvent>	listEvents;
+//		//}, ADDRESSOF(std.pair<bool, DbSet<AbxrEvent>*>{true, &objDbContext.m_dsABXREvents}), & szError);
+//		AbxrEvent		abxrEvent;
+//		DbSet<AbxrEvent>	listEvents;
 
 //		//objDbContext.SaveChanges();
-//		//ixrEvent.FakeUpSomeRandomCrap();
-//		//ixrEvent.m_listStupidChildObjects.begin()->m_szSomeString = L"Это УТФ-восемь";
-//		//eDb = ExecuteSqlSelect(db, "IXREvents", "SELECT %s FROM %s", {}, objDbContext.m_dsIXREvents);
-//		//eDb = SaveChanges(db, "IXREvents", ixrEvent);
-//		//ixrEvent.m_szAppId = "AppIdChanged";
-//		//eDb = SaveChanges(db, "IXREvents", ixrEvent);
-//		//ixrEvent.m_listStupidChildObjects.begin()->m_szSomeString = L"Это УТФ-восемь также";
-//		//eDb = SaveChanges(db, "IXREvents", ixrEvent);
-//		//eDb = ExecuteSqlSelect(db, "IXREvents", "SELECT %s from %s", {}, listEvents);
+//		//abxrEvent.FakeUpSomeRandomCrap();
+//		//abxrEvent.m_listStupidChildObjects.begin()->m_szSomeString = L"Это УТФ-восемь";
+//		//eDb = ExecuteSqlSelect(db, "ABXREvents", "SELECT %s FROM %s", {}, objDbContext.m_dsABXREvents);
+//		//eDb = SaveChanges(db, "ABXREvents", abxrEvent);
+//		//abxrEvent.m_szAppId = "AppIdChanged";
+//		//eDb = SaveChanges(db, "ABXREvents", abxrEvent);
+//		//abxrEvent.m_listStupidChildObjects.begin()->m_szSomeString = L"Это УТФ-восемь также";
+//		//eDb = SaveChanges(db, "ABXREvents", abxrEvent);
+//		//eDb = ExecuteSqlSelect(db, "ABXREvents", "SELECT %s from %s", {}, listEvents);
 //		//eDb = ExecuteSqlSelect(db, nullptr, "SELECT %s from %s", {}, listEvents);
 //		eDb = objDbContext.LoadAll(db);
-//		szTemp = objDbContext.m_dsIXREvents.cbegin()->m_dtTimeStamp.ToString();
-//		//(++objDbContext.m_dsIXREvents.begin())->m_bFlaggedForDelete = true;
+//		szTemp = objDbContext.m_dsABXREvents.cbegin()->m_dtTimeStamp.ToString();
+//		//(++objDbContext.m_dsABXREvents.begin())->m_bFlaggedForDelete = true;
 //		//eDb = SaveChanges(db, nullptr, objDbContext);
 //#if (0)
-//		eDb = ExecuteSqlInsert(db, "IXREvents", ixrEvent);
-//		ixrEvent.m_szAppId = "AppIdChanged";
-//		eDb = ExecuteSqlUpdateWherePrimaryKey(db, "IXREvents", ixrEvent);
-//		eDb = ExecuteDeleteWherePrimaryKey(db, "IXREvents", ixrEvent);
+//		eDb = ExecuteSqlInsert(db, "ABXREvents", abxrEvent);
+//		abxrEvent.m_szAppId = "AppIdChanged";
+//		eDb = ExecuteSqlUpdateWherePrimaryKey(db, "ABXREvents", abxrEvent);
+//		eDb = ExecuteDeleteWherePrimaryKey(db, "ABXREvents", abxrEvent);
 //		// ---
-//		eDb = ExecuteSqlSelect(db, "IXREvents", "SELECT %s FROM %s", objDbContext.m_dsIXREvents);
+//		eDb = ExecuteSqlSelect(db, "ABXREvents", "SELECT %s FROM %s", objDbContext.m_dsABXREvents);
 //#endif
 //	}
 //	// ---
@@ -463,54 +463,54 @@ import { iXRLibClient, Partner } from "../iXRLibClient";
 
 // --- Tests ported over from C#.
 
-export class iXRLibAnalyticsTests
+export class AbxrLibAnalyticsTests
 {
 	/// <summary>
 	/// Core templated function that encapsulates the pattern of testing Add()ing a single T using the cacheing, resend, send-stragglers mechanisms.
 	/// </summary>
-	/// <typeparam name="T">Type... iXREvent, iXRLog, iXRTelemetry, ...</typeparam>
-	/// <typeparam name="iXRLibCallback">Type of callback... which using std.function<>... iXRLibAnalyticsLogCallback, iXRLibAnalyticsEventCallback, iXRLibAnalyticsTelemetryCallback, ...</typeparam>
-	/// <typeparam name="iXRLibStorage">Resolves forward reference catch-22.</typeparam>
+	/// <typeparam name="T">Type... AbxrEvent, AbxrLog, AbxrTelemetry, ...</typeparam>
+	/// <typeparam name="AbxrLibCallback">Type of callback... which using std.function<>... AbxrLibAnalyticsLogCallback, AbxrLibAnalyticsEventCallback, AbxrLibAnalyticsTelemetryCallback, ...</typeparam>
+	/// <typeparam name="AbxrLibStorage">Resolves forward reference catch-22.</typeparam>
 	/// <param name="bSynchronous">Call synchronous version of the Add() function, else asynchronous.</param>
 	/// <param name="seAsyncOperationComplete">Reference to sync event to be used in asynchronous case.</param>
 	/// <param name="bAlreadyAuthenticated">Do not set ApiToken, Secret if this is true.</param>
 	/// <param name="pfnAddXXX">Synchronous Add() function to call if bSynchronous.</param>
 	/// <param name="pfnAddXXX">Asynchronous Add() function to call if !bSynchronous.</param>
-	public static async AddXXX<T extends iXRBase>(tTypeOfT: any, bSynchronous: boolean, seAsyncOperationComplete: SyncEvent, bAlreadyAuthenticated: boolean, pfnAddXXX: (ixrT: T) => Promise<iXRResult>, pfnAddXXXDeferred: ((ixrT: T, bNoCallbackOnSuccess: boolean, pfnCallback: (ixrT: T, eResult: iXRResult, szExceptionMessage: string) => void) => Promise<iXRResult>) | null): Promise<void>
+	public static async AddXXX<T extends AbxrBase>(tTypeOfT: any, bSynchronous: boolean, seAsyncOperationComplete: SyncEvent, bAlreadyAuthenticated: boolean, pfnAddXXX: (abxrT: T) => Promise<AbxrResult>, pfnAddXXXDeferred: ((abxrT: T, bNoCallbackOnSuccess: boolean, pfnCallback: (abxrT: T, eResult: AbxrResult, szExceptionMessage: string) => void) => Promise<AbxrResult>) | null): Promise<void>
 	{
 		if (!bAlreadyAuthenticated)
 		{
-			iXRLibInit.set_ApiToken("secret-key-need2change");
-			iXRLibInit.set_ApiSecret("theApiKey");
+			AbxrLibInit.set_ApiToken("secret-key-need2change");
+			AbxrLibInit.set_ApiSecret("theApiKey");
 		}
-		iXRLibInit.set_OrgID("Oculus4");
-		iXRLibInit.set_AppID("gameThatDoesNotExistYet");
+		AbxrLibInit.set_OrgID("Oculus4");
+		AbxrLibInit.set_AppID("gameThatDoesNotExistYet");
 		// --- In the "-testauth addevent" code, these were not set up (left to default).  This might be an improvement so leaving it, but noting it.
-		iXRLibStorage.m_ixrLibConfiguration.m_nMaximumCachedItems = 20;
-		iXRLibStorage.m_ixrLibConfiguration.m_nEventsPerSendAttempt = 5;
-		iXRLibStorage.m_ixrLibConfiguration.m_tsStragglerTimeout = new TimeSpan().Construct0(0, 0, 7);
-		iXRLibStorage.m_ixrLibConfiguration.m_bRetainLocalAfterSent = true;
-		// --- vvv after ^^^... iXREvent ctor calls CaptureStateVariables() and ^^^ sets the state variables.
-		var ixrT:	T = new tTypeOfT();
+		AbxrLibStorage.m_abxrLibConfiguration.m_nMaximumCachedItems = 20;
+		AbxrLibStorage.m_abxrLibConfiguration.m_nEventsPerSendAttempt = 5;
+		AbxrLibStorage.m_abxrLibConfiguration.m_tsStragglerTimeout = new TimeSpan().Construct0(0, 0, 7);
+		AbxrLibStorage.m_abxrLibConfiguration.m_bRetainLocalAfterSent = true;
+		// --- vvv after ^^^... AbxrEvent ctor calls CaptureStateVariables() and ^^^ sets the state variables.
+		var abxrT:	T = new tTypeOfT();
 
-		ixrT.FakeUpSomeRandomCrap();
+		abxrT.FakeUpSomeRandomCrap();
 		// ---
 		if (bSynchronous)
 		{
-			await pfnAddXXX(ixrT);
+			await pfnAddXXX(abxrT);
 		}
 		else if (pfnAddXXXDeferred)
 		{
-			await pfnAddXXXDeferred(ixrT, false, (ixrT: T, eResult: iXRResult, szExceptionMessage: string): void =>
+			await pfnAddXXXDeferred(abxrT, false, (abxrT: T, eResult: AbxrResult, szExceptionMessage: string): void =>
 				{
 					var	szTemp:	string = "";
 
 					szTemp = `eResult = ${eResult}, szExceptionMessage = ${szExceptionMessage}`;
-					iXRLibClient.WriteLine(szTemp);
+					AbxrLibClient.WriteLine(szTemp);
 					seAsyncOperationComplete.SetEvent();
 				});
 			// Give it time to do the whole thing and send stragglers... comment out to test the "send stragglers on the way out" mechanism.
-			await Sleep(iXRLibStorage.m_ixrLibConfiguration.m_tsStragglerTimeout.ToMilliseconds() * 4.0);
+			await Sleep(AbxrLibStorage.m_abxrLibConfiguration.m_tsStragglerTimeout.ToMilliseconds() * 4.0);
 			// Prefer hanging on nebbishy send to crashing on pull-rug-out-from-under... on the premise that a few sends that actually will
 			// complete may just run a little long.
 			await seAsyncOperationComplete.Wait();
@@ -519,30 +519,30 @@ export class iXRLibAnalyticsTests
 	/// <summary>
 	/// Core templated function that encapsulates the pattern of testing POSTing several T's synchronously or asynchronously.
 	/// </summary>
-	/// <typeparam name="T">Type... iXREvent, iXRLog, iXRTelemetry, ...</typeparam>
+	/// <typeparam name="T">Type... AbxrEvent, AbxrLog, AbxrTelemetry, ...</typeparam>
 	/// <param name="szT">Name of type... "Log", "Event", "Telemetry", ...</param>
 	/// <param name="bAsync">Calling the asynchronous or synchronous version of POST function.</param>
 	/// <param name="seAsyncOperationComplete">Reference to sync event to be used in asynchronous case.</param>
 	/// <param name="pfnPostXXX">Function pointer to POST function to call if !bAsync.</param>
 	/// <param name="pfnSendXXXs">Function pointer to Send function to call if bAsync.</param>
-	/// <returns>iXRResult return code.</returns>
-	public static async TestPostXXX<T extends iXRBase>(tTypeOfT: any, szT: string, pfnModifyTheList: (listXXXs: DbSet<T>) => void, bAlreadyAuthenticated: boolean, bAsync: boolean, bOneAtATime: boolean, seAsyncOperationComplete: SyncEvent, pfnPostXXX: (listpXXXs: DbSet<T>, bOneAtATime: boolean, szResponse: string) => iXRResult, pfnSendXXXs: (listXXXs: DbSet<T>, bNoCallbackOnSuccess: boolean, pfnCallback: iXRLibAnalyticsGeneralCallback) => iXRResult) : Promise<iXRResult>
+	/// <returns>AbxrResult return code.</returns>
+	public static async TestPostXXX<T extends AbxrBase>(tTypeOfT: any, szT: string, pfnModifyTheList: (listXXXs: DbSet<T>) => void, bAlreadyAuthenticated: boolean, bAsync: boolean, bOneAtATime: boolean, seAsyncOperationComplete: SyncEvent, pfnPostXXX: (listpXXXs: DbSet<T>, bOneAtATime: boolean, szResponse: string) => AbxrResult, pfnSendXXXs: (listXXXs: DbSet<T>, bNoCallbackOnSuccess: boolean, pfnCallback: AbxrLibAnalyticsGeneralCallback) => AbxrResult) : Promise<AbxrResult>
 	{
 		var	i:			number;
 		var	listXXXs:	DbSet<T> = new DbSet<T>(tTypeOfT);
 		var	szTemp:		string = "";
-		var	eRet:		iXRResult = iXRResult.eOk;
+		var	eRet:		AbxrResult = AbxrResult.eOk;
 
 		// Auth fields.
 		if (!bAlreadyAuthenticated)
 		{
-			iXRLibInit.set_ApiToken("secret-key-need2change");
-			iXRLibInit.set_ApiSecret("theApiSecret");
+			AbxrLibInit.set_ApiToken("secret-key-need2change");
+			AbxrLibInit.set_ApiSecret("theApiSecret");
 		}
 		// End auth fields.
-		iXRLibInit.set_OrgID("Oculus4");
-		iXRLibInit.set_AppID("gameThatDoesNotExistYet");
-		// vvv after ^^^... iXREvent ctor calls CaptureStateVariables() and ^^^ sets the state variables.
+		AbxrLibInit.set_OrgID("Oculus4");
+		AbxrLibInit.set_AppID("gameThatDoesNotExistYet");
+		// vvv after ^^^... AbxrEvent ctor calls CaptureStateVariables() and ^^^ sets the state variables.
 		for (i = 0; i < 8; i++)
 		{
 			var	objXXX:	T = new tTypeOfT();
@@ -562,27 +562,27 @@ export class iXRLibAnalyticsTests
 			listpXXXs = listXXXs.Take(SIZE_MAX);
 			eRet = await pfnPostXXX(listpXXXs, bOneAtATime, szResponse);
 			//OUTPUTDEBUGSTRING(szResponse);
-			if (eRet != iXRResult.eOk)
+			if (eRet != AbxrResult.eOk)
 			{
-				szTemp = `PostIXR${szT}s failed with code ${eRet}.`;
-				iXRLibClient.WriteLine(szTemp);
+				szTemp = `PostABXR${szT}s failed with code ${eRet}.`;
+				AbxrLibClient.WriteLine(szTemp);
 			}
 		}
 		else
 		{
 			szTemp = `About to Send${szT}s() asynchronously.`;
-			iXRLibClient.WriteLine(szTemp);
-			pfnSendXXXs(listXXXs, false, (eResult: iXRResult, szExceptionMessage: string): void =>
+			AbxrLibClient.WriteLine(szTemp);
+			pfnSendXXXs(listXXXs, false, (eResult: AbxrResult, szExceptionMessage: string): void =>
 				{
 					var	szTemp:	string = "";
 
 					szTemp = `eResult = ${eResult}, szExceptionMessage = ${szExceptionMessage}`;
-					iXRLibClient.WriteLine(szTemp);
+					AbxrLibClient.WriteLine(szTemp);
 					seAsyncOperationComplete.SetEvent();
 				});
-			iXRLibClient.WriteLine("About to sleep for 3 seconds.");
+			AbxrLibClient.WriteLine("About to sleep for 3 seconds.");
 			await Sleep(3000);
-			iXRLibClient.WriteLine("Slept for 3 seconds.");
+			AbxrLibClient.WriteLine("Slept for 3 seconds.");
 			await seAsyncOperationComplete.Wait();
 		}
 		// ---
@@ -591,25 +591,25 @@ export class iXRLibAnalyticsTests
 	/// <summary>
 	/// Core templated function that encapsulates the pattern of testing Send()ing a list of T's directly (i.e. not going through the AddT() mechanism) asynchronously.
 	/// </summary>
-	/// <typeparam name="T">Type... iXREvent, iXRLog, iXRTelemetry, ...</typeparam>
-	/// <typeparam name="iXRLibAnalytics">Just pass in iXRLibAnalytics (from a .cpp function that can include iXRLibAnalytics.h)... breaks the catch-22 of not able to include iXRLibAnalytics.h in this file.</typeparam>
+	/// <typeparam name="T">Type... AbxrEvent, AbxrLog, AbxrTelemetry, ...</typeparam>
+	/// <typeparam name="AbxrLibAnalytics">Just pass in AbxrLibAnalytics (from a .cpp function that can include AbxrLibAnalytics.h)... breaks the catch-22 of not able to include AbxrLibAnalytics.h in this file.</typeparam>
 	/// <param name="szT">Name of type... "Log", "Event", "Telemetry", ...</param>
 	/// <param name="listXXXs">List of T to send.</param>
 	/// <param name="bOneAtATime">true = POST the objects one object per POST, false = POST them as one single POST with all objects in the body content.</param>
 	/// <param name="bNoCallbackOnSuccess">Same pattern as Add() function being called... do not call pfnStatusCallback if Send is successful or pfnStatusCallback is null.</param>
 	/// <param name="pfnStatusCallback">If not null, background thread that executes the Add() asynchronously will call this callback when done.</param>
-	/// <returns>iXRResult return code.</returns>
-	//public static async SendXXXsDeferred<T extends iXRBase>(tTypeOfT: any, szT: string, listXXXs: DbSet<T>, bOneAtATime: boolean, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsGeneralCallback) : Promise<iXRResult>
+	/// <returns>AbxrResult return code.</returns>
+	//public static async SendXXXsDeferred<T extends AbxrBase>(tTypeOfT: any, szT: string, listXXXs: DbSet<T>, bOneAtATime: boolean, bNoCallbackOnSuccess: boolean, pfnStatusCallback: AbxrLibAnalyticsGeneralCallback) : Promise<AbxrResult>
 	//{
 	//	// Notice the = capture... so pfnStatusCallback propagates by copy into the thread.
-	//	return await iXRLibAnalytics.m_ixrLibAsync.AddTask(async (pObject: any): Promise<iXRResult> =>
+	//	return await AbxrLibAnalytics.m_abxrLibAsync.AddTask(async (pObject: any): Promise<AbxrResult> =>
 	//		{
-	//			var	eRet:	iXRResult;
+	//			var	eRet:	AbxrResult;
 	//			var	szTemp:	string = "";
 
-	//			eRet = await iXRLibAnalyticsTests.SendXXXs<T>(tTypeOfT, szT, pObject as DbSet<T>, bOneAtATime, bNoCallbackOnSuccess, pfnStatusCallback);
+	//			eRet = await AbxrLibAnalyticsTests.SendXXXs<T>(tTypeOfT, szT, pObject as DbSet<T>, bOneAtATime, bNoCallbackOnSuccess, pfnStatusCallback);
 	//			szTemp = `Finished with Send${szT}s().`;
-	//			iXRLibClient.WriteLine(szTemp);
+	//			AbxrLibClient.WriteLine(szTemp);
 	//			// ---
 	//			return eRet;
 	//		},
@@ -619,17 +619,17 @@ export class iXRLibAnalyticsTests
 	/// <summary>
 	/// Core templated function that encapsulates the pattern of testing Send()ing a list of T's directly (i.e. not going through the AddT() mechanism) synchronously.
 	/// </summary>
-	/// <typeparam name="T">Type... iXREvent, iXRLog, iXRTelemetry, ...</typeparam>
-	/// <typeparam name="iXRLibAnalytics">Just pass in iXRLibAnalytics (from a .cpp function that can include iXRLibAnalytics.h)... breaks the catch-22 of not able to include iXRLibAnalytics.h in this file.</typeparam>
+	/// <typeparam name="T">Type... AbxrEvent, AbxrLog, AbxrTelemetry, ...</typeparam>
+	/// <typeparam name="AbxrLibAnalytics">Just pass in AbxrLibAnalytics (from a .cpp function that can include AbxrLibAnalytics.h)... breaks the catch-22 of not able to include AbxrLibAnalytics.h in this file.</typeparam>
 	/// <param name="szT">Name of type... "Log", "Event", "Telemetry", ...</param>
 	/// <param name="listXXXs">List of T to send.</param>
 	/// <param name="bOneAtATime">true = POST the objects one object per POST, false = POST them as one single POST with all objects in the body content.</param>
 	/// <param name="bNoCallbackOnSuccess">Same pattern as Add() function being called... do not call pfnStatusCallback if Send is successful or pfnStatusCallback is null.</param>
 	/// <param name="pfnStatusCallback">If not null, background thread that executes the Add() asynchronously will call this callback when done.</param>
-	/// <returns>iXRResult return code.</returns>
-	public static async SendXXXs<T extends iXRBase>(tTypeOfT: any, szT: string, listXXXs: DbSet<T>, bOneAtATime: boolean, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsGeneralCallback) : Promise<iXRResult>
+	/// <returns>AbxrResult return code.</returns>
+	public static async SendXXXs<T extends AbxrBase>(tTypeOfT: any, szT: string, listXXXs: DbSet<T>, bOneAtATime: boolean, bNoCallbackOnSuccess: boolean, pfnStatusCallback: AbxrLibAnalyticsGeneralCallback) : Promise<AbxrResult>
 	{
-		var	eRet:		iXRResult = iXRResult.eOk;
+		var	eRet:		AbxrResult = AbxrResult.eOk;
 		var	listpXXXs:	DbSet<T> = listXXXs.Take(SIZE_MAX);
 		var	szResponse:	string = "";
 
@@ -637,88 +637,88 @@ export class iXRLibAnalyticsTests
 		{
 			var	szTemp:	string = "";
 
-			szTemp = `About to PostIXR${szT}s().`;
-			iXRLibClient.WriteLine(szTemp);
+			szTemp = `About to PostABXR${szT}s().`;
+			AbxrLibClient.WriteLine(szTemp);
 			// ---
-			eRet = await iXRLibClient.PostIXRXXXs<T>(listpXXXs, tTypeOfT, bOneAtATime, {szResponse: ""});
+			eRet = await AbxrLibClient.PostABXRXXXs<T>(listpXXXs, tTypeOfT, bOneAtATime, {szResponse: ""});
 			// ---
-			szTemp = `Done with PostIXR${szT}s().`;
-			iXRLibClient.WriteLine(szTemp);
+			szTemp = `Done with PostABXR${szT}s().`;
+			AbxrLibClient.WriteLine(szTemp);
 		}
 		catch (e)
 		{
-			eRet = iXRResult.ePostObjectsFailed;
+			eRet = AbxrResult.ePostObjectsFailed;
 		}
 		// ---
-		return iXRLibAnalytics.TaskErrorReturn(eRet, bNoCallbackOnSuccess, pfnStatusCallback, "");
+		return AbxrLibAnalytics.TaskErrorReturn(eRet, bNoCallbackOnSuccess, pfnStatusCallback, "");
 	}
 	// Synchronous and asynchronous test functions for sending logs directly... in here as that should only be done during testing.
-	//public static async SendLogsDeferred(listLogs: DbSet<iXRLog>, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsGeneralCallback) : Promise<iXRResult>
+	//public static async SendLogsDeferred(listLogs: DbSet<AbxrLog>, bNoCallbackOnSuccess: boolean, pfnStatusCallback: AbxrLibAnalyticsGeneralCallback) : Promise<AbxrResult>
 	//{
-	//	return await iXRLibAnalyticsTests.SendXXXsDeferred<iXRLog>(iXRLog, "Log", listLogs, false, bNoCallbackOnSuccess, pfnStatusCallback);
+	//	return await AbxrLibAnalyticsTests.SendXXXsDeferred<AbxrLog>(AbxrLog, "Log", listLogs, false, bNoCallbackOnSuccess, pfnStatusCallback);
 	//}
-	public static async SendLogs(listLogs: DbSet<iXRLog>, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsGeneralCallback) : Promise<iXRResult>
+	public static async SendLogs(listLogs: DbSet<AbxrLog>, bNoCallbackOnSuccess: boolean, pfnStatusCallback: AbxrLibAnalyticsGeneralCallback) : Promise<AbxrResult>
 	{
-		return await iXRLibAnalyticsTests.SendXXXs<iXRLog>(iXRLog, "Log", listLogs, false, bNoCallbackOnSuccess, pfnStatusCallback);
+		return await AbxrLibAnalyticsTests.SendXXXs<AbxrLog>(AbxrLog, "Log", listLogs, false, bNoCallbackOnSuccess, pfnStatusCallback);
 	}
 	// Synchronous and asynchronous test functions for sending events directly... in here as that should only be done during testing.
-	//public static async SendEventsDeferred(listEvents: DbSet<iXREvent>, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsGeneralCallback) : Promise<iXRResult>
+	//public static async SendEventsDeferred(listEvents: DbSet<AbxrEvent>, bNoCallbackOnSuccess: boolean, pfnStatusCallback: AbxrLibAnalyticsGeneralCallback) : Promise<AbxrResult>
 	//{
-	//	return await iXRLibAnalyticsTests.SendXXXsDeferred<iXREvent>(iXREvent, "Event", listEvents, false, bNoCallbackOnSuccess, pfnStatusCallback);
+	//	return await AbxrLibAnalyticsTests.SendXXXsDeferred<AbxrEvent>(AbxrEvent, "Event", listEvents, false, bNoCallbackOnSuccess, pfnStatusCallback);
 	//}
-	public static async SendEvents(listEvents: DbSet<iXREvent>, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsGeneralCallback) : Promise<iXRResult>
+	public static async SendEvents(listEvents: DbSet<AbxrEvent>, bNoCallbackOnSuccess: boolean, pfnStatusCallback: AbxrLibAnalyticsGeneralCallback) : Promise<AbxrResult>
 	{
-		return await iXRLibAnalyticsTests.SendXXXs<iXREvent>(iXREvent, "Event", listEvents, false, bNoCallbackOnSuccess, pfnStatusCallback);
+		return await AbxrLibAnalyticsTests.SendXXXs<AbxrEvent>(AbxrEvent, "Event", listEvents, false, bNoCallbackOnSuccess, pfnStatusCallback);
 	}
 	// Synchronous and asynchronous test functions for sending telemetry directly... in here as that should only be done during testing.
-	//public static async SendTelemetryDeferred(listTelemetryEntries: DbSet<iXRTelemetry>, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsGeneralCallback) : Promise<iXRResult>
+	//public static async SendTelemetryDeferred(listTelemetryEntries: DbSet<AbxrTelemetry>, bNoCallbackOnSuccess: boolean, pfnStatusCallback: AbxrLibAnalyticsGeneralCallback) : Promise<AbxrResult>
 	//{
-	//	return await iXRLibAnalyticsTests.SendXXXsDeferred<iXRTelemetry>(iXRTelemetry, "Telemetry", listTelemetryEntries, false, bNoCallbackOnSuccess, pfnStatusCallback);
+	//	return await AbxrLibAnalyticsTests.SendXXXsDeferred<AbxrTelemetry>(AbxrTelemetry, "Telemetry", listTelemetryEntries, false, bNoCallbackOnSuccess, pfnStatusCallback);
 	//}
-	public static async SendTelemetry(listTelemetryEntries: DbSet<iXRTelemetry>, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsGeneralCallback) : Promise<iXRResult>
+	public static async SendTelemetry(listTelemetryEntries: DbSet<AbxrTelemetry>, bNoCallbackOnSuccess: boolean, pfnStatusCallback: AbxrLibAnalyticsGeneralCallback) : Promise<AbxrResult>
 	{
-		return await iXRLibAnalyticsTests.SendXXXs<iXRTelemetry>(iXRTelemetry, "Telemetry", listTelemetryEntries, false, bNoCallbackOnSuccess, pfnStatusCallback);
+		return await AbxrLibAnalyticsTests.SendXXXs<AbxrTelemetry>(AbxrTelemetry, "Telemetry", listTelemetryEntries, false, bNoCallbackOnSuccess, pfnStatusCallback);
 	}
 	// Synchronous and asynchronous test functions for sending AIProxy directly... in here as that should only be done during testing.
-	//public static async SendAIProxyDeferred(listAIProxyEntries: DbSet<iXRAIProxy>, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsGeneralCallback) : Promise<iXRResult>
+	//public static async SendAIProxyDeferred(listAIProxyEntries: DbSet<AbxrAIProxy>, bNoCallbackOnSuccess: boolean, pfnStatusCallback: AbxrLibAnalyticsGeneralCallback) : Promise<AbxrResult>
 	//{
-	//	return await iXRLibAnalyticsTests.SendXXXsDeferred<iXRAIProxy>(iXRAIProxy, "AIProxy", listAIProxyEntries, false, bNoCallbackOnSuccess, pfnStatusCallback);
+	//	return await AbxrLibAnalyticsTests.SendXXXsDeferred<AbxrAIProxy>(AbxrAIProxy, "AIProxy", listAIProxyEntries, false, bNoCallbackOnSuccess, pfnStatusCallback);
 	//}
-	public static async SendAIProxy(listAIProxyEntries: DbSet<iXRAIProxy>, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsGeneralCallback) : Promise<iXRResult>
+	public static async SendAIProxy(listAIProxyEntries: DbSet<AbxrAIProxy>, bNoCallbackOnSuccess: boolean, pfnStatusCallback: AbxrLibAnalyticsGeneralCallback) : Promise<AbxrResult>
 	{
-		return await iXRLibAnalyticsTests.SendXXXs<iXRAIProxy>(iXRAIProxy, "AIProxy", listAIProxyEntries, false, bNoCallbackOnSuccess, pfnStatusCallback);
+		return await AbxrLibAnalyticsTests.SendXXXs<AbxrAIProxy>(AbxrAIProxy, "AIProxy", listAIProxyEntries, false, bNoCallbackOnSuccess, pfnStatusCallback);
 	}
 	// Synchronous and asynchronous test functions for sending storage directly... in here as that should only be done during testing.
-	//public static async SendStorageDeferred(listStorageEntries: DbSet<iXRStorage>, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsGeneralCallback) : Promise<iXRResult>
+	//public static async SendStorageDeferred(listStorageEntries: DbSet<AbxrStorage>, bNoCallbackOnSuccess: boolean, pfnStatusCallback: AbxrLibAnalyticsGeneralCallback) : Promise<AbxrResult>
 	//{
-	//	return await iXRLibAnalyticsTests.SendXXXsDeferred<iXRStorage>(iXRStorage, "Storage", listStorageEntries, false, bNoCallbackOnSuccess, pfnStatusCallback);
+	//	return await AbxrLibAnalyticsTests.SendXXXsDeferred<AbxrStorage>(AbxrStorage, "Storage", listStorageEntries, false, bNoCallbackOnSuccess, pfnStatusCallback);
 	//}
-	public static async SendStorage(listStorageEntries: DbSet<iXRStorage>, bNoCallbackOnSuccess: boolean, pfnStatusCallback: iXRLibAnalyticsGeneralCallback) : Promise<iXRResult>
+	public static async SendStorage(listStorageEntries: DbSet<AbxrStorage>, bNoCallbackOnSuccess: boolean, pfnStatusCallback: AbxrLibAnalyticsGeneralCallback) : Promise<AbxrResult>
 	{
-		return await iXRLibAnalyticsTests.SendXXXs<iXRStorage>(iXRStorage, "Storage", listStorageEntries, true, bNoCallbackOnSuccess, pfnStatusCallback);
+		return await AbxrLibAnalyticsTests.SendXXXs<AbxrStorage>(AbxrStorage, "Storage", listStorageEntries, true, bNoCallbackOnSuccess, pfnStatusCallback);
 	}
-	public static async TestAuthenticate() : Promise<iXRResult>
+	public static async TestAuthenticate() : Promise<AbxrResult>
 	{
-		//iXRLibStorage.m_ixrLibConfiguration.SetRestUrl("http://192.168.5.2:19080/");
-		//iXRLibStorage.m_ixrLibConfiguration.SetRestUrl("http://192.168.5.17:9000/");
-		//iXRLibStorage.m_ixrLibConfiguration.SetRestUrl("https://testapi.informxr.io/");
-		//iXRLibStorage.m_ixrLibConfiguration.SetRestUrl("https://dev-libapi.informxr.io/v1/");
+		//AbxrLibStorage.m_abxrLibConfiguration.SetRestUrl("http://192.168.5.2:19080/");
+		//AbxrLibStorage.m_abxrLibConfiguration.SetRestUrl("http://192.168.5.17:9000/");
+		//AbxrLibStorage.m_abxrLibConfiguration.SetRestUrl("https://testapi.informxr.io/");
+		//AbxrLibStorage.m_abxrLibConfiguration.SetRestUrl("https://dev-libapi.informxr.io/v1/");
 		// ---
-		return await iXRLibInit.Authenticate("245950f2-570e-4e81-adb3-c468d14d319a", "57278692-cdbc-45b0-bba9-85ed2e2bab09", "75e66431-cf5e-493f-99ab-4836e79f7c93", "RAJvmTpaUNNDAVW7KqQ4nUWZHUIAPmfk6FkTXNrvm9bijMF1AUbAr4PkiVUKwPRF", Partner.eNone);
-		//iXRResult eRet = iXRLibInit.Authenticate("471fd6fd-f5d0-4096-bc0c-17100c1c4fa0", "5304ef74-423f-4bd4-87d9-cba4f19c3bdb", "75e66431-cf5e-493f-99ab-4836e79f7c93", "vEwWpJs5K2Kib3XeWBhXgQnQr43XNJCSyb5QJoGCU5ec590hFyb63vBSx6dX6Clj", Partner.eArborXR);
-		//iXRLibInit.m_ixrLibAuthentication.m_objAuthTokenRequest.m_dictAuthMechanism = iXRLibStorage.m_ixrLibConfiguration.m_dictAuthMechanism;
-		//iXRLibInit.m_ixrLibAuthentication.m_objAuthTokenRequest.m_dictAuthMechanism["prompt"] = "999999";
-		//iXRLibInit.Authenticate("471fd6fd-f5d0-4096-bc0c-17100c1c4fa0", "5304ef74-423f-4bd4-87d9-cba4f19c3bdb", "75e66431-cf5e-493f-99ab-4836e79f7c93", "vEwWpJs5K2Kib3XeWBhXgQnQr43XNJCSyb5QJoGCU5ec590hFyb63vBSx6dX6Clj", Partner.eArborXR);
+		return await AbxrLibInit.Authenticate("245950f2-570e-4e81-adb3-c468d14d319a", "57278692-cdbc-45b0-bba9-85ed2e2bab09", "75e66431-cf5e-493f-99ab-4836e79f7c93", "RAJvmTpaUNNDAVW7KqQ4nUWZHUIAPmfk6FkTXNrvm9bijMF1AUbAr4PkiVUKwPRF", Partner.eNone);
+		//AbxrResult eRet = AbxrLibInit.Authenticate("471fd6fd-f5d0-4096-bc0c-17100c1c4fa0", "5304ef74-423f-4bd4-87d9-cba4f19c3bdb", "75e66431-cf5e-493f-99ab-4836e79f7c93", "vEwWpJs5K2Kib3XeWBhXgQnQr43XNJCSyb5QJoGCU5ec590hFyb63vBSx6dX6Clj", Partner.eArborXR);
+		//AbxrLibInit.m_abxrLibAuthentication.m_objAuthTokenRequest.m_dictAuthMechanism = AbxrLibStorage.m_abxrLibConfiguration.m_dictAuthMechanism;
+		//AbxrLibInit.m_abxrLibAuthentication.m_objAuthTokenRequest.m_dictAuthMechanism["prompt"] = "999999";
+		//AbxrLibInit.Authenticate("471fd6fd-f5d0-4096-bc0c-17100c1c4fa0", "5304ef74-423f-4bd4-87d9-cba4f19c3bdb", "75e66431-cf5e-493f-99ab-4836e79f7c93", "vEwWpJs5K2Kib3XeWBhXgQnQr43XNJCSyb5QJoGCU5ec590hFyb63vBSx6dX6Clj", Partner.eArborXR);
 		// ---
 		//return eRet;
 	}
 
-	//public static iXRLibAnalyticsTests.TestGetAuthSecretCallback() : string
+	//public static AbxrLibAnalyticsTests.TestGetAuthSecretCallback() : string
 	//{
 	//	return m_pfnGetAuthSecretCallback(nullptr);
 	//}
 
-	//void iXRLibAnalyticsTests.TestDiagnosticStringCallbackMechanism()
+	//void AbxrLibAnalyticsTests.TestDiagnosticStringCallbackMechanism()
 	//{
 	//	DebugMessage.WriteLine("Here is a line of text.");
 	//	DebugMessage.WriteLine("And here is another one.");
@@ -733,7 +733,7 @@ export class iXRLibAnalyticsTests
 	//	DebugMessage.WriteLine("But the prolific would cease to be prolific unless the devourer as a sea received the excess of his delights.");
 	//}
 
-	//void iXRLibAnalyticsTests.WriteLine(mstringb szLine)
+	//void AbxrLibAnalyticsTests.WriteLine(mstringb szLine)
 	//{
 	//	// https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/preprocessor-directives
 	//	szLine.EnsureSingleEndingCharacter('\n');

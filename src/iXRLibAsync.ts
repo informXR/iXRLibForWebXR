@@ -2,7 +2,7 @@
 /// The object for handling the threading/tasking.
 /// Queue main tasks and chew through them one at a time both for sequencing and not oversaturating bandwidth.
 
-import { iXRResult } from "./network/utils/DotNetishTypes";
+import { AbxrResult } from "./network/utils/DotNetishTypes";
 //import { Worker } from "worker_threads";		// For Node.js.
 //import { parentPort } from 'worker_threads';	// For Node.js.
 //import { spawn, Thread, Worker } from "threads"
@@ -57,7 +57,7 @@ import { iXRResult } from "./network/utils/DotNetishTypes";
 type TimerCallback = (bExiting: boolean) => void;
 
 /// </summary>
-export class iXRLibAsync
+export class AbxrLibAsync
 {
 // protected:
 	// ---
@@ -65,7 +65,7 @@ export class iXRLibAsync
 	// ---
 	public static InitStatics(): void
 	{
-		iXRLibAsync.m_nCallbackPeriodicity = 500;	// Half second.
+		AbxrLibAsync.m_nCallbackPeriodicity = 500;	// Half second.
 	}
 	// std::recursive_mutex	m_cs;
 	// std::thread				m_tWorkerThread;
@@ -78,22 +78,22 @@ export class iXRLibAsync
 	// // Wake up on a singalling object and grab something to do out of queue.
 	// // ---
 	// // Alternately, do it with tasks and AwaitAny on the pending tasks.
-	// iXRLibAsync(const TimerCallback& pfnTimerCallback) :
+	// AbxrLibAsync(const TimerCallback& pfnTimerCallback) :
 	// 	m_pfnTimerCallback(pfnTimerCallback),
 	// 	m_tWorkerThread(ThreadMayn, this)
 	// {
 	// }
-	// ~iXRLibAsync()
+	// ~AbxrLibAsync()
 	// {
 	// 	Dispose();
 	// }
 	// Client thread.
-	public async AddTask(pfnTask: (o: any) => Promise<iXRResult>, pObject: any, pfnCleanup: (o: any) => void): Promise<iXRResult>
+	public async AddTask(pfnTask: (o: any) => Promise<AbxrResult>, pObject: any, pfnCleanup: (o: any) => void): Promise<AbxrResult>
 	{
-		var objPromise:	Promise<iXRResult> = new Promise(
+		var objPromise:	Promise<AbxrResult> = new Promise(
 			async (resolve, reject) =>
 			{
-				var eRet:	iXRResult = await pfnTask(pObject);
+				var eRet:	AbxrResult = await pfnTask(pObject);
 
 				pfnCleanup(pObject);
 				resolve(eRet);
@@ -107,10 +107,10 @@ export class iXRLibAsync
 		// 	// Wake up the thread.
 		// 	m_seWakeUp.SetEvent();
 		// }
-		return iXRResult.eOk;
+		return AbxrResult.eOk;
 	}
 	// Worker thread.
-	// static void ThreadMayn(iXRLibAsync* pThis)
+	// static void ThreadMayn(AbxrLibAsync* pThis)
 	// {
 	// 	pThis->ThreadMain();
 	// }
@@ -119,31 +119,31 @@ export class iXRLibAsync
 	// // Worker thread.
 	// bool RunNextTask();
 	// // Initially I thought the lifetime would be the absolute beginning and end of the app.
-	// // Turns out Unity(tm) can background/foreground the app focus which needs iXRLibAsync
-	// // to be able to cycle itself.  This is called in iXRLibInit::Start().
+	// // Turns out Unity(tm) can background/foreground the app focus which needs AbxrLibAsync
+	// // to be able to cycle itself.  This is called in AbxrLibInit::Start().
 	// // Client thread.
 	// void ReconstituteIfNecessary()
 	// {
 	// 	// Faffed about with trying to get parameter-packing etc to work in InPlaceRefresh<> so I would not
 	// 	// have to to anything like this.  Endless grief on that.  If I ever figure it out it is prettier
 	// 	// than this but this works for now.
-	// 	struct PUBLIC_iXRLibAsync : public iXRLibAsync
+	// 	struct PUBLIC_AbxrLibAsync : public AbxrLibAsync
 	// 	{
-	// 		PUBLIC_iXRLibAsync(const TimerCallback& pfnTimerCallback) :
-	// 			iXRLibAsync(pfnTimerCallback)
+	// 		PUBLIC_AbxrLibAsync(const TimerCallback& pfnTimerCallback) :
+	// 			AbxrLibAsync(pfnTimerCallback)
 	// 		{
 	// 		}
-	// 		~PUBLIC_iXRLibAsync()
+	// 		~PUBLIC_AbxrLibAsync()
 	// 		{
 	// 		}
 	// 	};
 
 	// 	if (m_bDestructed)
 	// 	{
-	// 		InPlaceRefresh<PUBLIC_iXRLibAsync>((PUBLIC_iXRLibAsync&)*this, m_pfnTimerCallback);
+	// 		InPlaceRefresh<PUBLIC_AbxrLibAsync>((PUBLIC_AbxrLibAsync&)*this, m_pfnTimerCallback);
 	// 	}
 	// }
-	// // Called from iXRLibInit::End().
+	// // Called from AbxrLibInit::End().
 	// // Client thread.
 	// void Dispose()
 	// {

@@ -1,17 +1,17 @@
 /// <summary>
 /// Everything (or nearly) that is in db and will POST/PUT/ETC to remote has a Guid and a timestamp.
 
-import { iXRLibClient } from "./iXRLibClient";
-import { iXRLibStorage } from "./iXRLibStorage";
+import { AbxrLibClient } from "./AbxrLibClient";
+import { AbxrLibStorage } from "./AbxrLibStorage";
 import { atobool, atof, atol, DATEMAXVALUE, DEFAULTNAME, EnsureSingleEndingCharacter, IsClass, /*Factory,MJPQ*/ SUID } from "./network/types";
 import { DataObjectBase, DbContext, DbSet, DumpCategory, FieldProperties, FieldPropertiesRecordContainer, FieldPropertyFlags, JsonFieldType } from "./network/utils/DataObjectBase";
-import { ConfigurationManager, DateTime, Dictionary, iXRResult, iXRDictStrings, StringList, TimeSpan } from "./network/utils/DotNetishTypes";
-import { DatabaseResult, DbSuccess } from "./network/utils/iXRLibSQLite";
+import { ConfigurationManager, DateTime, Dictionary, AbxrResult, AbxrDictStrings, StringList, TimeSpan } from "./network/utils/DotNetishTypes";
+import { DatabaseResult, DbSuccess } from "./network/utils/AbxrLibSQLite";
 import { HTTP_URL, URLParser } from "./network/utils/URLParser";
-import { FakeUpSomeRandomCrapAIProxy, FakeUpSomeRandomCrapApplication, FakeUpSomeRandomCrapDbContext, FakeUpSomeRandomCrapEvent, FakeUpSomeRandomCrapLocation, FakeUpSomeRandomCrapLog, FakeUpSomeRandomCrapStorage, FakeUpSomeRandomCrapStorageData, FakeUpSomeRandomCrapTelemetry } from "./test/iXRLibCoreModelTests";
+import { FakeUpSomeRandomCrapAIProxy, FakeUpSomeRandomCrapApplication, FakeUpSomeRandomCrapDbContext, FakeUpSomeRandomCrapEvent, FakeUpSomeRandomCrapLocation, FakeUpSomeRandomCrapLog, FakeUpSomeRandomCrapStorage, FakeUpSomeRandomCrapStorageData, FakeUpSomeRandomCrapTelemetry } from "./test/AbxrLibCoreModelTests";
 
 /// </summary>
-export class iXRBase extends DataObjectBase
+export class AbxrBase extends DataObjectBase
 {
 	protected static m_bUseCapturedTimeStamp:	boolean;
 	protected static m_nCapturedTimeStamp:		number;
@@ -42,7 +42,7 @@ export class iXRBase extends DataObjectBase
 	// ---
 	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
 	{
-		return iXRBase.m_mapProperties;
+		return AbxrBase.m_mapProperties;
 	}
 	// ---
 	constructor()
@@ -55,10 +55,10 @@ export class iXRBase extends DataObjectBase
 		this.m_nTimeStamp = this.m_dtTimeStamp.ToInt64();
 		this.m_bSyncedWithCloud = false;	// On the cloud db, this is always true.  On the device, false indicates exists only in device-local SQLite db... needs update or create in cloud db to sync.
 		// ---
-		if (iXRBase.m_bUseCapturedTimeStamp)
+		if (AbxrBase.m_bUseCapturedTimeStamp)
 		{
-			this.m_dtTimeStamp.FromInt64(iXRBase.m_nCapturedTimeStamp);
-			this.m_nTimeStamp = iXRBase.m_nCapturedTimeStamp;
+			this.m_dtTimeStamp.FromInt64(AbxrBase.m_nCapturedTimeStamp);
+			this.m_nTimeStamp = AbxrBase.m_nCapturedTimeStamp;
 		}
 		else
 		{
@@ -99,11 +99,11 @@ export class CaptureTimeStampLifetime
 {
 	constructor()
 	{
-		iXRBase.CaptureTimeStamp();
+		AbxrBase.CaptureTimeStamp();
 	}
 	dispose(): void
 	{
-		iXRBase.UnCaptureTimeStamp();
+		AbxrBase.UnCaptureTimeStamp();
 	}
 };
 
@@ -112,10 +112,10 @@ export class CaptureTimeStampLifetime
 ///		Reason it is inheriting from DataObjectBase is to make it easy to inherit from it
 ///		in TestData.h to have it in the JSON consumed by that code.
 /// </summary>
-/// This started out in iXRLibAnalytics.h where it arguably belongs among its native society
+/// This started out in AbxrLibAnalytics.h where it arguably belongs among its native society
 /// of associated objects.  But, it can be obtained from the backend and therefore needed by
-/// iXRLibClient.h so it needs to be here.
-export class iXRLibConfiguration extends DataObjectBase
+/// AbxrLibClient.h so it needs to be here.
+export class AbxrLibConfiguration extends DataObjectBase
 {
 	protected m_szRestUrl:						string;		// |_Would be cool to use __declspec(property) but that does not port to Linux.
 	protected m_urlRestUrl:						HTTP_URL;	// | Using accessor instead.
@@ -147,7 +147,7 @@ export class iXRLibConfiguration extends DataObjectBase
 	// Extra data that (if not empty from backend after first auth) has to be requested from the user to be submitted
 	// in a followup call to auth by being copied into the auth environment/session property of the same name after
 	// being filled in.  Scorm interactionid is the initial motivation.
-	public m_dictAuthMechanism:					iXRDictStrings;
+	public m_dictAuthMechanism:					AbxrDictStrings;
 	// ---
 	constructor()
 	{
@@ -173,7 +173,7 @@ export class iXRLibConfiguration extends DataObjectBase
 		this.m_bRetainLocalAfterSent = false;
 		this.m_bReAuthenticateBeforeTokenExpires = true;
 		this.m_bUseDatabase = false;
-		this.m_dictAuthMechanism = new iXRDictStrings();
+		this.m_dictAuthMechanism = new AbxrDictStrings();
 		// ---
 		// Default URL... can be overriden by App.config or accessors in C# and C++.
 		this.SetRestUrl("https://libapi.informxr.io/v1/");
@@ -250,7 +250,7 @@ export class iXRLibConfiguration extends DataObjectBase
 	// ---
 	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
 	{
-		return iXRLibConfiguration.m_mapProperties;
+		return AbxrLibConfiguration.m_mapProperties;
 	}
 	// ---
 	/// <summary>
@@ -304,7 +304,7 @@ export class iXRLibConfiguration extends DataObjectBase
 /// <summary>
 /// Application object... from "Database Models" doc... Represents the software application in use.
 /// </summary>
-export class iXRApplication extends iXRBase
+export class AbxrApplication extends AbxrBase
 {
 	public m_szAppId:			string;
 	public m_szDeviceUserId:	string;
@@ -332,7 +332,7 @@ export class iXRApplication extends iXRBase
 	}
 	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
 	{
-		return iXRBase.m_mapProperties;
+		return AbxrBase.m_mapProperties;
 	}
 	// --- TESTS.
 // #ifdef _DEBUG
@@ -348,7 +348,7 @@ export class iXRApplication extends iXRBase
 /// <summary>
 /// LocationData contained by Event.
 /// </summary>
-export class iXRLocationData extends iXRBase
+export class AbxrLocationData extends AbxrBase
 {
 	public m_dX:	number;
 	public m_dY:	number;
@@ -362,7 +362,7 @@ export class iXRLocationData extends iXRBase
 		this.m_dY = 0.0;
 		this.m_dZ = 0.0;
 	}
-	Construct(dX: number, dY: number, dZ: number): iXRLocationData
+	Construct(dX: number, dY: number, dZ: number): AbxrLocationData
 	{
 		this.m_dX = dX;
 		this.m_dY = dY;
@@ -379,7 +379,7 @@ export class iXRLocationData extends iXRBase
 	// ---
 	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
 	{
-		return iXRLocationData.m_mapProperties;
+		return AbxrLocationData.m_mapProperties;
 	}
 	// ---
 	public ShouldDump(szFieldName: string, eJsonFieldType: JsonFieldType, eDumpCategory: DumpCategory): boolean // virtual
@@ -459,9 +459,9 @@ export function StringToLogLevel(szLogLevel: string): LogLevel
 /// <summary>
 /// Any object that has m_dictMeta... factored up once we decided Log, Telemetry, Event each needs this.
 /// </summary>
-export class iXRMetaDataObject extends iXRBase
+export class AbxrMetaDataObject extends AbxrBase
 {
-	public m_dictMeta:	iXRDictStrings;			// General purpose... could be {"batteryLevel": "67.0"}, {"x":"34", "y":"67", "z":"26"}...
+	public m_dictMeta:	AbxrDictStrings;			// General purpose... could be {"batteryLevel": "67.0"}, {"x":"34", "y":"67", "z":"26"}...
 	// ---
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
 		super.m_mapProperties.m_rfp,
@@ -471,11 +471,11 @@ export class iXRMetaDataObject extends iXRBase
 	{
 		super();
 		// ---
-		this.m_dictMeta = new iXRDictStrings();
+		this.m_dictMeta = new AbxrDictStrings();
 	}
 	// На хуй TypeScript.  Could do this with that parameter-unioning bollocks
 	// but that cure is worse than the disease.
-	public ConstructMetaData(dictMeta: iXRDictStrings)
+	public ConstructMetaData(dictMeta: AbxrDictStrings)
 	{
 		this.m_dictMeta = dictMeta;
 	}
@@ -484,7 +484,7 @@ export class iXRMetaDataObject extends iXRBase
 /// <summary>
 /// General purpose... for developer to log whatever they want to log.
 /// </summary>
-export class iXRLog extends iXRMetaDataObject
+export class AbxrLog extends AbxrMetaDataObject
 {
 	public m_szLogLevel:	string;
 	public m_szText:		string;
@@ -496,7 +496,7 @@ export class iXRLog extends iXRMetaDataObject
 	// ---
 	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
 	{
-		return iXRLog.m_mapProperties;
+		return AbxrLog.m_mapProperties;
 	}
 	// ---
 	constructor()
@@ -506,7 +506,7 @@ export class iXRLog extends iXRMetaDataObject
 		this.m_szLogLevel = "";
 		this.m_szText = "";
 	}
-	public Construct(eLogLevel: LogLevel, szText: string, dictMeta: iXRDictStrings): iXRLog
+	public Construct(eLogLevel: LogLevel, szText: string, dictMeta: AbxrDictStrings): AbxrLog
 	{
 		super.ConstructMetaData(dictMeta);
 		// ---
@@ -527,7 +527,7 @@ export class iXRLog extends iXRMetaDataObject
 /// <summary>
 /// Metrics and position tracking.
 /// </summary>
-export class iXRTelemetry extends iXRMetaDataObject
+export class AbxrTelemetry extends AbxrMetaDataObject
 {
 	public m_szName:			string;				// Consider the x, y, z case (super.m_dictMeta) ... (x, y, z) of what?  This is the "what"... can be empty when self-evident like battery level.
 	// ---
@@ -537,7 +537,7 @@ export class iXRTelemetry extends iXRMetaDataObject
 		// ---
 		this.m_szName = "";
 	}
-	public Construct(szName: string, dictMeta: iXRDictStrings): iXRTelemetry
+	public Construct(szName: string, dictMeta: AbxrDictStrings): AbxrTelemetry
 	{
 		super.ConstructMetaData(dictMeta);
 		// ---
@@ -551,7 +551,7 @@ export class iXRTelemetry extends iXRMetaDataObject
 	// ---
 	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
 	{
-		return iXRTelemetry.m_mapProperties;
+		return AbxrTelemetry.m_mapProperties;
 	}
 // 	// --- TESTS.
 // #ifdef _DEBUG
@@ -565,12 +565,12 @@ export class iXRTelemetry extends iXRMetaDataObject
 /// <summary>
 /// Message to/from the user of the headset.
 ///		Sent immediately, no local cacheing to db.  But the send still uses SendRetriesOnFailure/SendRetryInterval.
-///		Does NOT exist in database schema (iXRDbContext below).
+///		Does NOT exist in database schema (AbxrDbContext below).
 /// </summary>
-export class iXRAIProxy extends iXRBase
+export class AbxrAIProxy extends AbxrBase
 {
 	public m_szPrompt:			string;				// String type value.
-	public m_dictPastMessages:	iXRDictStrings;	// The history of chat (if needed).
+	public m_dictPastMessages:	AbxrDictStrings;	// The history of chat (if needed).
 	public m_szLLMProvider:		string;				// (Optional) a string type value that can be used to choose a specific pre-defined chatbot.
 	// ---
 	constructor()
@@ -578,7 +578,7 @@ export class iXRAIProxy extends iXRBase
 		super();
 		// ---
 		this.m_szPrompt = "";
-		this.m_dictPastMessages = new iXRDictStrings();
+		this.m_dictPastMessages = new AbxrDictStrings();
 		this.m_szLLMProvider = "";
 	}
 	/// <summary>
@@ -587,21 +587,21 @@ export class iXRAIProxy extends iXRBase
 	/// <param name="szPrompt">Prompt.</param>
 	/// <param name="szPastMessages">Past messages as comma-separated list.</param>
 	/// <param name="szLMMProvider">LMM Provider.</param>
-	public Construct0(szPrompt: string, szPastMessages: string, szLMMProvider: string): iXRAIProxy
+	public Construct0(szPrompt: string, szPastMessages: string, szLMMProvider: string): AbxrAIProxy
 	{
 		this.m_szPrompt = szPrompt;
-		this.m_dictPastMessages = new iXRDictStrings().Construct(szPastMessages);
+		this.m_dictPastMessages = new AbxrDictStrings().Construct(szPastMessages);
 		this.m_szLLMProvider = szLMMProvider;
 		// ---
 		return this;
 	}
 	/// <summary>
-	/// For passing past messages in as what it is... iXRDictStrings.
+	/// For passing past messages in as what it is... AbxrDictStrings.
 	/// </summary>
 	/// <param name="szPrompt">Prompt.</param>
 	/// <param name="szPastMessages">Past messages.</param>
 	/// <param name="szLMMProvider">LMM Provider.</param>
-	public Construct1(szPrompt: string, dictPastMessages: iXRDictStrings, szLMMProvider: string): iXRAIProxy
+	public Construct1(szPrompt: string, dictPastMessages: AbxrDictStrings, szLMMProvider: string): AbxrAIProxy
 	{
 		this.m_szPrompt = szPrompt;
 		this.m_dictPastMessages = dictPastMessages;
@@ -618,7 +618,7 @@ export class iXRAIProxy extends iXRBase
 	// ---
 	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
 	{
-		return iXRAIProxy.m_mapProperties;
+		return AbxrAIProxy.m_mapProperties;
 	}
 // 	// --- TESTS.
 // #ifdef _DEBUG
@@ -630,10 +630,10 @@ export class iXRAIProxy extends iXRBase
 };
 
 /// <summary>
-/// Event object... from "ixrlib Spec 2023" doc... the main event object that will be profligately POST/PUT/ETCed to the backend for data analytics.
+/// Event object... from "abxrlib Spec 2023" doc... the main event object that will be profligately POST/PUT/ETCed to the backend for data analytics.
 ///		These are proactively added by the content creator, i.e. NOT automatically obtained by us from the platform, headset-OS, other API, etc.
 /// </summary>
-export class iXREvent extends iXRMetaDataObject
+export class AbxrEvent extends AbxrMetaDataObject
 {
 	// static std.recursive_mutex				m_csDictProtect;
 	// MJPQ:  This is a massive pain if I have to do this in the constructor to avoid that "cannot read property of undefined" error.
@@ -644,10 +644,10 @@ export class iXREvent extends iXRMetaDataObject
 	// ---
 	public static InitStatics(): void
 	{
-		iXREvent.m_dictAssessmentStartTimes = new Dictionary<string, DateTime>();
-		iXREvent.m_dictObjectiveStartTimes = new Dictionary<string, DateTime>();
-		iXREvent.m_dictInteractionStartTimes = new Dictionary<string, DateTime>();
-		iXREvent.m_dictLevelStartTimes = new Dictionary<string, DateTime>();
+		AbxrEvent.m_dictAssessmentStartTimes = new Dictionary<string, DateTime>();
+		AbxrEvent.m_dictObjectiveStartTimes = new Dictionary<string, DateTime>();
+		AbxrEvent.m_dictInteractionStartTimes = new Dictionary<string, DateTime>();
+		AbxrEvent.m_dictLevelStartTimes = new Dictionary<string, DateTime>();
 	}
 	// ---
 	m_szName:			string;
@@ -666,10 +666,10 @@ export class iXREvent extends iXRMetaDataObject
 	// ---
 	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
 	{
-		return iXREvent.m_mapProperties;
+		return AbxrEvent.m_mapProperties;
 	}
 	// ---
-	public Construct(szName: string, dictMeta: iXRDictStrings) : iXREvent
+	public Construct(szName: string, dictMeta: AbxrDictStrings) : AbxrEvent
 	{
 		super.ConstructMetaData(dictMeta);
 		// ---
@@ -690,26 +690,26 @@ export class iXREvent extends iXRMetaDataObject
 /// <summary>
 /// Backend Event endpoint wants an object called "data" that contains the list of events.
 ///		This is that container object.  Uses the GenerateJsonAlternate() mechanism to dump
-///		a list of iXREvent pointers instead of this child list which is therefore just a
+///		a list of AbxrEvent pointers instead of this child list which is therefore just a
 ///		placeholder in that case.
 /// </summary>
 /// <typeparam name="T">Type of object being contained.</typeparam>
 /// <typeparam name="T_CONTAINS">Type of object inside T that also has to be on its own for when Python makes it an object instead of an array in the JSON.</typeparam>
 /// <typeparam name="bWantTimeStamp">Want timestamp when dumping JSON for backend.</typeparam>
-export class iXRXXXContainer<T extends DataObjectBase, T_CONTAINS, bTWantTimestamp extends boolean> extends iXRBase
+export class AbxrXXXContainer<T extends DataObjectBase, T_CONTAINS, bTWantTimestamp extends boolean> extends AbxrBase
 {
-	public m_tIXRXXX:		T_CONTAINS;	// This is here to catch the data when Python is representing it as an object rather than array.
-	public m_dspIXRXXXs:	DbSet<T>;	// The main data.
+	public m_tABXRXXX:		T_CONTAINS;	// This is here to catch the data when Python is representing it as an object rather than array.
+	public m_dspABXRXXXs:	DbSet<T>;	// The main data.
 	// ---
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
 		super.m_mapProperties.m_rfp,
-	 	{m_tIXRXXX: new FieldProperties("data")},
+	 	{m_tABXRXXX: new FieldProperties("data")},
 		// ---
-	 	{m_dspIXRXXXs: new FieldProperties("data", FieldPropertyFlags.bfChildList)}));
+	 	{m_dspABXRXXXs: new FieldProperties("data", FieldPropertyFlags.bfChildList)}));
 	// ---
 	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
 	{
-		return iXRXXXContainer.m_mapProperties;
+		return AbxrXXXContainer.m_mapProperties;
 	}
 	// ---
 	constructor(tTypeOfT: any, tTypeOfT_CONTAINS: any, public bWantTimestamp: bTWantTimestamp = false as bTWantTimestamp)
@@ -717,13 +717,13 @@ export class iXRXXXContainer<T extends DataObjectBase, T_CONTAINS, bTWantTimesta
 		super();
 		if (IsClass(tTypeOfT_CONTAINS))
 		{
-			this.m_tIXRXXX = new tTypeOfT_CONTAINS();
+			this.m_tABXRXXX = new tTypeOfT_CONTAINS();
 		}
 		else
 		{
-			this.m_tIXRXXX = tTypeOfT_CONTAINS;
+			this.m_tABXRXXX = tTypeOfT_CONTAINS;
 		}
-		this.m_dspIXRXXXs = new DbSet<T>(tTypeOfT);
+		this.m_dspABXRXXXs = new DbSet<T>(tTypeOfT);
 	}
 	public ShouldDump(szFieldName: string, eJsonFieldType: JsonFieldType, eDumpCategory: DumpCategory) : boolean // virtual
 	{
@@ -753,7 +753,7 @@ export class iXRXXXContainer<T extends DataObjectBase, T_CONTAINS, bTWantTimesta
 // #ifdef _DEBUG
 	public FakeUpSomeRandomCrap(bWantChildObjects: boolean = true): void
 	{
-		this.m_dspIXRXXXs.emplace_front().FakeUpSomeRandomCrap(bWantChildObjects);
+		this.m_dspABXRXXXs.emplace_front().FakeUpSomeRandomCrap(bWantChildObjects);
 	}
 // #endif // _DEBUG
 };
@@ -763,32 +763,32 @@ export class iXRXXXContainer<T extends DataObjectBase, T_CONTAINS, bTWantTimesta
 ///		This is that container object.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-export class iXRXXXScalarContainer<T extends iXRBase> extends iXRBase
+export class AbxrXXXScalarContainer<T extends AbxrBase> extends AbxrBase
 {
-	public m_tIXRXXX:	T = {} as T;
+	public m_tABXRXXX:	T = {} as T;
 	// ---
-	// iXRXXXScalarContainer<T>() = default;
-	// iXRXXXScalarContainer<T>(const T& t) :
-	// 	m_tIXRXXX(t)
+	// AbxrXXXScalarContainer<T>() = default;
+	// AbxrXXXScalarContainer<T>(const T& t) :
+	// 	m_tABXRXXX(t)
 	// {
 	// }
-	// iXRXXXScalarContainer<T>(T&& t) :
-	// 	m_tIXRXXX(t)
+	// AbxrXXXScalarContainer<T>(T&& t) :
+	// 	m_tABXRXXX(t)
 	// {
 	// }
 	// ---
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
 		super.m_mapProperties.m_rfp,
-		{m_tIXRXXX: new FieldProperties("data", FieldPropertyFlags.bfChild)}));
+		{m_tABXRXXX: new FieldProperties("data", FieldPropertyFlags.bfChild)}));
 	// ---
 	constructor(tTypeOfT: any)
 	{
 		super();
-		this.m_tIXRXXX = new tTypeOfT();
+		this.m_tABXRXXX = new tTypeOfT();
 	}
 	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
 	{
-		return iXRXXXScalarContainer.m_mapProperties;
+		return AbxrXXXScalarContainer.m_mapProperties;
 	}
 	// ---
 	public ShouldDump(szFieldName: string, eJsonFieldType: JsonFieldType, eDumpCategory: DumpCategory): boolean // virtual
@@ -812,25 +812,25 @@ export class iXRXXXScalarContainer<T extends iXRBase> extends iXRBase
 /// <summary>
 /// Backend has this in a double-nested "data" structure.  That is why this is here, this is the inner one.
 /// </summary>
-export class iXRStorageData extends iXRBase
+export class AbxrStorageData extends AbxrBase
 {
-	public m_cdictData:	iXRDictStrings;
+	public m_cdictData:	AbxrDictStrings;
 	// ---
 	constructor()
 	{
 		super();
 		// ---
-		this.m_cdictData = new iXRDictStrings();
+		this.m_cdictData = new AbxrDictStrings();
 	}
-	public Construct0(dictData: iXRDictStrings) : iXRStorageData
+	public Construct0(dictData: AbxrDictStrings) : AbxrStorageData
 	{
 		this.m_cdictData = dictData;
 		// ---
 		return this;
 	}
-	public Construct1(szdictData: string) : iXRStorageData
+	public Construct1(szdictData: string) : AbxrStorageData
 	{
-		this.m_cdictData = new iXRDictStrings().Construct(szdictData);
+		this.m_cdictData = new AbxrDictStrings().Construct(szdictData);
 		// ---
 		return this;
 	}
@@ -841,7 +841,7 @@ export class iXRStorageData extends iXRBase
 	// ---
 	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
 	{
-		return iXRStorageData.m_mapProperties;
+		return AbxrStorageData.m_mapProperties;
 	}
 	// --- TESTS.
 // #ifdef _DEBUG
@@ -855,20 +855,20 @@ export class iXRStorageData extends iXRBase
 /// <summary>
 /// Inherit from container template that handles the array vs single object bollocks from Python.
 ///		Mainly to shorten the name of the thing and have FinalizeParse().  Would be cool if
-///		FinalizeParse() could be in iXRXXXContainer<> but the other things that use iXRXXXContainer<>
+///		FinalizeParse() could be in AbxrXXXContainer<> but the other things that use AbxrXXXContainer<>
 ///		bum that up due to T_CONTAINS.  Would like to clean that up.  If I manage to, I'll revisit this.
 /// </summary>
-export class StorageContainer extends iXRXXXContainer<iXRStorageData, iXRDictStrings, true>
+export class StorageContainer extends AbxrXXXContainer<AbxrStorageData, AbxrDictStrings, true>
 {
 	constructor()
 	{
-		super(iXRStorageData, iXRDictStrings, true);
+		super(AbxrStorageData, AbxrDictStrings, true);
 	}
 	FinalizeParse() : void // virtual
 	{
-		if (this.m_dspIXRXXXs.empty())
+		if (this.m_dspABXRXXXs.empty())
 		{
-			this.m_dspIXRXXXs.Add(new iXRStorageData().Construct0(this.m_tIXRXXX));
+			this.m_dspABXRXXXs.Add(new AbxrStorageData().Construct0(this.m_tABXRXXX));
 		}
 	}
 };
@@ -876,7 +876,7 @@ export class StorageContainer extends iXRXXXContainer<iXRStorageData, iXRDictStr
 /// <summary>
 /// Mainly state, but more general than that... whatever user wants but principally state info.
 /// </summary>
-export class iXRStorage extends iXRBase
+export class AbxrStorage extends AbxrBase
 {
 	public m_szKeepPolicy:	string;						// "keepLatest" or "appendHistory"
 	public m_szName:		string;
@@ -895,25 +895,25 @@ export class iXRStorage extends iXRBase
 		this.m_bSessionData = false;
 		this.m_lszTags = new StringList();
 	}
-	Construct0(bKeepLatest: boolean, szName: string, dictData: iXRDictStrings, szOrigin: string, bSessionData: boolean) : iXRStorage
+	Construct0(bKeepLatest: boolean, szName: string, dictData: AbxrDictStrings, szOrigin: string, bSessionData: boolean) : AbxrStorage
 	{
 		this.m_szKeepPolicy = (bKeepLatest) ? "keepLatest" : "appendHistory";
 		this.m_szName = szName;
 		this.m_szOrigin = szOrigin;
 		this.m_bSessionData = bSessionData;
 		this.m_dsData.clear();
-		this.m_dsData.Add(new StorageContainer).m_dspIXRXXXs.Add(new iXRStorageData().Construct0(dictData));
+		this.m_dsData.Add(new StorageContainer).m_dspABXRXXXs.Add(new AbxrStorageData().Construct0(dictData));
 		// ---
 		return this;
 	}
-	Construct1(bKeepLatest: boolean, szName: string, szdictData: string, szOrigin: string, bSessionData: boolean) : iXRStorage
+	Construct1(bKeepLatest: boolean, szName: string, szdictData: string, szOrigin: string, bSessionData: boolean) : AbxrStorage
 	{
 		this.m_szKeepPolicy = (bKeepLatest) ? "keepLatest" : "appendHistory";
 		this.m_szName = szName;
 		this.m_szOrigin = szOrigin;
 		this.m_bSessionData = bSessionData;
 		this.m_dsData.clear();
-		this.m_dsData.Add(new StorageContainer).m_dspIXRXXXs.Add(new iXRStorageData().Construct1(szdictData));
+		this.m_dsData.Add(new StorageContainer).m_dspABXRXXXs.Add(new AbxrStorageData().Construct1(szdictData));
 		// ---
 		return this;
 	}
@@ -930,7 +930,7 @@ export class iXRStorage extends iXRBase
 	// ---
 	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
 	{
-		return iXRStorage.m_mapProperties;
+		return AbxrStorage.m_mapProperties;
 	}
 	// --- TESTS.
 // #ifdef _DEBUG
@@ -942,10 +942,10 @@ export class iXRStorage extends iXRBase
 };
 
 /// <summary>
-/// Functionality for iXRStorage list... do NOT ever add data members to this as the actual instance needs
-///		to be a DbSet<iXRStorage> so compile-time childobjectlistproperty type deduction works properly.
+/// Functionality for AbxrStorage list... do NOT ever add data members to this as the actual instance needs
+///		to be a DbSet<AbxrStorage> so compile-time childobjectlistproperty type deduction works properly.
 /// </summary>
-export class DbSetStorage extends DbSet<iXRStorage>
+export class DbSetStorage extends DbSet<AbxrStorage>
 {
 	public static DEFAULTNAME:	string;
 	// ---
@@ -954,7 +954,7 @@ export class DbSetStorage extends DbSet<iXRStorage>
 		this.DEFAULTNAME = "state";
 	}
 	// Default name 'state'
-	public GetEntry(szName: string = DbSetStorage.DEFAULTNAME): iXRStorage | null
+	public GetEntry(szName: string = DbSetStorage.DEFAULTNAME): AbxrStorage | null
 	{
 		for (let ixd of this.values())
 		{
@@ -968,18 +968,18 @@ export class DbSetStorage extends DbSet<iXRStorage>
 	// ---
 	// Default name 'state'
 	public async SetEntry(
-		data: string | iXRDictStrings,
+		data: string | AbxrDictStrings,
 		bKeepLatest: boolean,
 		szOrigin: string,
 		bSessionData: boolean,
 		szName: string = DbSetStorage.DEFAULTNAME
-	): Promise<iXRResult> {
+	): Promise<AbxrResult> {
 		const dictData = typeof data === 'string' 
-			? new iXRDictStrings().Construct(data)
+			? new AbxrDictStrings().Construct(data)
 			: data;
 		
 		// Create new storage entry
-		const storage = new iXRStorage().Construct0(
+		const storage = new AbxrStorage().Construct0(
 			bKeepLatest,
 			szName,
 			dictData,
@@ -988,29 +988,29 @@ export class DbSetStorage extends DbSet<iXRStorage>
 		);
 		
 		this.Add(storage);
-		return iXRResult.eOk;
+		return AbxrResult.eOk;
 	}
 	// ---
 	// Default name 'state'
-	public async RemoveEntry(szName: string = DbSetStorage.DEFAULTNAME): Promise<iXRResult> {
+	public async RemoveEntry(szName: string = DbSetStorage.DEFAULTNAME): Promise<AbxrResult> {
 		const entry = this.GetEntry(szName);
 		if (entry) {
 			this.erase(entry);
-			return iXRResult.eOk;
+			return AbxrResult.eOk;
 		}
 		// ---
-		return iXRResult.eObjectNotFound;
+		return AbxrResult.eObjectNotFound;
 	}
-	public async RemoveMultipleEntries(dbContext: iXRDbContext, bSessionOnly: boolean): Promise<iXRResult>
+	public async RemoveMultipleEntries(dbContext: AbxrDbContext, bSessionOnly: boolean): Promise<AbxrResult>
 	{
-		var	eRet:				iXRResult;
+		var	eRet:				AbxrResult;
 		var	szResponse:			string = "";
 		var	bChangedSomething:	boolean = false;
 
 		// Delete from backend.
-		eRet = await iXRLibClient.DeleteMultipleIXRStorageEntries(bSessionOnly, {szResponse});
+		eRet = await AbxrLibClient.DeleteMultipleABXRStorageEntries(bSessionOnly, {szResponse});
 		// ---
-		if (eRet === iXRResult.eOk)
+		if (eRet === AbxrResult.eOk)
 		{
 			// Reflect what we just did on backend in device-local db.
 			for (let it of this.values())
@@ -1029,14 +1029,14 @@ export class DbSetStorage extends DbSet<iXRStorage>
 			{
 				if (!DbSuccess(dbContext.SaveChanges()))
 				{
-					eRet = iXRResult.eDeleteObjectsFailedDatabase;
+					eRet = AbxrResult.eDeleteObjectsFailedDatabase;
 				}
 			}
 			// ---
 			return eRet;
 		}
 		// ---
-		return iXRResult.eObjectNotFound;
+		return AbxrResult.eObjectNotFound;
 	}
 };
 
@@ -1044,7 +1044,7 @@ export class DbSetStorage extends DbSet<iXRStorage>
 /// Last (configured) errors as last resort for those who do not want to call
 /// synchronous and wait for error or call asynchronous and handle callback.
 /// </summary>
-export class iXRErrors extends iXRBase
+export class AbxrErrors extends AbxrBase
 {
 	m_szErrorString:	string;
 	// ---
@@ -1061,44 +1061,44 @@ export class iXRErrors extends iXRBase
 	// ---
 	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
 	{
-		return iXRErrors.m_mapProperties;
+		return AbxrErrors.m_mapProperties;
 	}
 };
 
 /// <summary>
 /// The Entity-Framework-ish database object.
 /// </summary>
-export class iXRDbContext extends DbContext
+export class AbxrDbContext extends DbContext
 {
-	m_dsIXRApplications:	DbSet<iXRApplication>;
-	m_dsIXRLogs:			DbSet<iXRLog>;
-	m_dsIXRTelemetry:		DbSet<iXRTelemetry>;
-	m_dsIXREvents:			DbSet<iXREvent>;	// Table name IXREvents.
-	m_dsIXRStorage:			DbSet<iXRStorage>;	// State info, etc.
+	m_dsABXRApplications:	DbSet<AbxrApplication>;
+	m_dsABXRLogs:			DbSet<AbxrLog>;
+	m_dsABXRTelemetry:		DbSet<AbxrTelemetry>;
+	m_dsABXREvents:			DbSet<AbxrEvent>;	// Table name ABXREvents.
+	m_dsABXRStorage:		DbSet<AbxrStorage>;	// State info, etc.
 	m_szDbPath:				string;
 	// ---
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
 		super.m_mapProperties.m_rfp,
 		// ---
-	 	{m_dsIXRApplications: new FieldProperties("IXRApplications", FieldPropertyFlags.bfChildList)},
-	 	{m_dsIXRLogs: new FieldProperties("IXRLogs", FieldPropertyFlags.bfChildList)},
-	 	{m_dsIXRTelemetry: new FieldProperties("IXRTelemetry", FieldPropertyFlags.bfChildList)},
-	 	{m_dsIXREvents: new FieldProperties("IXREvents", FieldPropertyFlags.bfChildList)},
-	 	{m_dsIXRStorage: new FieldProperties("IXRStorage", FieldPropertyFlags.bfChildList)}));
+	 	{m_dsABXRApplications: new FieldProperties("ABXRApplications", FieldPropertyFlags.bfChildList)},
+	 	{m_dsABXRLogs: new FieldProperties("ABXRLogs", FieldPropertyFlags.bfChildList)},
+	 	{m_dsABXRTelemetry: new FieldProperties("ABXRTelemetry", FieldPropertyFlags.bfChildList)},
+	 	{m_dsABXREvents: new FieldProperties("ABXREvents", FieldPropertyFlags.bfChildList)},
+	 	{m_dsABXRStorage: new FieldProperties("ABXRStorage", FieldPropertyFlags.bfChildList)}));
 	// ---
-	// iXRDbContext() :
-	// 	iXRDbContext(false)
+	// AbxrDbContext() :
+	// 	AbxrDbContext(false)
 	// {
 	// }
 	constructor(bDeleteIfExists: boolean)
 	{
 		super();
 		// ---
-		this.m_dsIXRApplications = new DbSet<iXRApplication>(iXRApplication);
-		this.m_dsIXRLogs = new DbSet<iXRLog>(iXRLog);
-		this.m_dsIXRTelemetry = new DbSet<iXRTelemetry>(iXRTelemetry);
-		this.m_dsIXREvents = new DbSet<iXREvent>(iXREvent);
-		this.m_dsIXRStorage = new DbSet<iXRStorage>(iXRStorage);
+		this.m_dsABXRApplications = new DbSet<AbxrApplication>(AbxrApplication);
+		this.m_dsABXRLogs = new DbSet<AbxrLog>(AbxrLog);
+		this.m_dsABXRTelemetry = new DbSet<AbxrTelemetry>(AbxrTelemetry);
+		this.m_dsABXREvents = new DbSet<AbxrEvent>(AbxrEvent);
+		this.m_dsABXRStorage = new DbSet<AbxrStorage>(AbxrStorage);
 		this.m_szDbPath = "";
 		// ---
 	// 	m_szDbPath = NormalizePath("InformXR.db").c_str();
@@ -1113,11 +1113,11 @@ export class iXRDbContext extends DbContext
 	// 	}
 	// 	ConstructGuts();
 	}
-	// iXRDbContext(const mstringb& szDbPath) :
-	// 	iXRDbContext(szDbPath, false)
+	// AbxrDbContext(const mstringb& szDbPath) :
+	// 	AbxrDbContext(szDbPath, false)
 	// {
 	// }
-	// iXRDbContext(const mstringb& szDbPath, bool bDeleteIfExists)
+	// AbxrDbContext(const mstringb& szDbPath, bool bDeleteIfExists)
 	// {
 	// 	std.filesystem.path	fpDbPath(szDbPath.c_str());
 
@@ -1138,12 +1138,12 @@ export class iXRDbContext extends DbContext
 	// 					eTestRet;
 
 	// 	// We first get the number of child list properties.
-	// 	constexpr size_t nbChildObjectListProperties = std.tuple_size<decltype(iXRDbContext.childobjectlistproperties)>.value;
+	// 	constexpr size_t nbChildObjectListProperties = std.tuple_size<decltype(AbxrDbContext.childobjectlistproperties)>.value;
 	// 	// Recursively load them.
 	// 	for_sequence(std.make_index_sequence<nbChildObjectListProperties>{}, [&](auto i)
 	// 	{
 	// 		// Get the property.
-	// 		constexpr auto	objChildListProperty = std.get<i>(iXRDbContext.childobjectlistproperties);
+	// 		constexpr auto	objChildListProperty = std.get<i>(AbxrDbContext.childobjectlistproperties);
 	// 		// Call this recursively.
 	// 		eTestRet = ExecuteSqlSelect(db, objChildListProperty.name, "SELECT %s FROM %s", {}, this->*(objChildListProperty.member));
 	// 		if (!DbSuccess(eTestRet))
@@ -1154,61 +1154,61 @@ export class iXRDbContext extends DbContext
 	// 	// ---
 	// 	return eRet;
 	// }
-	// --- Functions supporting adding/changing/deleting iXRStorage objects.  These objects are "more global" than the other
+	// --- Functions supporting adding/changing/deleting AbxrStorage objects.  These objects are "more global" than the other
 	//		objects, more like environment variables, hence enjoy pride of place as such.
 	// DatabaseResult LoadStorageEntries()
 	// {
-	// 	return ExecuteSqlSelect(m_db, "iXRStorage", "SELECT %s FROM %s", {}, m_dsIXRStorage);
+	// 	return ExecuteSqlSelect(m_db, "AbxrStorage", "SELECT %s FROM %s", {}, m_dsABXRStorage);
 	// }
 	public LoadStorageEntriesIfNecessary(): DatabaseResult
 	{
-	// 	if (m_dsIXRStorage.Count() === 0)
+	// 	if (m_dsABXRStorage.Count() === 0)
 	// 	{
-	// 		return ExecuteSqlSelect(m_db, "iXRStorage", "SELECT %s FROM %s", {}, m_dsIXRStorage);
+	// 		return ExecuteSqlSelect(m_db, "AbxrStorage", "SELECT %s FROM %s", {}, m_dsABXRStorage);
 	// 	}
 		return DatabaseResult.eOk;
 	}
 	// Default name 'state'
-	public StorageGetEntry(szName: string = DbSetStorage.DEFAULTNAME): iXRDictStrings | null
+	public StorageGetEntry(szName: string = DbSetStorage.DEFAULTNAME): AbxrDictStrings | null
 	{
-		var pixrs:	iXRStorage | null;
+		var pabxrs:	AbxrStorage | null;
 
 		this.LoadStorageEntriesIfNecessary();
-		pixrs = (this.m_dsIXRStorage as DbSetStorage).GetEntry(szName);
+		pabxrs = (this.m_dsABXRStorage as DbSetStorage).GetEntry(szName);
 		// ---
-		return (pixrs && !pixrs.m_dsData.empty() && !pixrs.m_dsData[0].m_dspIXRXXXs.empty()) ? pixrs.m_dsData[0].m_dspIXRXXXs[0].m_cdictData : null;
+		return (pabxrs && !pabxrs.m_dsData.empty() && !pabxrs.m_dsData[0].m_dspABXRXXXs.empty()) ? pabxrs.m_dsData[0].m_dspABXRXXXs[0].m_cdictData : null;
 	}
 	// Default name 'state'
 	public StorageGetEntryAsString(szName: string = DbSetStorage.DEFAULTNAME): string
 	{
 		var	szRet:	string = "";
-		var	pixrs:	iXRStorage | null;
+		var	pabxrs:	AbxrStorage | null;
 
 		this.LoadStorageEntriesIfNecessary();
-		pixrs = (this.m_dsIXRStorage as DbSetStorage).GetEntry(szName);
-		if (pixrs && !pixrs.m_dsData.empty() && !pixrs.m_dsData[0].m_dspIXRXXXs.empty())
+		pabxrs = (this.m_dsABXRStorage as DbSetStorage).GetEntry(szName);
+		if (pabxrs && !pabxrs.m_dsData.empty() && !pabxrs.m_dsData[0].m_dspABXRXXXs.empty())
 		{
-			szRet = pixrs.m_dsData[0].m_dspIXRXXXs[0].m_cdictData.ToString();
+			szRet = pabxrs.m_dsData[0].m_dspABXRXXXs[0].m_cdictData.ToString();
 		}
 		// ---
 		return szRet;
 	}
 	// Default name 'state'
 	public async StorageSetEntry(
-		data: string | iXRDictStrings,
+		data: string | AbxrDictStrings,
 		bKeepLatest: boolean,
 		szOrigin: string,
 		bSessionData: boolean,
-		szName: string = DbSetStorage.DEFAULTNAME
-	): Promise<iXRResult> {
+		szName: string = DbSetStorage.DEFAULTNAME): Promise<AbxrResult>
+	{
 		this.LoadStorageEntriesIfNecessary();
 		// ---
 		
 		const dictData = typeof data === 'string' 
-			? new iXRDictStrings().Construct(data)
+			? new AbxrDictStrings().Construct(data)
 			: data;
 		
-		return await (this.m_dsIXRStorage as DbSetStorage).SetEntry(
+		return await (this.m_dsABXRStorage as DbSetStorage).SetEntry(
 			dictData,
 			bKeepLatest,
 			szOrigin,
@@ -1217,18 +1217,18 @@ export class iXRDbContext extends DbContext
 		);
 	}
 	// Default name 'state'
-	public async StorageRemoveEntry(szName: string = DbSetStorage.DEFAULTNAME): Promise<iXRResult>
+	public async StorageRemoveEntry(szName: string = DbSetStorage.DEFAULTNAME): Promise<AbxrResult>
 	{
 		this.LoadStorageEntriesIfNecessary();
-		return await (this.m_dsIXRStorage as DbSetStorage).RemoveEntry(szName);
+		return await (this.m_dsABXRStorage as DbSetStorage).RemoveEntry(szName);
 	}
-	public async StorageRemoveMultipleEntries(bSessionOnly: boolean): Promise<iXRResult>
+	public async StorageRemoveMultipleEntries(bSessionOnly: boolean): Promise<AbxrResult>
 	{
 		this.LoadStorageEntriesIfNecessary();
 		// ---
-		return await (this.m_dsIXRStorage as DbSetStorage).RemoveMultipleEntries(this, bSessionOnly);
+		return await (this.m_dsABXRStorage as DbSetStorage).RemoveMultipleEntries(this, bSessionOnly);
 	}
-	// --- END Functions supporting adding/changing/deleting iXRStorage objects.
+	// --- END Functions supporting adding/changing/deleting AbxrStorage objects.
 	private ConstructGuts(): void
 	{
 		// if (m_db.ConnectSQLite(m_szDbPath) === DatabaseResult.eOk)
@@ -1241,13 +1241,13 @@ export class iXRDbContext extends DbContext
 	}
 	public SaveChanges(): DatabaseResult // virtual
 	{
-		//return iXRLib.SaveChanges(m_db, null, this);
+		//return AbxrLib.SaveChanges(m_db, null, this);
 		return DatabaseResult.eOk;
 	}
 	// Return dictionary
-	public getAllData(): iXRDictStrings
+	public getAllData(): AbxrDictStrings
 	{
-		return new iXRDictStrings();
+		return new AbxrDictStrings();
 	}
 	// --- TESTS.
 // #ifdef _DEBUG
@@ -1262,31 +1262,31 @@ export class iXRDbContext extends DbContext
 /// Get all the REST endpoints in one place mapped to type being POSTed.
 /// </summary>
 /// <typeparam name="T">Type being POSTed.</typeparam>
-/// <typeparam name="iXRLibConfiguration">Pass in iXRLibConfiguration where this is instantiated... resolves forward-referencing catch-22.</typeparam>
+/// <typeparam name="AbxrLibConfiguration">Pass in AbxrLibConfiguration where this is instantiated... resolves forward-referencing catch-22.</typeparam>
 /// <returns>REST endpoint string const.</returns>
 export function RESTEndpointFromType<T>(tDraft: any) : string
 {
-	if (tDraft === iXREvent)
+	if (tDraft === AbxrEvent)
 	{
 		return "collect/event";
 	}
-	else if (tDraft === iXRLog)
+	else if (tDraft === AbxrLog)
 	{
 		return "collect/log";
 	}
-	else if (tDraft === iXRTelemetry)
+	else if (tDraft === AbxrTelemetry)
 	{
 		return "collect/telemetry";
 	}
-	else if (tDraft === iXRAIProxy)
+	else if (tDraft === AbxrAIProxy)
 	{
 		return "services/llm";
 	}
-	else if (tDraft === iXRLibConfiguration)
+	else if (tDraft === AbxrLibConfiguration)
 	{
 		return "storage/config";
 	}
-	else if (tDraft === iXRStorage)
+	else if (tDraft === AbxrStorage)
 	{
 		return "storage";
 	}
@@ -1297,23 +1297,23 @@ export function RESTEndpointFromType<T>(tDraft: any) : string
 // export function RESTEndpointFromType<T>(): string
 // {
 // 	// Map types to their REST endpoints
-// 	if ((T as any) === iXREvent) return "events";
-// 	if ((T as any) === iXRLog) return "logs";
-// 	if ((T as any) === iXRTelemetry) return "telemetry";
-// 	if ((T as any) === iXRStorage) return "storage";
-// 	if ((T as any) === iXRAIProxy) return "ai/proxy";
+// 	if ((T as any) === AbxrEvent) return "events";
+// 	if ((T as any) === AbxrLog) return "logs";
+// 	if ((T as any) === AbxrTelemetry) return "telemetry";
+// 	if ((T as any) === AbxrStorage) return "storage";
+// 	if ((T as any) === AbxrAIProxy) return "ai/proxy";
 // 	return "";
 // }
 
-// export function RESTEndpointFromType<T extends iXRBase>(): string
+// export function RESTEndpointFromType<T extends AbxrBase>(): string
 // {
 // 	switch (T.name)
 // 	{
-// 		case 'iXREvent': return 'events';
-// 		case 'iXRLog': return 'logs';
-// 		case 'iXRTelemetry': return 'telemetry';
-// 		case 'iXRStorage': return 'storage';
-// 		case 'iXRAIProxy': return 'ai/proxy';
+// 		case 'AbxrEvent': return 'events';
+// 		case 'AbxrLog': return 'logs';
+// 		case 'AbxrTelemetry': return 'telemetry';
+// 		case 'AbxrStorage': return 'storage';
+// 		case 'AbxrAIProxy': return 'ai/proxy';
 // 		default: return '';
 // 	}
 // }

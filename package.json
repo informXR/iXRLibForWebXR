@@ -1,14 +1,14 @@
 {
-	"name": "ixrlibforwebxr",
+	"name": "abxrlibforwebxr",
 	"version": "1.0.0",
 	"main": "index.js",
 	"type": "commonjs",
 	"module": "index.js",
 	"browser": "index.js",
 	"types": "index.d.ts",
-	"description": "iXRLibWebForXR for node (npm)",
+	"description": "AbxrLibWebForXR for node (npm)",
 	"scripts": {
-		"test-package": "npm link ixrlib",
+		"test-package": "npm link abxrlib",
 		"login": "npm login",
 		"build": "tsc",
 		"ts-watch": "npx tsc -w",

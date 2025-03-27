@@ -2,8 +2,8 @@
 # version: '3.8'
 
 services:
-  ixrlibforwebxr:
-    container_name: ixrlibforwebxr
+  abxrlibforwebxr:
+    container_name: abxrlibforwebxr
     build:
       context: .
       dockerfile: Dockerfile

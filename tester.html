@@ -3,18 +3,18 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Test iXRLibForWebXR.js</title>
+  <title>Test AbxrLibForWebXR.js</title>
   <!-- Include your bundled JS file -->
-  <script src="dist/iXRLibForWebXR.js"></script>
+  <script src="dist/AbxrLibForWebXR.js"></script>
   <script>
     // Authentication configuration
     const app_id = '471fd6fd-f5d0-4096-bc0c-17100c1c4fa0';
     const org_id = '5304ef74-423f-4bd4-87d9-cba4f19c3bdb';
-    const device_id = 'iXRLibForWebXR_js';
+    const device_id = 'AbxrLibForWebXR_js';
     const auth_secret = 'vEwWpJs5K2Kib3XeWBhXgQnQr43XNJCSyb5QJoGCU5ec590hFyb63vBSx6dX6Clj';
     const partner_id = 'arborxrs';
-    iXR = iXRLib.iXRLibSend;
-    iXR.DictStrings = iXRLib.iXRDictStrings;
+    Abxr = AbxrLib.AbxrLibSend;
+    Abxr.DictStrings = AbxrLib.AbxrDictStrings;
   </script>
   <style>
     table {
@@ -39,7 +39,7 @@
   </style>
 </head>
 <body>
-  <h1>Testing iXRLibForWebXR.js</h1>
+  <h1>Testing AbxrLibForWebXR.js</h1>
   
   <table>
     <tr>
@@ -80,27 +80,27 @@
 
   <script>
     function setAppConfig() {
-      console.log("Executing iXRLib.iXRLibBaseSetup.SetAppConfig()");
-      const result = iXRLib.iXRLibBaseSetup.SetAppConfig();
+      console.log("Executing AbxrLib.AbxrLibBaseSetup.SetAppConfig()");
+      const result = AbxrLib.AbxrLibBaseSetup.SetAppConfig();
       document.getElementById('setAppConfig_result').textContent = result === undefined ? 'Complete' : result;
     }
 
     function initStatics() {
-      console.log("Executing iXRLib.iXRLibInit.InitStatics()");
-      const result = iXRLib.iXRLibInit.InitStatics();
+      console.log("Executing AbxrLib.AbxrLibInit.InitStatics()");
+      const result = AbxrLib.AbxrLibInit.InitStatics();
       document.getElementById('initStatics_result').textContent = result === undefined ? 'Complete' : result;
     }
 
     function startLib() {
-      console.log("Executing iXRLib.iXRLibInit.Start()");
-      const result = iXRLib.iXRLibInit.Start();
+      console.log("Executing AbxrLib.AbxrLibInit.Start()");
+      const result = AbxrLib.AbxrLibInit.Start();
       document.getElementById('startLib_result').textContent = result === undefined ? 'Complete' : result;
     }
 
     async function authenticate() {
-      console.log("Executing iXRLib.iXRLibInit.Authenticate()");
+      console.log("Executing AbxrLib.AbxrLibInit.Authenticate()");
       try {
-        const result = await iXRLib.iXRLibInit.Authenticate(
+        const result = await AbxrLib.AbxrLibInit.Authenticate(
           app_id,
           org_id,
           device_id,
@@ -110,9 +110,9 @@
         
         // Get token data after successful authentication
         const tokenData = {
-          token: iXRLib.iXRLibInit.get_ApiToken(),
-          secret: iXRLib.iXRLibInit.get_ApiSecret(),
-          expiration: iXRLib.iXRLibInit.get_TokenExpiration()
+          token: AbxrLib.AbxrLibInit.get_ApiToken(),
+          secret: AbxrLib.AbxrLibInit.get_ApiSecret(),
+          expiration: AbxrLib.AbxrLibInit.get_TokenExpiration()
         };
 
         // Create formatted display string
@@ -128,10 +128,10 @@
     }
 
     async function try_Event() {
-      console.log("Executing iXR.Event()");
+      console.log("Executing Abxr.Event()");
       try {
         const eventValue = document.getElementById('event_input').value;
-        const dictMeta = new iXR.DictStrings();
+        const dictMeta = new Abxr.DictStrings();
         dictMeta.set("verb", "started");
         dictMeta.set("assessment_name", eventValue);
         
@@ -149,7 +149,7 @@
         };
         
         // Call the original method
-        const result = await iXR.Event(eventValue, dictMeta);
+        const result = await Abxr.Event(eventValue, dictMeta);
         
         // Restore original fetch
         window.fetch = originalFetch;
@@ -164,7 +164,7 @@
     }
 
     async function try_logDebug() {
-      console.log("Executing iXR.LogDebug()");
+      console.log("Executing Abxr.LogDebug()");
       try {
         const debugValue = document.getElementById('log_input').value;
         // Store the original fetch implementation
@@ -181,7 +181,7 @@
         };
         
         // Call the original method
-        const result = await iXR.LogDebug(debugValue);
+        const result = await Abxr.LogDebug(debugValue);
         
         // Restore original fetch
         window.fetch = originalFetch;

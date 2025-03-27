@@ -2,8 +2,8 @@
 /// Allows for several categories of object dumping each with rules for which fields to dump or filter.
 
 import { SUID } from "../types";
-import { DateTime, iXRResult, JsonResult, iXRDictStrings, StringList, TimeSpan } from "./DotNetishTypes";
-import { DatabaseResult } from "./iXRLibSQLite";
+import { DateTime, AbxrResult, JsonResult, AbxrDictStrings, StringList, TimeSpan } from "./DotNetishTypes";
+import { DatabaseResult } from "./AbxrLibSQLite";
 
 /// </summary>
 export enum DumpCategory
@@ -104,9 +104,9 @@ export class FieldPropertiesRecordContainer
 				rObj.obj[rObj.szKey] = (szJsonFieldValue === 'true');
 				break;
 			case 'object':
-				if (rObj.obj[rObj.szKey] instanceof iXRDictStrings)
+				if (rObj.obj[rObj.szKey] instanceof AbxrDictStrings)
 				{
-					rObj.obj[rObj.szKey] = new iXRDictStrings().FromJsonFieldValue(szJsonFieldValue);
+					rObj.obj[rObj.szKey] = new AbxrDictStrings().FromJsonFieldValue(szJsonFieldValue);
 				}
 				else if (rObj.obj[rObj.szKey] instanceof StringList)
 				{
@@ -166,9 +166,9 @@ export class FieldPropertiesRecordContainer
 	}
 	private ValueIsEmpty(oObjectValue: any)
 	{
-		if (oObjectValue instanceof iXRDictStrings)
+		if (oObjectValue instanceof AbxrDictStrings)
 		{
-			return (oObjectValue as iXRDictStrings).Count() == 0;
+			return (oObjectValue as AbxrDictStrings).Count() == 0;
 		}
 		else if (oObjectValue instanceof StringList)
 		{
@@ -199,9 +199,9 @@ export class FieldPropertiesRecordContainer
 				{
 					result[szJsonKey] = undefined;
 				}
-				else if (oObjectValue instanceof iXRDictStrings)
+				else if (oObjectValue instanceof AbxrDictStrings)
 				{
-					const szInnerJson:	string = (bStringOnly) ? (oObjectValue as iXRDictStrings).JSONstringify() : (oObjectValue as iXRDictStrings).GenerateJson();
+					const szInnerJson:	string = (bStringOnly) ? (oObjectValue as AbxrDictStrings).JSONstringify() : (oObjectValue as AbxrDictStrings).GenerateJson();
 
 					result[szJsonKey] = JSON.parse(szInnerJson);
 				}
@@ -303,7 +303,7 @@ export class DataObjectBase
 	// When indicated by ObjectAttribute::eOutOfBandObject, any fields not found in the object
 	// being LoadFromJson()ed, instead of erroring with JsonResult::eMissingField, will get stuffed
 	// into here, and GenerateJson() will render the extra fields.
-	// iXRDictStrings	m_dictOutOfBandData;
+	// AbxrDictStrings	m_dictOutOfBandData;
 	// // ---
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
 		{m_nLastLoadedSignature: new FieldProperties("last_loaded_signature", FieldPropertyFlags.bfExclude)},

@@ -1,12 +1,12 @@
-import { iXRDictStrings, Random } from "../../src/network/utils/DotNetishTypes";
-import { iXRAIProxy, iXRStorageData, LogLevelToString } from "../iXRLibCoreModel";
-import { LogLevel } from "../iXRLibCoreModel";
-import { iXRLocationData, iXRApplication, iXREvent, iXRLog, iXRTelemetry, iXRStorage, iXRDbContext } from "../iXRLibCoreModel";
+import { AbxrDictStrings, Random } from "../../src/network/utils/DotNetishTypes";
+import { AbxrAIProxy, AbxrStorageData, LogLevelToString } from "../AbxrLibCoreModel";
+import { LogLevel } from "../AbxrLibCoreModel";
+import { AbxrLocationData, AbxrApplication, AbxrEvent, AbxrLog, AbxrTelemetry, AbxrStorage, AbxrDbContext } from "../AbxrLibCoreModel";
 
 /// <summary>
 /// Application object... from "Database Models" doc... Represents the software application in use.
 /// </summary>
-export function FakeUpSomeRandomCrapApplication(obj: iXRApplication): void
+export function FakeUpSomeRandomCrapApplication(obj: AbxrApplication): void
 {
 	var pszAppIds:		string[] = [ "a44654", "a51654", "a57649", "a75638", "a83659", "a90376", "a45723" ];
 	var pszUserIds:		string[] = [ "u84967", "u74857", "u94748", "u84736", "u29683", "u98375", "u45823" ];
@@ -22,7 +22,7 @@ export function FakeUpSomeRandomCrapApplication(obj: iXRApplication): void
 	obj.m_szData = pszDatas[rnd.Next(pszDatas.length)];
 }
 
-export function FakeUpSomeRandomCrapLocation(obj: iXRLocationData): void
+export function FakeUpSomeRandomCrapLocation(obj: AbxrLocationData): void
 {
 	var rnd:	Random = new Random();
 
@@ -31,7 +31,7 @@ export function FakeUpSomeRandomCrapLocation(obj: iXRLocationData): void
 	obj.m_dZ = (rnd.Next(625)) / 5.0;
 }
 
-export function FakeUpSomeRandomCrapLog(obj: iXRLog): void
+export function FakeUpSomeRandomCrapLog(obj: AbxrLog): void
 {
 	var pszTexts:		string[] =
 		[
@@ -48,7 +48,7 @@ export function FakeUpSomeRandomCrapLog(obj: iXRLog): void
 	obj.m_dictMeta.Add("Rock on Chicago", "3141");
 }
 
-export function FakeUpSomeRandomCrapTelemetry(obj: iXRTelemetry): void
+export function FakeUpSomeRandomCrapTelemetry(obj: AbxrTelemetry): void
 {
 	var pszNames:		string[] =
 		[
@@ -65,7 +65,7 @@ export function FakeUpSomeRandomCrapTelemetry(obj: iXRTelemetry): void
 	obj.m_dictMeta.Add("Squirrel", "2718");
 }
 
-export function FakeUpSomeRandomCrapAIProxy(obj: iXRAIProxy): void
+export function FakeUpSomeRandomCrapAIProxy(obj: AbxrAIProxy): void
 {
 	var pszPrompts:			string[] =
 		[
@@ -91,10 +91,10 @@ export function FakeUpSomeRandomCrapAIProxy(obj: iXRAIProxy): void
 }
 
 /// <summary>
-/// Event object... from "ixrlib Spec 2023" doc... the main event object that will be profligately POST/PUT/ETCed to the backend for data analytics.
+/// Event object... from "abxrlib Spec 2023" doc... the main event object that will be profligately POST/PUT/ETCed to the backend for data analytics.
 /// </summary>
 
-export function FakeUpSomeCrapEvent(obj: iXREvent): void
+export function FakeUpSomeCrapEvent(obj: AbxrEvent): void
 {
 	obj.m_dictMeta.Add("key1", "1");
 	obj.m_dictMeta.Add("key2", "value2");
@@ -102,7 +102,7 @@ export function FakeUpSomeCrapEvent(obj: iXREvent): void
 	obj.m_dictMeta.Add("key4", "value4");
 }
 
-export function FakeUpSomeDifferentCrapEvent(obj: iXREvent): void
+export function FakeUpSomeDifferentCrapEvent(obj: AbxrEvent): void
 {
 	var rnd:			Random = new Random();
 
@@ -112,12 +112,12 @@ export function FakeUpSomeDifferentCrapEvent(obj: iXREvent): void
 	obj.m_dictMeta.Add("key4", "value4");
 }
 
-// export function FakeUpSomeRandomCrapEvent(obj: iXREvent): void
+// export function FakeUpSomeRandomCrapEvent(obj: AbxrEvent): void
 // {
 // 	FakeUpSomeRandomCrapEvent(obj, true);
 // }
 
-export function FakeUpSomeRandomCrapEvent(obj: iXREvent, bWantChildObjects: boolean): void
+export function FakeUpSomeRandomCrapEvent(obj: AbxrEvent, bWantChildObjects: boolean): void
 {
 	var pszLogLevels:	string[] = [ "Stygian", "Low", "Medium", "High", "Stratospheric" ];
 	var pszNames:		string[] =
@@ -178,7 +178,7 @@ export function FakeUpSomeRandomCrapEvent(obj: iXREvent, bWantChildObjects: bool
 /// Mainly state, but more general than that... whatever user wants but principally state info.
 /// </summary>
 
-export function FakeUpSomeRandomCrapStorageData(obj: iXRStorageData): void
+export function FakeUpSomeRandomCrapStorageData(obj: AbxrStorageData): void
 {
 	var pszStorageEntries:	string[] =
 	[
@@ -188,7 +188,7 @@ export function FakeUpSomeRandomCrapStorageData(obj: iXRStorageData): void
 	var szKey:				string;
 	var szValue:			string;
 
-	obj.m_cdictData = new iXRDictStrings();
+	obj.m_cdictData = new AbxrDictStrings();
 	szKey = pszStorageEntries[rnd.Next(pszStorageEntries.length)];
 	szValue = pszStorageEntries[rnd.Next(pszStorageEntries.length)];
 	obj.m_cdictData.Add(szKey, szValue);
@@ -197,7 +197,7 @@ export function FakeUpSomeRandomCrapStorageData(obj: iXRStorageData): void
 	obj.m_cdictData.Add(szKey, szValue);
 };
 
-export function FakeUpSomeRandomCrapStorage(obj: iXRStorage): void
+export function FakeUpSomeRandomCrapStorage(obj: AbxrStorage): void
 {
 	var pszNames:	string[] = [ "George", "Liquor", "American", "Dave", "Знать", "Here", "Richard", "Wagner", "Jonas", "Grumby" ];
 	var pszOrigins:	string[] = [ "system", "user" ];
@@ -205,16 +205,16 @@ export function FakeUpSomeRandomCrapStorage(obj: iXRStorage): void
 	var rnd:		Random = new Random();
 	var szKey:		string;
 	var szValue:	string;
-	var ixrData:	iXRStorageData = new iXRStorageData();
+	var abxrData:	AbxrStorageData = new AbxrStorageData();
 
 	obj.m_szKeepPolicy = (rnd.Next(3) == 0) ? "keepLatest" : "appendHistory";
 	obj.m_szName = pszNames[rnd.Next(pszNames.length)];
 	// ---
-	FakeUpSomeRandomCrapStorageData(ixrData);
+	FakeUpSomeRandomCrapStorageData(abxrData);
 	obj.m_dsData.clear();
-	//m_dsData.Add(ixrData);
-	obj.m_dsData.emplace_front().m_dspIXRXXXs.emplace_front().m_cdictData.Add("Rock", "Roll");
-	obj.m_dsData[0].m_dspIXRXXXs[0].m_cdictData.Add("Lemon", "Custard");
+	//m_dsData.Add(abxrData);
+	obj.m_dsData.emplace_front().m_dspABXRXXXs.emplace_front().m_cdictData.Add("Rock", "Roll");
+	obj.m_dsData[0].m_dspABXRXXXs[0].m_cdictData.Add("Lemon", "Custard");
 	// ---
 	obj.m_szOrigin = pszOrigins[rnd.Next(pszOrigins.length)];
 	obj.m_bSessionData = (rnd.Next(3) == 0);
@@ -227,37 +227,37 @@ export function FakeUpSomeRandomCrapStorage(obj: iXRStorage): void
 /// The Entity-Framework database object.
 /// </summary>
 
-export function FakeUpSomeRandomCrapDbContext(obj: iXRDbContext): void
+export function FakeUpSomeRandomCrapDbContext(obj: AbxrDbContext): void
 {
 	var i:	number;
 
 	for (i = 0; i < 8; i++)
 	{
-		var objApplication:	iXRApplication = obj.m_dsIXRApplications.emplace_back();
+		var objApplication:	AbxrApplication = obj.m_dsABXRApplications.emplace_back();
 
 		FakeUpSomeRandomCrapApplication(objApplication);
 	}
 	for (i = 0; i < 16; i++)
 	{
-		var objLog:	iXRLog = obj.m_dsIXRLogs.emplace_back();
+		var objLog:	AbxrLog = obj.m_dsABXRLogs.emplace_back();
 
 		FakeUpSomeRandomCrapLog(objLog);
 	}
 	for (i = 0; i < 16; i++)
 	{
-		var objEvent:	iXREvent = obj.m_dsIXREvents.emplace_back();
+		var objEvent:	AbxrEvent = obj.m_dsABXREvents.emplace_back();
 
 		FakeUpSomeRandomCrapEvent(objEvent, true);
 	}
 	for (i = 0; i < 13; i++)
 	{
-		var objTelemetry:	iXRTelemetry = obj.m_dsIXRTelemetry.emplace_back();
+		var objTelemetry:	AbxrTelemetry = obj.m_dsABXRTelemetry.emplace_back();
 
 		FakeUpSomeRandomCrapTelemetry(objTelemetry);
 	}
 	for (i = 0; i < 8; i++)
 	{
-		var objStorage:	iXRStorage = obj.m_dsIXRStorage.emplace_back();
+		var objStorage:	AbxrStorage = obj.m_dsABXRStorage.emplace_back();
 
 		FakeUpSomeRandomCrapStorage(objStorage);
 	}

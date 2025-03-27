@@ -1,19 +1,19 @@
-import { iXRLibAnalytics, iXRLibInit } from "./iXRLibAnalytics";
-import { iXRLibAsync } from "./iXRLibAsync";
-import { DbSetStorage, iXRBase, iXREvent } from "./iXRLibCoreModel";
-import { iXRLibStorage } from "./iXRLibStorage";
+import { AbxrLibAnalytics, AbxrLibInit } from "./AbxrLibAnalytics";
+import { AbxrLibAsync } from "./AbxrLibAsync";
+import { DbSetStorage, AbxrBase, AbxrEvent } from "./AbxrLibCoreModel";
+import { AbxrLibStorage } from "./AbxrLibStorage";
 
-export class iXRInitAllStatics
+export class AbxrInitAllStatics
 {
 	public static InitStatics(): void
 	{
-		iXRLibInit.InitStatics();
-		iXRLibAnalytics.InitStatics();
-		iXRLibAsync.InitStatics();
-		iXRBase.InitStatics();
-		iXREvent.InitStatics();
+		AbxrLibInit.InitStatics();
+		AbxrLibAnalytics.InitStatics();
+		AbxrLibAsync.InitStatics();
+		AbxrBase.InitStatics();
+		AbxrEvent.InitStatics();
 		DbSetStorage.InitStatics();
-		iXRLibStorage.InitStatics();
+		AbxrLibStorage.InitStatics();
 	}
 }
 
@@ -24,11 +24,11 @@ export class iXRInitAllStatics
 /// ---
 /// More commentary:  This worked in the very specific code tree where it was branched off Jijo's code.  When I condensed it down
 ///		to just what is necessary for the port, this started having init-order issues.  Hence, InitAllStatics() below is called in
-///		iXRLib.Start().  Also, static { this.InitStatics(); } was tried... which results in the error that inspired this code.
+///		AbxrLib.Start().  Also, static { this.InitStatics(); } was tried... which results in the error that inspired this code.
 /// </summary>
-// iXRInitAllStatics.InitStatics();
+// AbxrInitAllStatics.InitStatics();
 
 export function InitAllStatics()
 {
-	iXRInitAllStatics.InitStatics();
+	AbxrInitAllStatics.InitStatics();
 }

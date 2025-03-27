@@ -1,14 +1,14 @@
-import { iXRLibAnalytics, iXRLibInit } from './iXRLibAnalytics';
-import { iXRLibAsync } from './iXRLibAsync';
-import { iXRApplication, iXRBase, iXRDbContext, iXREvent, iXRLibConfiguration, iXRLog, iXRTelemetry } from './iXRLibCoreModel';
-import { iXRLibSend, iXRLibAnalyticsEventCallback } from './iXRLibSend';
-import { iXRLibStorage } from './iXRLibStorage';
+import { AbxrLibAnalytics, AbxrLibInit } from './AbxrLibAnalytics';
+import { AbxrLibAsync } from './AbxrLibAsync';
+import { AbxrApplication, AbxrBase, AbxrDbContext, AbxrEvent, AbxrLibConfiguration, AbxrLog, AbxrTelemetry } from './AbxrLibCoreModel';
+import { AbxrLibSend, AbxrLibAnalyticsEventCallback } from './AbxrLibSend';
+import { AbxrLibStorage } from './AbxrLibStorage';
 import { Base64, CurlHttp, logError, Sleep, SUID, SyncEvent } from './network/types';
 import { SHA256 } from './network/utils/cryptoUtils';
 import { DataObjectBase, DbSet, DumpCategory, FieldProperties, FieldPropertiesRecordContainer, FieldPropertyFlags, GenerateJson } from './network/utils/DataObjectBase';
-import { ConfigurationManager, DateTime, iXRResult, iXRDictStrings, StringList, TimeSpan } from './network/utils/DotNetishTypes';
-import { FakeUpSomeCrapEvent, FakeUpSomeRandomCrapEvent } from './test/iXRLibCoreModelTests';
-import { iXRLibAnalyticsTests } from './test/iXRLibAnalyticsTests';
+import { ConfigurationManager, DateTime, AbxrResult, AbxrDictStrings, StringList, TimeSpan } from './network/utils/DotNetishTypes';
+import { FakeUpSomeCrapEvent, FakeUpSomeRandomCrapEvent } from './test/AbxrLibCoreModelTests';
+import { AbxrLibAnalyticsTests } from './test/AbxrLibAnalyticsTests';
 
 // Mock window object for Node.js environment
 if (typeof window === 'undefined') {
@@ -68,7 +68,7 @@ class TestData extends DataObjectBase
 	public m_nStrictlyCommercial:	number = 1.2;
 	public m_szSomeString:			string = "with a lead filled snowshoe."
 	public m_objTestChild:			TestChild = new TestChild();
-	public m_dictTest:				iXRDictStrings = new iXRDictStrings();
+	public m_dictTest:				AbxrDictStrings = new AbxrDictStrings();
 	public m_listTestListChild:		DbSet<TestListChild> = new DbSet<TestListChild>(TestListChild);
 	public m_listTestStringList:	StringList = new StringList();
 	// ---
@@ -109,27 +109,27 @@ class DbSetsOfStuff extends DataObjectBase
 	public m_listTestChildren:	DbSet<TestChild> = new DbSet<TestChild>(TestChild);
 }
 
-export class iXRXXXTestScalarContainer<T extends DataObjectBase> extends iXRBase
+export class AbxrXXXTestScalarContainer<T extends DataObjectBase> extends AbxrBase
 {
-	public m_tIXRXXX:	T = {} as T;
+	public m_tABXRXXX:	T = {} as T;
 	// ---
 	constructor(tTypeOfT: any)
 	{
 		super();
-		this.m_tIXRXXX = new tTypeOfT();
+		this.m_tABXRXXX = new tTypeOfT();
 	}
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
 		super.m_mapProperties.m_rfp,
-		{m_tIXRXXX: new FieldProperties("data", FieldPropertyFlags.bfChild)}));
+		{m_tABXRXXX: new FieldProperties("data", FieldPropertyFlags.bfChild)}));
 	// ---
 	//constructor(tTypeOfT: any)
 	//{
 	//	super();
-	//	this.m_tIXRXXX = new tTypeOfT();
+	//	this.m_tABXRXXX = new tTypeOfT();
 	//}
 	public GetMapProperties(): FieldPropertiesRecordContainer // virtual
 	{
-		return iXRXXXTestScalarContainer.m_mapProperties;
+		return AbxrXXXTestScalarContainer.m_mapProperties;
 	}
 };
 
@@ -179,7 +179,7 @@ async function TestHttp()
 	var dtNow:		DateTime = new DateTime();
 	var szResponse:	string = "";
 
-	objRequest.AddHttpHeader("Host", iXRLibStorage.m_ixrLibConfiguration.GetRestUrlObject().HostAndPort());
+	objRequest.AddHttpHeader("Host", AbxrLibStorage.m_abxrLibConfiguration.GetRestUrlObject().HostAndPort());
 	objRequest.AddHttpHeader("Accept", "application/json");
 	objRequest.AddHttpHeader("UserAgent", "Mozilla/5.0 (Windows NT 10.0; Win64; rv:109.0) Gecko/20100101 Firefox/119.0");
 	objRequest.AddHttpHeader("Accept-Language", "en-US; q=0.5, en; q=0.5");
@@ -187,8 +187,8 @@ async function TestHttp()
 	objRequest.AddHttpHeader("Content-Type", "application/json");	// May need to parse pbBodyContent someday to distinguish Content-Type and Accept header settings.
 	// ---
 	objRequest.AddHttpAuthHeader("Bearer", 'this.m_szApiToken');
-	objRequest.AddHttpHeader("X-iXRLib-Hash", "wpIeZXbCmG1HYQ/CpMK0BWFFE8K/cSsnw41hA8KrwrVnFsKcSsOnG2YN");
-	objRequest.AddHttpHeader("X-iXRLib-Timestamp", dtNow.ToString());
+	objRequest.AddHttpHeader("X-AbxrLib-Hash", "wpIeZXbCmG1HYQ/CpMK0BWFFE8K/cSsnw41hA8KrwrVnFsKcSsOnG2YN");
+	objRequest.AddHttpHeader("X-AbxrLib-Timestamp", dtNow.ToString());
 	// ---
 	await objRequest.Post("http://192.168.5.2:19080/api/v1/telemetry", [], Buffer.from("Some egregiously invalid body content."), {szResponse: ""});
 	console.log(objRequest.m_objResponse);
@@ -196,26 +196,26 @@ async function TestHttp()
 
 async function TestLoginAndSend(): Promise<void>
 {
-	var ixrEvent:					iXREvent = new iXREvent();
+	var abxrEvent:					AbxrEvent = new AbxrEvent();
 	var seAsyncOperationComplete:	SyncEvent = new SyncEvent();
-	// var eRet:						iXRResult = iXRResult.eOk;
+	// var eRet:						AbxrResult = AbxrResult.eOk;
 
-	iXRLibInit.Start();
-	FieldPropertiesRecordContainer.FromString({obj: iXRLibStorage.m_ixrLibConfiguration, szKey: 'm_tsPruneSentItemsOlderThan'}, "12:00:00");
-	FieldPropertiesRecordContainer.FromString({obj: iXRLibStorage.m_ixrLibConfiguration, szKey: 'm_nMaximumCachedItems'}, "1025");
-	FieldPropertiesRecordContainer.FromString({obj: iXRLibStorage.m_ixrLibConfiguration, szKey: 'm_bRetainLocalAfterSent'}, "false");
-	FieldPropertiesRecordContainer.FromString({obj: iXRLibStorage.m_ixrLibConfiguration, szKey: 'm_dictAuthMechanism'}, "{\"Hey\": \"Pedro\", \"There\": \"Juan\", \"What\": \"Up\"}");
-	console.log(iXRLibStorage.m_ixrLibConfiguration);
+	AbxrLibInit.Start();
+	FieldPropertiesRecordContainer.FromString({obj: AbxrLibStorage.m_abxrLibConfiguration, szKey: 'm_tsPruneSentItemsOlderThan'}, "12:00:00");
+	FieldPropertiesRecordContainer.FromString({obj: AbxrLibStorage.m_abxrLibConfiguration, szKey: 'm_nMaximumCachedItems'}, "1025");
+	FieldPropertiesRecordContainer.FromString({obj: AbxrLibStorage.m_abxrLibConfiguration, szKey: 'm_bRetainLocalAfterSent'}, "false");
+	FieldPropertiesRecordContainer.FromString({obj: AbxrLibStorage.m_abxrLibConfiguration, szKey: 'm_dictAuthMechanism'}, "{\"Hey\": \"Pedro\", \"There\": \"Juan\", \"What\": \"Up\"}");
+	console.log(AbxrLibStorage.m_abxrLibConfiguration);
 	var	dtNow:			DateTime = DateTime.ConvertUnixTime(DateTime.Now()),
-						dtOlderThan:	DateTime = DateTime.ConvertUnixTime(dtNow.ToUnixTime() - (iXRLibStorage.m_ixrLibConfiguration.m_tsPruneSentItemsOlderThan as TimeSpan).ToInt64());
-	if (await iXRLibAnalyticsTests.TestAuthenticate() === iXRResult.eOk)
+						dtOlderThan:	DateTime = DateTime.ConvertUnixTime(dtNow.ToUnixTime() - (AbxrLibStorage.m_abxrLibConfiguration.m_tsPruneSentItemsOlderThan as TimeSpan).ToInt64());
+	if (await AbxrLibAnalyticsTests.TestAuthenticate() === AbxrResult.eOk)
 	{
-		await iXRLibAnalyticsTests.AddXXX<iXREvent>(iXREvent, true, seAsyncOperationComplete, true, iXRLibSend.EventCore, /*iXRLibSend.EventCoreDeferred*/null);
-		await iXRLibAnalyticsTests.AddXXX<iXRTelemetry>(iXRTelemetry, true, seAsyncOperationComplete, true, iXRLibSend.AddTelemetryEntryCore, /*iXRLibSend.AddTelemetryEntryCoreDeferred*/null);
-		await iXRLibAnalyticsTests.AddXXX<iXRLog>(iXRLog, true, seAsyncOperationComplete, true, iXRLibSend.AddLog, /*iXRLibSend.AddLogDeferred*/null);
+		await AbxrLibAnalyticsTests.AddXXX<AbxrEvent>(AbxrEvent, true, seAsyncOperationComplete, true, AbxrLibSend.EventCore, /*AbxrLibSend.EventCoreDeferred*/null);
+		await AbxrLibAnalyticsTests.AddXXX<AbxrTelemetry>(AbxrTelemetry, true, seAsyncOperationComplete, true, AbxrLibSend.AddTelemetryEntryCore, /*AbxrLibSend.AddTelemetryEntryCoreDeferred*/null);
+		await AbxrLibAnalyticsTests.AddXXX<AbxrLog>(AbxrLog, true, seAsyncOperationComplete, true, AbxrLibSend.AddLog, /*AbxrLibSend.AddLogDeferred*/null);
 	}
-	ixrEvent.FakeUpSomeRandomCrap(true);
-	await iXRLibSend.EventCore(ixrEvent);
+	abxrEvent.FakeUpSomeRandomCrap(true);
+	await AbxrLibSend.EventCore(abxrEvent);
 }
 
 async function PrintStuffEveryThirdOfASecond(): Promise<number>
@@ -244,12 +244,12 @@ async function PrintStuffEveryHalfOfASecond(): Promise<number>
 
 async function TestEmptyDictMeta()
 {
-	var ixrEvent:	iXREvent = new iXREvent();
+	var abxrEvent:	AbxrEvent = new AbxrEvent();
 
-	ixrEvent.FakeUpSomeRandomCrap();
-	console.log(GenerateJson(ixrEvent, DumpCategory.eDumpingJsonForBackend), "\n");
-	ixrEvent.m_dictMeta.clear();
-	console.log(GenerateJson(ixrEvent, DumpCategory.eDumpingJsonForBackend), "\n");
+	abxrEvent.FakeUpSomeRandomCrap();
+	console.log(GenerateJson(abxrEvent, DumpCategory.eDumpingJsonForBackend), "\n");
+	abxrEvent.m_dictMeta.clear();
+	console.log(GenerateJson(abxrEvent, DumpCategory.eDumpingJsonForBackend), "\n");
 }
 
 async function TestJson(): Promise<void>
@@ -258,12 +258,12 @@ async function TestJson(): Promise<void>
 	var szJSON:			string = "";
 	var bLooped:		boolean = false;
 	var obj:			DbSetsOfStuff = new DbSetsOfStuff();
-	var pdsIXRXXX:		any = null;
+	var pdsABXRXXX:		any = null;
 	var tsTest:			TimeSpan = TimeSpan.Parse("12:34:56");
-	var ixrEvent:		iXREvent = new iXREvent();
+	var abxrEvent:		AbxrEvent = new AbxrEvent();
 	var suidTest:		SUID = new SUID();
 	var bufferTest:		Buffer = Buffer.from([23, 56, 26, 78, 45, 12, 89, 54]);
-	var objTestScalarContainer:	iXRXXXTestScalarContainer<TestData> = new iXRXXXTestScalarContainer<TestData>(TestData);
+	var objTestScalarContainer:	AbxrXXXTestScalarContainer<TestData> = new AbxrXXXTestScalarContainer<TestData>(TestData);
 
 	try
 	{
@@ -288,12 +288,12 @@ async function TestJson(): Promise<void>
 			console.log(e);
 		}
 		console.log(suidTest.ToString());
-		// iXRLibAnalytics.m_ixrLibAsync.AddTask(async (o: any): Promise<iXRResult> => { console.log("Sleeping..."); await Sleep(3000); console.log("Never shoot no dear."); return iXRResult.eOk; }, objTestData, (o: any):void => { console.log("It's just flooded I'll be ok."); });
+		// AbxrLibAnalytics.m_abxrLibAsync.AddTask(async (o: any): Promise<AbxrResult> => { console.log("Sleeping..."); await Sleep(3000); console.log("Never shoot no dear."); return AbxrResult.eOk; }, objTestData, (o: any):void => { console.log("It's just flooded I'll be ok."); });
 		// ---
 		console.log(DbSetsOfStuff);
-		iXRLibInit.Start();
-		FakeUpSomeRandomCrapEvent(ixrEvent, true);
-		await iXRLibSend.EventCore(ixrEvent);
+		AbxrLibInit.Start();
+		FakeUpSomeRandomCrapEvent(abxrEvent, true);
+		await AbxrLibSend.EventCore(abxrEvent);
 		// if (typeof(DbSetsOfStuff) === "function")
 		// {
 		// 	console.log("It is a function");
@@ -307,7 +307,7 @@ async function TestJson(): Promise<void>
 		// 		if (objField.ContainedType() === TestData)
 		// 		{
 		// 			console.log("Found it: ", szField);
-		// 			pdsIXRXXX = objField;
+		// 			pdsABXRXXX = objField;
 		// 			break;
 		// 		}
 		// 	}

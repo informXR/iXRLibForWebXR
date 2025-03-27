@@ -9,12 +9,12 @@ RUN apt-get update && \
 RUN mkdir /opt/informxr
 WORKDIR /opt/informxr
 COPY package.json ts-node-config.json tsconfig.json webpack.config.js .eslintignore .eslintrc.json .npmignore ./ 
-COPY ixr-buildall.sh ./ 
-RUN chmod +x ixr-buildall.sh
+COPY abxr-buildall.sh ./ 
+RUN chmod +x abxr-buildall.sh
 COPY src ./src
 
 RUN npm install
 RUN npm install process --save-dev
 
 # Command to run the application.
-ENTRYPOINT [ "./ixr-buildall.sh" ]
+ENTRYPOINT [ "./abxr-buildall.sh" ]

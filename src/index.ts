@@ -1,18 +1,18 @@
-import { iXRLibInit } from "./iXRLibAnalytics";
-import { iXRLibStorage } from "./iXRLibStorage";
-import { iXRLibAsync } from "./iXRLibAsync";
-import { iXRLibSend } from "./iXRLibSend";
-import { ConfigurationManager, DateTime, iXRResult, iXRDictStrings, StringList, TimeSpan, InteractionType, ResultOptions } from './network/utils/DotNetishTypes';
-import { iXRBase, iXREvent } from "./iXRLibCoreModel";
+import { AbxrLibInit } from "./AbxrLibAnalytics";
+import { AbxrLibStorage } from "./AbxrLibStorage";
+import { AbxrLibAsync } from "./AbxrLibAsync";
+import { AbxrLibSend } from "./AbxrLibSend";
+import { ConfigurationManager, DateTime, AbxrResult, AbxrDictStrings, StringList, TimeSpan, InteractionType, ResultOptions } from './network/utils/DotNetishTypes';
+import { AbxrBase, AbxrEvent } from "./AbxrLibCoreModel";
 
 // Initialize all static members
-iXRLibInit.InitStatics();
-iXRLibStorage.InitStatics();
-iXRLibAsync.InitStatics();
-iXRBase.InitStatics;
-iXREvent.InitStatics();
+AbxrLibInit.InitStatics();
+AbxrLibStorage.InitStatics();
+AbxrLibAsync.InitStatics();
+AbxrBase.InitStatics;
+AbxrEvent.InitStatics();
 
-class iXRLibBaseSetup {
+class AbxrLibBaseSetup {
     public static SetAppConfig(customConfig?: string): void
     {
         const defaultConfig: string = '<?xml version="1.0" encoding="utf-8" ?>' +
@@ -44,25 +44,25 @@ class iXRLibBaseSetup {
 
     // Add any other base setup methods here
     public static InitializeAll(): void {
-        iXRLibBaseSetup.SetAppConfig();
+        AbxrLibBaseSetup.SetAppConfig();
         // Add any other initialization steps needed
     }
 }
 
 // Export the main library objects that consumers will need
 export {
-    iXRLibInit,
-    iXRLibStorage,
-    iXRLibAsync,
-    iXRLibSend,
-    iXRLibBaseSetup,
-    iXRDictStrings,
-    iXRBase,
+    AbxrLibInit,
+    AbxrLibStorage,
+    AbxrLibAsync,
+    AbxrLibSend,
+    AbxrLibBaseSetup,
+    AbxrDictStrings,
+    AbxrBase,
     InteractionType,
     ResultOptions
 };
 
 // Create a global instance for direct access
 //if (typeof window !== 'undefined') {
-//    (window as any).iXR = iXRLibBaseSetup;
+//    (window as any).Abxr = AbxrLibBaseSetup;
 //}

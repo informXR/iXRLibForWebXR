@@ -4,6 +4,6 @@ build
 .DS_Store
 .DS_Store
 .env
-/iXRLibForWebXR
+/AbxrLibForWebXR
 /dist
 yarn.lock
