@@ -486,8 +486,8 @@ export class AbxrMetaDataObject extends AbxrBase
 /// </summary>
 export class AbxrLog extends AbxrMetaDataObject
 {
-	public m_szLogLevel:	string;
-	public m_szText:		string;
+	public m_szLogLevel:	string = "";
+	public m_szText:		string = "";
 	// ---
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
 		super.m_mapProperties.m_rfp,
@@ -529,7 +529,7 @@ export class AbxrLog extends AbxrMetaDataObject
 /// </summary>
 export class AbxrTelemetry extends AbxrMetaDataObject
 {
-	public m_szName:			string;				// Consider the x, y, z case (super.m_dictMeta) ... (x, y, z) of what?  This is the "what"... can be empty when self-evident like battery level.
+	public m_szName:			string = "";			// Consider the x, y, z case (super.m_dictMeta) ... (x, y, z) of what?  This is the "what"... can be empty when self-evident like battery level.
 	// ---
 	constructor()
 	{
@@ -751,10 +751,10 @@ export class AbxrXXXContainer<T extends DataObjectBase, T_CONTAINS, bTWantTimest
 	}
 	// --- TESTS.
 // #ifdef _DEBUG
-	public FakeUpSomeRandomCrap(bWantChildObjects: boolean = true): void
-	{
-		this.m_dspABXRXXXs.emplace_front().FakeUpSomeRandomCrap(bWantChildObjects);
-	}
+	//public FakeUpSomeRandomCrap(bWantChildObjects: boolean = true): void
+	//{
+	//	this.m_dspABXRXXXs.emplace_front().FakeUpSomeRandomCrap(bWantChildObjects);
+	//}
 // #endif // _DEBUG
 };
 
