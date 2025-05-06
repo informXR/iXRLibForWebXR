@@ -304,7 +304,7 @@ export class DataObjectBase
 	// being LoadFromJson()ed, instead of erroring with JsonResult::eMissingField, will get stuffed
 	// into here, and GenerateJson() will render the extra fields.
 	// AbxrDictStrings	m_dictOutOfBandData;
-	// // ---
+	// ---
 	public static m_mapProperties: FieldPropertiesRecordContainer = new FieldPropertiesRecordContainer(Object.assign({},
 		{m_nLastLoadedSignature: new FieldProperties("last_loaded_signature", FieldPropertyFlags.bfExclude)},
 		{m_bFlaggedForDelete: new FieldProperties("flagged_for_delete", FieldPropertyFlags.bfExclude)},

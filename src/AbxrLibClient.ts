@@ -639,10 +639,6 @@ export class AbxrLibClient
 	{
 		return await AbxrLibClient.PostABXRXXXs<AbxrTelemetry>(listpTelemetry, AbxrTelemetry, bOneAtATime, rpResponse);
 	}
-	public static async PostABXRAIProxy(listpAIProxy: DbSet<AbxrAIProxy>, bOneAtATime: boolean, rpResponse: {szResponse: string}): Promise<AbxrResult>
-	{
-		return await AbxrLibClient.PostABXRXXXs<AbxrAIProxy>(listpAIProxy, AbxrAIProxy, bOneAtATime, rpResponse);
-	}
 	public static async PostABXRStorage(listpStorage: DbSet<AbxrStorage>, bOneAtATime: boolean, rpResponse: {szResponse: string}): Promise<AbxrResult>
 	{
 		return await AbxrLibClient.PostABXRXXXs<AbxrStorage>(listpStorage, AbxrStorage, bOneAtATime, rpResponse);
