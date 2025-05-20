@@ -994,7 +994,7 @@ export class AbxrLibAnalytics
 	// ---
 	public static async AddAIProxyEntry(abxrAIProxy: AbxrAIProxy): Promise<AbxrResult>
 	{
-		return await AbxrLibAnalytics.AddXXXTask<AbxrAIProxy>(abxrAIProxy, AbxrAIProxy, "ABXRAIProxy", AbxrLibClient.PostABXRAIProxy, false, false, null);
+		return await AbxrLibAnalytics.AddXXXTask<AbxrAIProxy>(abxrAIProxy, AbxrAIProxy, "ABXRAIProxy", AbxrLibClient.PostABXRAIProxyObjects, false, false, null);
 	}
 	// public static AddAIProxyEntryDeferred(abxrAIProxy: AbxrAIProxy, bNoCallbackOnSuccess: boolean, pfnStatusCallback: AbxrLibAnalyticsAIProxyCallback): Promise<AbxrResult>
 	// {
